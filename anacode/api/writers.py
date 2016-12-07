@@ -39,7 +39,7 @@ class CSVWriter:
         'concepts': ['doc_id', 'text_order', 'concept', 'freq',
                      'relevance_score', 'concept_type'],
         'concepts_expr': ['doc_id', 'text_order', 'concept', 'expression'],
-        'sentiment': ['doc_id', 'positive', 'negative'],
+        'sentiments': ['doc_id', 'text_order', 'positive', 'negative'],
     }
 
     def __init__(self, target_dir='.'):
@@ -48,6 +48,11 @@ class CSVWriter:
         self.target_dir = os.path.abspath(os.path.expanduser(target_dir))
         self._files = {}
         self.csv = {}
+
+    def _new_doc_id(self, call):
+        current_id = self.ids[call]
+        self.ids[call] += 1
+        return current_id
 
     def init(self) -> dict:
         self.close()
@@ -58,7 +63,7 @@ class CSVWriter:
             'concepts': open(path('concepts.csv'), 'w', newline=''),
             'concepts_expr': open(path('concepts_expressions.csv'), 'w',
                                   newline=''),
-            'sentiment': open(path('senfiment.csv'), 'w', newline=''),
+            'sentiments': open(path('sentiments.csv'), 'w', newline=''),
         }
         self.csv = {name: csv.writer(fp) for name, fp in self._files.items()}
         for name, writer in self.csv.items():
@@ -97,8 +102,7 @@ class CSVWriter:
         self.ids['category'] += 1
 
     def write_concepts(self, analyzed):
-        doc_id = self.ids['concept']
-        self.ids['concept'] += 1
+        doc_id = self._new_doc_id('concept')
         con_csv = self.csv['concepts']
         exp_csv = self.csv['concepts_expr']
         for text_order, text_analyzed in enumerate(analyzed):
@@ -121,7 +125,16 @@ class CSVWriter:
                                           concept.get('concept'), None])
 
     def write_sentiment(self, analyzed):
-        pass
+        doc_id = self._new_doc_id('sentiment')
+        sen_csv = self.csv['sentiments']
+        for text_order, sentiment in enumerate(analyzed):
+            sentiment_map = {
+                sentiment[0]['label']: sentiment[0]['probability'],
+                sentiment[1]['label']: sentiment[1]['probability'],
+            }
+            row = [doc_id, text_order, sentiment_map['positive'],
+                   sentiment_map['negative']]
+            sen_csv.writerow(row)
 
     def write_absa(self, analyzed):
         pass

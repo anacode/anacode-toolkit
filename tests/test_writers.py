@@ -165,3 +165,54 @@ class TestCsvWriterConcepts:
         assert row2[1] == '1'
         assert row2[2] == 'Samsung'
         assert row2[3] == 'samsung'
+
+
+@pytest.fixture
+def sentiments():
+    return [
+        [
+            {'label': 'negative', 'probability': 0.7299562892999195},
+            {'label': 'positive', 'probability': 0.2700437107000805}
+        ],
+        [
+            {'label': 'negative', 'probability': 0.6668725094407698},
+            {'label': 'positive', 'probability': 0.3331274905592302}
+        ]
+    ]
+
+
+class TestCsvWriterSentiment:
+    def test_write_sentiment_headers(self, tmpdir, sentiments):
+        target = tmpdir.mkdir('target')
+        csv_writer = writers.CSVWriter(str(target))
+        csv_writer.init()
+        csv_writer.write_sentiment(sentiments)
+        csv_writer.close()
+        contents = [f.basename for f in target.listdir()]
+        assert 'sentiments.csv' in contents
+        header = target.join('sentiments.csv').readlines()[0].strip()
+        assert 'doc_id' in header
+        assert 'text_order' in header
+        assert 'positive' in header
+        assert 'negative' in header
+
+    def test_write_sentiment_values(self, tmpdir, sentiments):
+        target = tmpdir.mkdir('target')
+        csv_writer = writers.CSVWriter(str(target))
+        csv_writer.init()
+        csv_writer.write_sentiment(sentiments)
+        csv_writer.close()
+        file_lines = target.join('sentiments.csv').readlines()
+        assert len(file_lines) == 3
+        row1 = file_lines[1].strip().split(',')
+        assert row1[0] == '0'
+        assert row1[1] == '0'
+        assert row1[2].startswith('0.27')
+        assert row1[3].startswith('0.72')
+        row2 = file_lines[2].strip().split(',')
+        assert row2[0] == '0'
+        assert row2[1] == '1'
+        assert row2[2].startswith('0.33')
+        assert row2[3].startswith('0.66')
+
+
