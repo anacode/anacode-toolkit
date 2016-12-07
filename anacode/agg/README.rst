@@ -76,4 +76,26 @@ efficiently limit scope of operations that you use on returned object.
     VisualAppearance        5
 
 
+So what's the difference?
+
+.. code-block:: python
+
+    >>> concepts[concepts['concept'] == 'VisualAppearance']['concept'].value_counts()
+    >>> concepts.filter(concept='VisualAppearance').count('concept)
+
+    >>> sentiment.stats()
+    >>> sentiment.describe()
+
+
+What about just "helper" functions, not a full blown library?
+
+There can be a function for getting set of most common concepts.
+
+.. code-block:: python
+
+    >>> bmw7_features = review_concepts[bmw7 & features].groupby('concept').agg({'freq': 'sum'})
+    >>> bmw7_popular_features_order = bmw7_features.sort_values(by='freq', ascending=False)[:15].index.tolist()
+    >>> bmw7_popular_features = set(bmw7_popular_features_order)
+    >>> bmw7_popular_features = most_common_concepts(review_concepts[bmw7 & features], 15)
+
 

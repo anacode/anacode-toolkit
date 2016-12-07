@@ -1,6 +1,7 @@
 import os
 import csv
 import datetime
+from itertools import chain
 from functools import partial
 
 from anacode.api import codes
@@ -35,42 +36,42 @@ class CSVWriter:
              'absa_relations.csv', 'absa_relations_entities.csv',
              'absa_evaluations.csv', 'absa_evaluations_entities.csv']
     HEADERS = {
-        'concepts': ['doc_id', 'concept', 'freq', 'relevance_score',
-                     'concept_type'],
-        'concepts_expr': ['doc_id', 'concept', 'expression'],
+        'concepts': ['doc_id', 'text_order', 'concept', 'freq',
+                     'relevance_score', 'concept_type'],
+        'concepts_expr': ['doc_id', 'text_order', 'concept', 'expression'],
         'sentiment': ['doc_id', 'positive', 'negative'],
-
     }
 
     def __init__(self, target_dir='.'):
         self.ids = {'scrape': 0, 'category': 0, 'concept': 0,
                     'sentiment': 0, 'absa': 0}
         self.target_dir = os.path.abspath(os.path.expanduser(target_dir))
-        self.files = {}
+        self._files = {}
+        self.csv = {}
 
     def init(self) -> dict:
         self.close()
         backup(self.target_dir, self.FILES)
 
         path = partial(os.path.join, self.target_dir)
-        opened_files = {
+        self._files = {
             'concepts': open(path('concepts.csv'), 'w', newline=''),
             'concepts_expr': open(path('concepts_expressions.csv'), 'w',
                                   newline=''),
             'sentiment': open(path('senfiment.csv'), 'w', newline=''),
         }
-        excel = csv.get_dialect('excel')
-        for name, fp in opened_files.items():
-            headers = self.HEADERS[name]
-            fp.write(','.join(headers))
-            fp.write(excel.lineterminator)
-
-        self.files = opened_files
+        self.csv = {name: csv.writer(fp) for name, fp in self._files.items()}
+        for name, writer in self.csv.items():
+            writer.writerow(self.HEADERS[name])
 
     def close(self):
-        for file in self.files.values():
-            file.close()
-        self.files = {}
+        for name, file in self._files.items():
+            try:
+                file.close()
+            except Exception:
+                print('Problem closing "{}"'.format(name))
+        self._files = {}
+        self.csv = {}
 
     def write_row(self, call_type, call_result):
         if call_type == codes.SCRAPE:
@@ -98,6 +99,26 @@ class CSVWriter:
     def write_concepts(self, analyzed):
         doc_id = self.ids['concept']
         self.ids['concept'] += 1
+        con_csv = self.csv['concepts']
+        exp_csv = self.csv['concepts_expr']
+        for text_order, text_analyzed in enumerate(analyzed):
+            for concept in text_analyzed:
+                row = [doc_id, text_order, concept.get('concept'),
+                       concept.get('freq'), concept.get('relevance_score'),
+                       concept.get('type')]
+                con_csv.writerow(row)
+                try:
+                    freq = int(concept.get('freq'))
+                except ValueError:
+                    freq = 0
+                for string, count in concept.get('expressions', {}).items():
+                    for _ in range(count):
+                        freq -= 1
+                        exp_csv.writerow([doc_id, text_order,
+                                          concept.get('concept'), string])
+                    for _ in range(freq):
+                        exp_csv.writerow([doc_id, text_order,
+                                          concept.get('concept'), None])
 
     def write_sentiment(self, analyzed):
         pass

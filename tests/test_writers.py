@@ -19,6 +19,30 @@ def concepts():
     ]
 
 
+@pytest.fixture
+def longer_concepts():
+    return [
+        [
+            {
+                'concept': 'Lenovo',
+                'expressions': {'lenovo': 1},
+                'freq': 1,
+                'relevance_score': 1.0,
+                'type': 'brand'
+            }
+        ],
+        [
+            {
+                'concept': 'Samsung',
+                'expressions': {'samsung': 1},
+                'freq': 1,
+                'relevance_score': 1.0,
+                'type': 'brand'
+            }
+        ]
+    ]
+
+
 @freeze_time(datetime(2016, 12, 6, 18, 0, 6))
 class TestBackup:
     def test_backup_works(self, tmpdir):
@@ -44,11 +68,12 @@ class TestBackup:
         assert contents == ['concepts.csv']
 
 
-class TestCsvWriter:
-    def test_can_init_in_file(self):
-        csv_writer = writers.CSVWriter('/tmp/test')
-        assert csv_writer.target_dir == '/tmp/test'
+def test_csvwriter_init_with_directory():
+    csv_writer = writers.CSVWriter('/tmp/test')
+    assert csv_writer.target_dir == '/tmp/test'
 
+
+class TestCsvWriterConcepts:
     def test_concepts_file_have_header(self, tmpdir, concepts):
         target = tmpdir.mkdir('target')
         csv_writer = writers.CSVWriter(str(target))
@@ -59,24 +84,84 @@ class TestCsvWriter:
         assert 'concepts.csv' in contents
         header = target.join('concepts.csv').readlines()[0].strip()
         assert 'doc_id' in header
+        assert 'text_order' in header
         assert 'concept' in header
         assert 'freq' in header
         assert 'relevance_score' in header
         assert 'concept_type' in header
 
-    def test_can_write_concepts(self, tmpdir, concepts):
+    def test_concepts_exprs_file_have_header(self, tmpdir, concepts):
         target = tmpdir.mkdir('target')
         csv_writer = writers.CSVWriter(str(target))
         csv_writer.init()
         csv_writer.write_concepts(concepts)
         csv_writer.close()
         contents = [f.basename for f in target.listdir()]
-        assert 'concepts.csv' in contents
+        assert 'concepts_expressions.csv' in contents
+        header = target.join('concepts_expressions.csv').readlines()[0].strip()
+        assert 'doc_id' in header
+        assert 'text_order' in header
+        assert 'concept' in header
+        assert 'expression' in header
+
+    def test_write_concepts(self, tmpdir, concepts):
+        target = tmpdir.mkdir('target')
+        csv_writer = writers.CSVWriter(str(target))
+        csv_writer.init()
+        csv_writer.write_concepts(concepts)
+        csv_writer.close()
         file_lines = target.join('concepts.csv').readlines()
         assert len(file_lines) == 2
         row = file_lines[1].strip().split(',')
         assert row[0] == '0'
-        assert row[1] == 'Lenovo'
-        assert row[2] == '1'
-        assert row[3] == '1.0'
-        assert row[4] == 'brand'
+        assert row[1] == '0'
+        assert row[2] == 'Lenovo'
+        assert row[3] == '1'
+        assert row[4] == '1.0'
+        assert row[5] == 'brand'
+
+    def test_write_exprs(self, tmpdir, concepts):
+        target = tmpdir.mkdir('target')
+        csv_writer = writers.CSVWriter(str(target))
+        csv_writer.init()
+        csv_writer.write_concepts(concepts)
+        csv_writer.close()
+        file_lines = target.join('concepts_expressions.csv').readlines()
+        assert len(file_lines) == 2
+        row = file_lines[1].strip().split(',')
+        assert row[0] == '0'
+        assert row[1] == '0'
+        assert row[2] == 'Lenovo'
+        assert row[3] == 'lenovo'
+
+    def test_write_contents_from_multiple_texts(self, tmpdir, longer_concepts):
+        target = tmpdir.mkdir('target')
+        csv_writer = writers.CSVWriter(str(target))
+        csv_writer.init()
+        csv_writer.write_concepts(longer_concepts)
+        csv_writer.close()
+        file_lines = target.join('concepts.csv').readlines()
+        assert len(file_lines) == 3
+        row1 = file_lines[1].strip().split(',')
+        assert row1[1] == '0'
+        assert row1[2] == 'Lenovo'
+        row2 = file_lines[2].strip().split(',')
+        assert row2[1] == '1'
+        assert row2[2] == 'Samsung'
+
+    def test_write_exprs_from_multiple_texts(self, tmpdir, longer_concepts):
+        target = tmpdir.mkdir('target')
+        csv_writer = writers.CSVWriter(str(target))
+        csv_writer.init()
+        csv_writer.write_concepts(longer_concepts)
+        csv_writer.close()
+        file_lines = target.join('concepts_expressions.csv').readlines()
+        assert len(file_lines) == 3
+        row1 = file_lines[1].strip().split(',')
+        assert row1[1] == '0'
+        assert row1[2] == 'Lenovo'
+        assert row1[3] == 'lenovo'
+        row2 = file_lines[2].strip().split(',')
+        assert row2[1] == '1'
+        assert row2[2] == 'Samsung'
+        assert row2[3] == 'samsung'
