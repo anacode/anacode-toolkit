@@ -247,3 +247,158 @@ class TestCsvWriterCategories:
         assert any(line.startswith('0,0,camera,0.444') for line in file_lines)
         assert any(line.startswith('0,0,music,0.002') for line in file_lines)
         assert any(line.startswith('0,1,law,0.043') for line in file_lines)
+
+
+@pytest.fixture
+def absa():
+    return [{
+        'entities': [
+            {
+                'semantics': [
+                    {'type': 'feature_subjective', 'value': 'OperationQuality'}
+                ],
+                'text': {'span': [2, 4], 'surface_string': '性能'}
+            }
+        ],
+        'evaluations': [
+            {
+                'semantics': {
+                    'entity': [
+                        {'type': 'feature_quantitative', 'value': 'Safety'}
+                    ],
+                    'value': 2.0
+                },
+                'text': {'span': [0, 2], 'surface_string': '安全'}
+            },
+            {
+                'semantics': {
+                    'entity': [
+                        {'type': 'feature_subjective', 'value': 'VisualAppearance'}
+                    ],
+                    'value': 3.5
+                },
+                'text': {'span': [7, 10], 'surface_string': '很帅气'}
+            }
+        ],
+        'normalized_text': '安全性能很好，很帅气。',
+        'relations': [
+            {
+                'external_entity': False,
+                'semantics': {
+                    'entity': [
+                        {'type': 'feature_quantitative', 'value': 'Safety'},
+                        {'type': 'feature_subjective', 'value': 'OperationQuality'}
+                    ],
+                    'opinion_holder': None,
+                    'restriction': None,
+                    'value': 2.0
+                },
+                'text': {'span': [0, 4], 'surface_string': '安全性能'}
+            }
+        ]
+    }]
+
+
+@pytest.fixture
+def csv_absa(target, absa):
+    csv_writer = writers.CSVWriter(str(target))
+    csv_writer.init()
+    csv_writer.write_absa(absa)
+    csv_writer.close()
+    return csv_writer
+
+
+class TestCsvWriterAbsa:
+    def test_absa_entities_headers(self, target, csv_absa):
+        contents = [f.basename for f in target.listdir()]
+        assert 'absa_entities.csv' in contents
+        file_lines = target.join('absa_entities.csv').readlines()
+        header = file_lines[0].strip().split(',')
+        assert header == ['doc_id', 'text_order', 'entity_name', 'entity_type',
+                          'surface_string', 'text_span']
+
+    def test_absa_normalized_text_headers(self, target, csv_absa):
+        contents = [f.basename for f in target.listdir()]
+        assert 'absa_normalized_texts.csv' in contents
+        file_lines = target.join('absa_normalized_texts.csv').readlines()
+        header = file_lines[0].strip().split(',')
+        assert header == ['doc_id', 'text_order', 'normalized_text']
+
+    def test_absa_relations_headers(self, target, csv_absa):
+        contents = [f.basename for f in target.listdir()]
+        assert 'absa_relations.csv' in contents
+        file_lines = target.join('absa_relations.csv').readlines()
+        header = file_lines[0].strip().split(',')
+        assert header == ['doc_id', 'text_order', 'relation_id',
+                          'opinion_holder', 'restriction', 'sentiment',
+                          'is_external', 'surface_string', 'text_span']
+
+    def test_absa_rel_entities_headers(self, target, csv_absa):
+        contents = [f.basename for f in target.listdir()]
+        assert 'absa_relations_entities.csv' in contents
+        file_lines = target.join('absa_relations_entities.csv').readlines()
+        header = file_lines[0].strip().split(',')
+        assert header == ['doc_id', 'text_order', 'relation_id',
+                          'entity_type', 'entity_name']
+
+    def test_absa_evaluations_headers(self, target, csv_absa):
+        contents = [f.basename for f in target.listdir()]
+        assert 'absa_evaluations.csv' in contents
+        file_lines = target.join('absa_evaluations.csv').readlines()
+        header = file_lines[0].strip().split(',')
+        assert header == ['doc_id', 'text_order', 'evaluation_id',
+                          'sentiment', 'surface_string', 'text_span']
+
+    def test_absa_eval_entities_headers(self, target, csv_absa):
+        contents = [f.basename for f in target.listdir()]
+        assert 'absa_evaluations_entities.csv' in contents
+        file_lines = target.join('absa_evaluations_entities.csv').readlines()
+        header = file_lines[0].strip().split(',')
+        assert header == ['doc_id', 'text_order', 'evaluation_id',
+                          'entity_type', 'entity_name']
+
+    def test_write_absa_entities(self, target, csv_absa):
+        file_lines = target.join('absa_entities.csv').readlines()
+        assert len(file_lines) == 2
+        entity = file_lines[1].strip().split(',')
+        assert entity == ['0', '0', 'OperationQuality', 'feature_subjective',
+                          '性能', '2-4']
+
+    def test_write_absa_normalized_texts(self, target, csv_absa):
+        file_lines = target.join('absa_normalized_texts.csv').readlines()
+        assert len(file_lines) == 2
+        entity = file_lines[1].strip().split(',')
+        assert entity == ['0', '0', '安全性能很好，很帅气。']
+
+    def test_write_absa_relations(self, target, csv_absa):
+        file_lines = target.join('absa_relations.csv').readlines()
+        assert len(file_lines) == 2
+        relation = file_lines[1].strip().split(',')
+        assert relation == ['0', '0', '0', '', '', '2.0', 'False',
+                            '安全性能', '0-4']
+
+    def test_write_absa_relation_entities(self, target, csv_absa):
+        file_lines = target.join('absa_relations_entities.csv').readlines()
+        assert len(file_lines) == 3
+        entity1 = file_lines[1].strip().split(',')
+        entity2 = file_lines[2].strip().split(',')
+        assert entity1 == ['0', '0', '0', 'feature_quantitative', 'Safety']
+        assert entity2 == ['0', '0', '0', 'feature_subjective',
+                           'OperationQuality']
+
+    def test_write_evaluations(self, target, csv_absa):
+        file_lines = target.join('absa_evaluations.csv').readlines()
+        assert len(file_lines) == 3
+        eval1 = file_lines[1].strip().split(',')
+        eval2 = file_lines[2].strip().split(',')
+        assert eval1 == ['0', '0', '0', '2.0', '安全', '0-2']
+        assert eval2 == ['0', '0', '1', '3.5', '很帅气', '7-10']
+
+    def test_write_evaluations_entities(self, target, csv_absa):
+        file_lines = target.join('absa_evaluations_entities.csv').readlines()
+        assert len(file_lines) == 3
+        entity1 = file_lines[1].strip().split(',')
+        entity2 = file_lines[2].strip().split(',')
+        assert entity1 == ['0', '0', '0', 'feature_quantitative', 'Safety']
+        assert entity2 == ['0', '0', '1', 'feature_subjective',
+                           'VisualAppearance']

@@ -29,18 +29,32 @@ def backup(root, files):
 
 
 class CSVWriter:
-    FILES = ['categories.csv',
-             'concepts.csv', 'concepts_expressions.csv',
-             'sentiment.csv',
-             'absa_entities.csv', 'absa_normalized_texts.csv',
-             'absa_relations.csv', 'absa_relations_entities.csv',
-             'absa_evaluations.csv', 'absa_evaluations_entities.csv']
+    FILES = [
+        'categories.csv',
+        'concepts.csv', 'concepts_expressions.csv',
+        'sentiment.csv',
+        'absa_entities.csv', 'absa_normalized_texts.csv',
+        'absa_relations.csv', 'absa_relations_entities.csv',
+        'absa_evaluations.csv', 'absa_evaluations_entities.csv'
+    ]
     HEADERS = {
         'categories': ['doc_id', 'text_order', 'category', 'probability'],
         'concepts': ['doc_id', 'text_order', 'concept', 'freq',
                      'relevance_score', 'concept_type'],
         'concepts_expr': ['doc_id', 'text_order', 'concept', 'expression'],
         'sentiments': ['doc_id', 'text_order', 'positive', 'negative'],
+        'absa_entities': ['doc_id', 'text_order', 'entity_name', 'entity_type',
+                          'surface_string', 'text_span'],
+        'absa_normalized_texts': ['doc_id', 'text_order', 'normalized_text'],
+        'absa_relations': ['doc_id', 'text_order', 'relation_id',
+                           'opinion_holder', 'restriction', 'sentiment',
+                           'is_external', 'surface_string', 'text_span'],
+        'absa_relations_entities': ['doc_id', 'text_order', 'relation_id',
+                                    'entity_type', 'entity_name'],
+        'absa_evaluations': ['doc_id', 'text_order', 'evaluation_id',
+                             'sentiment', 'surface_string', 'text_span'],
+        'absa_evaluations_entities': ['doc_id', 'text_order', 'evaluation_id',
+                                      'entity_type', 'entity_name'],
     }
 
     def __init__(self, target_dir='.'):
@@ -68,6 +82,18 @@ class CSVWriter:
             'concepts': self._open_csv('concepts.csv'),
             'concepts_expr': self._open_csv('concepts_expressions.csv'),
             'sentiments': self._open_csv('sentiments.csv'),
+            'absa_entities': self._open_csv('absa_entities.csv'),
+            'absa_normalized_texts': self._open_csv(
+                'absa_normalized_texts.csv'
+            ),
+            'absa_relations': self._open_csv('absa_relations.csv'),
+            'absa_relations_entities': self._open_csv(
+                'absa_relations_entities.csv'
+            ),
+            'absa_evaluations': self._open_csv('absa_evaluations.csv'),
+            'absa_evaluations_entities': self._open_csv(
+                'absa_evaluations_entities.csv'
+            ),
         }
         self.csv = {name: csv.writer(fp) for name, fp in self._files.items()}
         for name, writer in self.csv.items():
@@ -77,7 +103,7 @@ class CSVWriter:
         for name, file in self._files.items():
             try:
                 file.close()
-            except Exception:
+            except (IOError, AttributeError):
                 print('Problem closing "{}"'.format(name))
         self._files = {}
         self.csv = {}
@@ -145,5 +171,56 @@ class CSVWriter:
                    sentiment_map['negative']]
             sen_csv.writerow(row)
 
+    def _write_absa_entities(self, doc_id, order, entities):
+        ent_csv = self.csv['absa_entities']
+        for entity_dict in entities:
+            text_span = '-'.join(map(str, entity_dict['text']['span']))
+            surface_string = entity_dict['text']['surface_string']
+            for semantics in entity_dict['semantics']:
+                row = [doc_id, order, semantics['value'], semantics['type'],
+                       surface_string, text_span]
+                ent_csv.writerow(row)
+
+    def _write_absa_normalized_text(self, doc_id, order, normalized_text):
+        norm_csv = self.csv['absa_normalized_texts']
+        norm_csv.writerow([doc_id, order, normalized_text])
+
+    def _write_absa_relations(self, doc_id, order, relations):
+        rel_csv = self.csv['absa_relations']
+        ent_csv = self.csv['absa_relations_entities']
+        for rel_index, rel in enumerate(relations):
+            rel_row = [doc_id, order, rel_index,
+                       rel['semantics']['opinion_holder'],
+                       rel['semantics']['restriction'],
+                       rel['semantics']['value'], rel['external_entity'],
+                       rel['text']['surface_string'],
+                       '-'.join(map(str, rel['text']['span']))]
+            rel_csv.writerow(rel_row)
+            for ent in rel['semantics']['entity']:
+                ent_row = [doc_id, order, rel_index, ent['type'], ent['value']]
+                ent_csv.writerow(ent_row)
+
+    def _write_absa_evaluations(self, doc_id, order, evaluations):
+        eval_csv = self.csv['absa_evaluations']
+        eval_ent_csv = self.csv['absa_evaluations_entities']
+        for eval_index, evaluation in enumerate(evaluations):
+            eval_row = [doc_id, order, eval_index,
+                        evaluation['semantics']['value'],
+                        evaluation['text']['surface_string'],
+                        '-'.join(map(str, evaluation['text']['span']))]
+            eval_csv.writerow(eval_row)
+            for ent in evaluation['semantics']['entity']:
+                ent_row = [doc_id, order, eval_index, ent['type'], ent['value']]
+                eval_ent_csv.writerow(ent_row)
+
     def write_absa(self, analyzed):
-        pass
+        doc_id = self._new_doc_id('absa')
+        for text_order, text_analyzed in enumerate(analyzed):
+            entities = text_analyzed['entities']
+            self._write_absa_entities(doc_id, text_order, entities)
+            text = text_analyzed['normalized_text']
+            self._write_absa_normalized_text(doc_id, text_order, text)
+            rels = text_analyzed['relations']
+            self._write_absa_relations(doc_id, text_order, rels)
+            evals = text_analyzed['evaluations']
+            self._write_absa_evaluations(doc_id, text_order, evals)
