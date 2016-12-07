@@ -1,7 +1,6 @@
 import os
 import csv
 import datetime
-from itertools import chain
 from functools import partial
 
 from anacode.api import codes
@@ -30,12 +29,14 @@ def backup(root, files):
 
 
 class CSVWriter:
-    FILES = ['concepts.csv', 'concepts_expressions.csv',
+    FILES = ['categories.csv',
+             'concepts.csv', 'concepts_expressions.csv',
              'sentiment.csv',
              'absa_entities.csv', 'absa_normalized_texts.csv',
              'absa_relations.csv', 'absa_relations_entities.csv',
              'absa_evaluations.csv', 'absa_evaluations_entities.csv']
     HEADERS = {
+        'categories': ['doc_id', 'text_order', 'category', 'probability'],
         'concepts': ['doc_id', 'text_order', 'concept', 'freq',
                      'relevance_score', 'concept_type'],
         'concepts_expr': ['doc_id', 'text_order', 'concept', 'expression'],
@@ -54,16 +55,19 @@ class CSVWriter:
         self.ids[call] += 1
         return current_id
 
+    def _open_csv(self, csv_name):
+        path = partial(os.path.join, self.target_dir)
+        return open(path(csv_name), 'w', newline='')
+
     def init(self) -> dict:
         self.close()
         backup(self.target_dir, self.FILES)
 
-        path = partial(os.path.join, self.target_dir)
         self._files = {
-            'concepts': open(path('concepts.csv'), 'w', newline=''),
-            'concepts_expr': open(path('concepts_expressions.csv'), 'w',
-                                  newline=''),
-            'sentiments': open(path('sentiments.csv'), 'w', newline=''),
+            'categories': self._open_csv('categories.csv'),
+            'concepts': self._open_csv('concepts.csv'),
+            'concepts_expr': self._open_csv('concepts_expressions.csv'),
+            'sentiments': self._open_csv('sentiments.csv'),
         }
         self.csv = {name: csv.writer(fp) for name, fp in self._files.items()}
         for name, writer in self.csv.items():
@@ -98,8 +102,13 @@ class CSVWriter:
         pass
 
     def write_categories(self, analyzed):
-        doc_id = self.ids['category']
-        self.ids['category'] += 1
+        doc_id = self._new_doc_id('category')
+        cat_csv = self.csv['categories']
+        for text_order, text_analyzed in enumerate(analyzed):
+            for result_dict in text_analyzed:
+                row = [doc_id, text_order, result_dict.get('label'),
+                       result_dict.get('probability')]
+                cat_csv.writerow(row)
 
     def write_concepts(self, analyzed):
         doc_id = self._new_doc_id('concept')
