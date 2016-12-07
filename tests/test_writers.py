@@ -4,45 +4,6 @@ from freezegun import freeze_time
 from anacode.api import writers
 
 
-@pytest.fixture
-def concepts():
-    return [
-        [
-            {
-                'concept': 'Lenovo',
-                'expressions': {'lenovo': 1},
-                'freq': 1,
-                'relevance_score': 1.0,
-                'type': 'brand'
-            },
-        ],
-    ]
-
-
-@pytest.fixture
-def longer_concepts():
-    return [
-        [
-            {
-                'concept': 'Lenovo',
-                'expressions': {'lenovo': 1},
-                'freq': 1,
-                'relevance_score': 1.0,
-                'type': 'brand'
-            }
-        ],
-        [
-            {
-                'concept': 'Samsung',
-                'expressions': {'samsung': 1},
-                'freq': 1,
-                'relevance_score': 1.0,
-                'type': 'brand'
-            }
-        ]
-    ]
-
-
 @freeze_time(datetime(2016, 12, 6, 18, 0, 6))
 class TestBackup:
     def test_backup_works(self, tmpdir):
@@ -73,98 +34,75 @@ def test_csvwriter_init_with_directory():
     assert csv_writer.target_dir == '/tmp/test'
 
 
+@pytest.fixture
+def target(tmpdir):
+    return tmpdir.mkdir('target')
+
+
+@pytest.fixture
+def concepts():
+    return [
+        [
+            {
+                'concept': 'Lenovo',
+                'expressions': {'lenovo': 1},
+                'freq': 1,
+                'relevance_score': 1.0,
+                'type': 'brand'
+            }
+        ],
+        [
+            {
+                'concept': 'Samsung',
+                'expressions': {'samsung': 1},
+                'freq': 1,
+                'relevance_score': 1.0,
+                'type': 'brand'
+            }
+        ]
+    ]
+
+
+@pytest.fixture
+def csv_concepts(target, concepts):
+    csv_writer = writers.CSVWriter(str(target))
+    csv_writer.init()
+    csv_writer.write_concepts(concepts)
+    csv_writer.close()
+    return csv_writer
+
+
 class TestCsvWriterConcepts:
-    def test_concepts_file_have_header(self, tmpdir, concepts):
-        target = tmpdir.mkdir('target')
-        csv_writer = writers.CSVWriter(str(target))
-        csv_writer.init()
-        csv_writer.write_concepts(concepts)
-        csv_writer.close()
+    def test_concepts_file_have_header(self, target, csv_concepts):
         contents = [f.basename for f in target.listdir()]
         assert 'concepts.csv' in contents
-        header = target.join('concepts.csv').readlines()[0].strip()
-        assert 'doc_id' in header
-        assert 'text_order' in header
-        assert 'concept' in header
-        assert 'freq' in header
-        assert 'relevance_score' in header
-        assert 'concept_type' in header
+        file_lines = target.join('concepts.csv').readlines()
+        header = file_lines[0].strip().split(',')
+        assert header == ['doc_id', 'text_order', 'concept', 'freq',
+                          'relevance_score', 'concept_type']
 
-    def test_concepts_exprs_file_have_header(self, tmpdir, concepts):
-        target = tmpdir.mkdir('target')
-        csv_writer = writers.CSVWriter(str(target))
-        csv_writer.init()
-        csv_writer.write_concepts(concepts)
-        csv_writer.close()
+    def test_concepts_exprs_file_have_header(self, target, csv_concepts):
         contents = [f.basename for f in target.listdir()]
         assert 'concepts_expressions.csv' in contents
-        header = target.join('concepts_expressions.csv').readlines()[0].strip()
-        assert 'doc_id' in header
-        assert 'text_order' in header
-        assert 'concept' in header
-        assert 'expression' in header
-
-    def test_write_concepts(self, tmpdir, concepts):
-        target = tmpdir.mkdir('target')
-        csv_writer = writers.CSVWriter(str(target))
-        csv_writer.init()
-        csv_writer.write_concepts(concepts)
-        csv_writer.close()
-        file_lines = target.join('concepts.csv').readlines()
-        assert len(file_lines) == 2
-        row = file_lines[1].strip().split(',')
-        assert row[0] == '0'
-        assert row[1] == '0'
-        assert row[2] == 'Lenovo'
-        assert row[3] == '1'
-        assert row[4] == '1.0'
-        assert row[5] == 'brand'
-
-    def test_write_exprs(self, tmpdir, concepts):
-        target = tmpdir.mkdir('target')
-        csv_writer = writers.CSVWriter(str(target))
-        csv_writer.init()
-        csv_writer.write_concepts(concepts)
-        csv_writer.close()
         file_lines = target.join('concepts_expressions.csv').readlines()
-        assert len(file_lines) == 2
-        row = file_lines[1].strip().split(',')
-        assert row[0] == '0'
-        assert row[1] == '0'
-        assert row[2] == 'Lenovo'
-        assert row[3] == 'lenovo'
+        header = file_lines[0].strip().split(',')
+        assert header == ['doc_id', 'text_order', 'concept', 'expression']
 
-    def test_write_contents_from_multiple_texts(self, tmpdir, longer_concepts):
-        target = tmpdir.mkdir('target')
-        csv_writer = writers.CSVWriter(str(target))
-        csv_writer.init()
-        csv_writer.write_concepts(longer_concepts)
-        csv_writer.close()
+    def test_write_concepts(self, target, csv_concepts):
         file_lines = target.join('concepts.csv').readlines()
         assert len(file_lines) == 3
         row1 = file_lines[1].strip().split(',')
-        assert row1[1] == '0'
-        assert row1[2] == 'Lenovo'
         row2 = file_lines[2].strip().split(',')
-        assert row2[1] == '1'
-        assert row2[2] == 'Samsung'
+        assert row1 == ['0', '0', 'Lenovo', '1', '1.0', 'brand']
+        assert row2 == ['0', '1', 'Samsung', '1', '1.0', 'brand']
 
-    def test_write_exprs_from_multiple_texts(self, tmpdir, longer_concepts):
-        target = tmpdir.mkdir('target')
-        csv_writer = writers.CSVWriter(str(target))
-        csv_writer.init()
-        csv_writer.write_concepts(longer_concepts)
-        csv_writer.close()
+    def test_write_exprs(self, target, csv_concepts):
         file_lines = target.join('concepts_expressions.csv').readlines()
         assert len(file_lines) == 3
         row1 = file_lines[1].strip().split(',')
-        assert row1[1] == '0'
-        assert row1[2] == 'Lenovo'
-        assert row1[3] == 'lenovo'
         row2 = file_lines[2].strip().split(',')
-        assert row2[1] == '1'
-        assert row2[2] == 'Samsung'
-        assert row2[3] == 'samsung'
+        assert row1 == ['0', '0', 'Lenovo', 'lenovo']
+        assert row2 == ['0', '1', 'Samsung', 'samsung']
 
 
 @pytest.fixture
@@ -286,27 +224,24 @@ def categories():
     ]
 
 
+@pytest.fixture
+def csv_categories(target, categories):
+    csv_writer = writers.CSVWriter(str(target))
+    csv_writer.init()
+    csv_writer.write_categories(categories)
+    csv_writer.close()
+    return csv_writer
+
+
 class TestCsvWriterCategories:
-    def test_write_categories_headers(self, tmpdir, categories):
-        target = tmpdir.mkdir('target')
-        csv_writer = writers.CSVWriter(str(target))
-        csv_writer.init()
-        csv_writer.write_categories(categories)
-        csv_writer.close()
+    def test_write_categories_headers(self, target, csv_categories):
         contents = [f.basename for f in target.listdir()]
         assert 'categories.csv' in contents
-        header = target.join('categories.csv').readlines()[0].strip()
-        assert 'doc_id' in header
-        assert 'text_order' in header
-        assert 'category' in header
-        assert 'probability' in header
+        file_lines = target.join('categories.csv').readlines()
+        header = file_lines[0].strip().split(',')
+        assert header == ['doc_id', 'text_order', 'category', 'probability']
 
-    def test_write_categories(self, tmpdir, categories):
-        target = tmpdir.mkdir('target')
-        csv_writer = writers.CSVWriter(str(target))
-        csv_writer.init()
-        csv_writer.write_categories(categories)
-        csv_writer.close()
+    def test_write_categories(self, target, csv_categories):
         file_lines = target.join('categories.csv').readlines()
         assert len(file_lines) == 30 + 30 + 1
         assert any(line.startswith('0,0,camera,0.444') for line in file_lines)
