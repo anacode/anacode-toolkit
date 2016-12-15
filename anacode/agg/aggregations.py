@@ -11,55 +11,96 @@ class ApiCallDataset:
 
 
 class ConceptsDataset(ApiCallDataset):
+    """Concept data sets container that provides easy aggregations and
+    plotting capabilities.
+
+    """
     def __init__(self, concepts: pd.DataFrame, expressions: pd.DataFrame):
+        """Initialize instance by providing two concept relevant data frames.
+
+        :param concepts: List of found concepts with metadata
+        :type concepts: pandas.DataFrame
+        :param expressions: List of expressions realizing found concepts
+        :type expressions: pandas.DataFrame
+        """
         self._concepts = concepts
         self._expressions = expressions
 
-    def concept_frequency(self, concept):
-        pass
+    def concept_frequency(self, concept: str):
+        """Return count of concept occurrences in this dataset. It's case
+        insensitive.
 
-    def most_common_concepts(self, n=15, counts='freq') -> pd.Series:
-        """Counts concepts and returns n most occurring ones sorted by their count
-        descending.
+        :param concept: name of concept to count it's occurrences
+        :type concept: str
+        :return: int -- Number of concept occurences in dataset
+        """
+        con = self._concepts
+        con = con[con.concept.str.lower() == concept.lower()]
+        return con.freq.sum()
 
-        The dataframe input can be both concepts or concepts_expressions table.
-        If you have their join use only `dataframe['concept']` as input.
-
-        If provided dataframe contains counts column, concepts will be counted with
-        regard to this number. If there is no such column they will be counted
-        assuming that count for each row is always 1.
+    def most_common_concepts(self, n=15, concept_type='') -> pd.Series:
+        """Counts concepts and returns n most occurring ones sorted by their
+        count descending. Counted concepts can be filtered by their type.
 
         :param n: Maximum number of most common concepts to return
         :type n: int
-        :param counts: Name of column that stores concept counts.
-        :type counts: str
-        :return: pandas.Series -- Pandas series with concept names and their counts
-            sorted descending
+        :param concept_type: Limit concept counts only to concepts whose type
+         starts with this string
+        :type concept_type: str
+        :return: pandas.Series -- Concept names as index and their counts as
+         values sorted descending
         """
-        pass
+        con = self._concepts
+        con = con[con.concept_type.str.startswith(concept_type)]
+        con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
+        return con_counts.rename('Count').sort_values(ascending=False)[:n]
 
-    def least_common_concepts(self, n=15, counts='freq') -> pd.Series:
-        """Counts concepts and returns n least occurring ones sorted by their count
-        ascending.
-
-        Input and output are the same as they are for :func:`most_common_concepts`.
+    def least_common_concepts(self, n=15, concept_type='') -> pd.Series:
+        """Counts concepts and returns n least occurring ones sorted by their
+        count ascending. Counted concepts can be filtered by their type.
 
         :param n: Maximum number of least common concepts to return
         :type n: int
-        :param counts: Name of column that stores concept counts.
-        :type counts: str
-        :return: pandas.Series -- Pandas series with concept names and their counts
-            sorted ascending
+        :param concept_type: Limit concept counts only to concepts whose type
+         starts with this string
+        :type concept_type: str
+        :return: pandas.Series -- Concept names as index and their counts as
+         values sorted ascending
         """
-        pass
+        con = self._concepts
+        con = con[con.concept_type.str.startswith(concept_type)]
+        con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
+        return con_counts.rename('Count').sort_values()[:n]
 
-    def co_occurring_concepts(self, concept: str):
-        """
+    def co_occurring_concepts(self, concept: str, n=15,
+                              concept_type='') -> pd.Series:
+        """Find n concepts co-occurring frequently in texts of this dataset with
+        given concept, sorted descending. Co-occurring concepts can be
+        filtered by their type.
 
-        :param concept:
-        :return:
+        :param concept: Concept to inspect for co-occurring concepts
+        :type concept: str
+        :param n: Maximum count of returned concepts
+        :type n: int
+        :param concept_type: Limit co-occurring concept counts only to this type
+         of concepts.
+        :type concept_type: str
+        :return: pandas.Series -- Co-occurring concept names as index and their
+         counts as values sorted descending
         """
-        pass
+        con = self._concepts
+
+        identity_filter = con.concept.str.lower() == concept.lower()
+        relevant_texts = con[identity_filter][['doc_id', 'text_order']]
+        relevant_texts = relevant_texts.set_index(['doc_id', 'text_order'])
+
+        type_filter = con.concept_type.str.startswith(concept_type)
+        con = con[type_filter & (identity_filter == False)]
+        con = relevant_texts.join(con.set_index(['doc_id', 'text_order']))
+
+        con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
+        con_counts = con_counts.rename('Count').sort_values(ascending=False)
+        return con_counts[:n].astype(int)
 
 
 class CategoriesDataset(ApiCallDataset):
