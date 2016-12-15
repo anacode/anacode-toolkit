@@ -12,7 +12,8 @@ You can call our rest api one by one using anacode.api.AnacodeClient class.
     Output of absa call
 
 
-After you have output from our API you can use one of writer class to store it.
+After you have output from our API you can use one of the writer classes
+to store it.
 
 
 .. code-block:: python
@@ -25,10 +26,9 @@ After you have output from our API you can use one of writer class to store it.
     >>> csv_writer.close()
 
 
-If you want to analyze not just a string but a big list content you want to use
-AnacodeClient's analyzer method. You can use it with multiple threads to speed
-up analysis (you have to have paid account to have access to multiple threads)
-and save results to appropriate csv files automatically.
+If you want to analyze bigger list of content you may want to use bulk analyzer.
+It can be used with multiple threads to speed up analysis (you have to have
+paid account to have access to multiple concurrent requests) and save results.
 
 .. code-block:: python
 
@@ -38,9 +38,10 @@ and save results to appropriate csv files automatically.
     >>>     ['Lenovo', 'Samsung'],
     >>>     ['Volkswagen', 'Audi'],
     >>> ]
-    >>> client = client.AnacodeClient('<username>', '<password>')
-    >>> csv_writer = writers.CSVWriter()
-    >>> with client.analyzer(threads=2, csv_writer) as analyzer:
+    >>> auth = '<username>', '<password>'
+    >>> df_writer = writers.DataFrameWriter()
+    >>> with client.analyzer(auth, df_writer, threads=2) as api:
     >>>     for texts in data:
-    >>>         analyzer.concepts(texts)
-    >>>         analyzer.absa(texts)
+    >>>         api.concepts(texts)
+    >>>         api.absa(texts)
+    >>> print(df_writer['concepts'])
