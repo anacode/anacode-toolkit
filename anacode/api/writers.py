@@ -5,8 +5,6 @@ import pandas as pd
 from itertools import chain
 from functools import partial
 
-
-
 from anacode.api import codes
 
 
@@ -16,8 +14,10 @@ def backup(root, files):
     file name.
 
     :param root: Absolute path to folder where files to backup are located
+    :type root: str
     :param files: Names of files that needs backing up
-    :return: List of backed up file names
+    :type files: str
+    :return: list -- List of backed up file names
     """
     backed_up = []
     join = os.path.join
@@ -68,6 +68,14 @@ CSV_FILES = {
 
 
 def categories_to_list(doc_id, analyzed):
+    """Converts categories response to flat list with doc_id included.
+
+    :param doc_id: Will be inserted to each row as first element
+    :param analyzed: Response json from anacode api for categories call
+    :type analyzed: list
+    :return: dict -- Dictionary with one key 'categories' pointing to flat list
+     of categories
+    """
     cat_list = []
     for text_order, text_analyzed in enumerate(analyzed):
         for result_dict in text_analyzed:
@@ -78,6 +86,15 @@ def categories_to_list(doc_id, analyzed):
 
 
 def concepts_to_list(doc_id, analyzed):
+    """Converts concepts response to flat lists with doc_id included
+
+    :param doc_id: Will be inserted to each row as first element
+    :param analyzed: Response json from anacode api for concepts call
+    :type analyzed: list
+    :return: dict -- Dictionary with two keys: 'concepts' pointing to flat list
+     of found concepts and their metadata and 'concepts_expressions' pointing to
+     flat list of expressions realizing found concepts
+    """
     con_list, exp_list = [], []
     for text_order, text_analyzed in enumerate(analyzed):
         for concept in text_analyzed:
@@ -101,6 +118,14 @@ def concepts_to_list(doc_id, analyzed):
 
 
 def sentiments_to_list(doc_id, analyzed):
+    """Converts sentiments response to flat lists with doc_id included
+
+    :param doc_id: Will be inserted to each row as first element
+    :param analyzed: Response json from anacode api for sentiment call
+    :type analyzed: list
+    :return: dict -- Dictionary with one key 'sentiments' pointing to flat list
+     of sentiment probabilities
+    """
     sen_list = []
     for text_order, sentiment in enumerate(analyzed):
         sentiment_map = {
@@ -160,6 +185,19 @@ def _absa_evaluations_to_list(doc_id, order, evaluations):
 
 
 def absa_to_list(doc_id, analyzed):
+    """Converts ABSA response to flat lists with doc_id included
+
+    :param doc_id: Will be inserted to each row as first element
+    :param analyzed: Response json from anacode api for ABSA call
+    :type analyzed: list
+    :return: dict -- Dictionary with six keys: 'absa_entities' pointing to flat
+     list of found entities with metadata, 'absa_normalized_texts' pointing to
+     flat list of normalized chinese texts, 'absa_relations' pointing to found
+     entity relations with metadata, 'absa_relations_entities' pointing to flat
+     list of entities that belong to absa relations, 'absa_evaluations'
+     pointing to flat list of entity evaluations with metadata and
+     'absa_evaluations_entities' specifying entities in absa_evaluations
+    """
     absa = {
         'absa_entities': [],
         'absa_normalized_texts': [],
@@ -188,6 +226,10 @@ def absa_to_list(doc_id, analyzed):
 
 
 class Writer:
+    """Base "abstract" class containing common methods that are expected to be
+    needed by all implementations of Writer interface.
+
+    """
     def __init__(self):
         self.ids = {'scrape': 0, 'category': 0, 'concept': 0,
                     'sentiment': 0, 'absa': 0}
@@ -198,6 +240,13 @@ class Writer:
         return current_id
 
     def write_row(self, call_type, call_result):
+        """Decides what kind of data it got and calls appropriate write method.
+
+        :param call_type: Library's ID of anacode call
+        :type call_type: int
+        :param call_result: JSON response from anacode api
+        :type call_result: dict
+        """
         if call_type == codes.SCRAPE:
             self.write_scrape(call_result)
         if call_type == codes.CATEGORIES:
@@ -210,49 +259,96 @@ class Writer:
             self.write_absa(call_result)
 
     def add_new_data_from_dict(self, new_data: dict):
+        """Not implemented here!
+
+        Write methods use this to submit new anacode data for storage.
+
+        :param new_data: Dictionary, keys are data sets names and values are
+         flat lists of rows
+        :type new_data: dict
+        """
         pass
 
     def write_scrape(self, scraped):
         pass
 
     def write_categories(self, analyzed):
+        """Converts categories call response to flat lists and stores them using
+        add_new_data_from_dict.
+
+        :param analyzed: JSON categories response
+        :type analyzed: list
+        """
         doc_id = self._new_doc_id('category')
         new_data = categories_to_list(doc_id, analyzed)
         self.add_new_data_from_dict(new_data)
 
     def write_concepts(self, analyzed):
+        """Converts concepts call response to flat lists and stores them using
+        add_new_data_from_dict.
+
+        :param analyzed: JSON concepts response
+        :type analyzed: list
+        """
         doc_id = self._new_doc_id('concept')
         new_data = concepts_to_list(doc_id, analyzed)
         self.add_new_data_from_dict(new_data)
 
     def write_sentiment(self, analyzed):
+        """Converts sentiment call response to flat lists and stores them using
+        add_new_data_from_dict.
+
+        :param analyzed: JSON sentiment response
+        :type analyzed: list
+        """
         doc_id = self._new_doc_id('sentiment')
         new_data = sentiments_to_list(doc_id, analyzed)
         self.add_new_data_from_dict(new_data)
 
     def write_absa(self, analyzed):
+        """Converts absa call response to flat lists and stores them using
+        add_new_data_from_dict.
+
+        :param analyzed: JSON absa response
+        :type analyzed: list
+        """
         doc_id = self._new_doc_id('absa')
         new_data = absa_to_list(doc_id, analyzed)
         self.add_new_data_from_dict(new_data)
 
     def write_bulk(self, results: iter):
+        """Stores multiple anacode api's JSON responses marked with call IDs.
+
+        :param results: List of anacode responses with IDs of calls used
+        :type results: list
+        """
         for call_type, call_result in results:
             self.write_row(call_type, call_result)
 
     def init(self):
+        """Not implemented here! Each subclass should decide what to do here."""
         pass
 
     def close(self):
+        """Not implemented here! Each subclass should decide what to do here."""
         pass
 
 
 class DataFrameWriter(Writer):
-    def __init__(self, frames: dict):
+    """Capable of writing anacode api output into pandas.DataFrame instances."""
+    def __init__(self, frames: dict=None):
+        """Initializes dictionary of result frames. Alternatively uses given
+        frames dict for storage.
+
+        :param frames: Might be specified to use this instead of new dict
+        :type frames: dict
+        """
         super().__init__()
         self.frames = {} if frames is None else frames
         self._row_data = {}
 
     def init(self):
+        """Initialized empty lists for each possible data frame."""
         self._row_data = {
             'categories': [],
             'concepts': [],
@@ -267,18 +363,32 @@ class DataFrameWriter(Writer):
         }
 
     def close(self):
+        """Creates pandas data frames to self.frames dict and clears internal
+        state.
+        """
         for name, row in self._row_data.items():
             if len(row) > 0:
                 self.frames[name] = pd.DataFrame(row, columns=HEADERS[name])
         self._row_data = {}
 
     def add_new_data_from_dict(self, new_data: dict):
+        """Stores anacode api result converted to flat lists.
+
+        :param new_data: Anacode api result
+        :param new_data: list
+        """
         for name, row_list in new_data.items():
             self._row_data[name].extend(row_list)
 
 
 class CSVWriter(Writer):
     def __init__(self, target_dir='.'):
+        """Initializes Writer to store anancode api analysis in target_dir in
+        csv files.
+
+        :param target_dir: Path to file where to store csv-s
+        :type target_dir: str
+        """
         super().__init__()
         self.target_dir = os.path.abspath(os.path.expanduser(target_dir))
         self._files = {}
@@ -289,6 +399,7 @@ class CSVWriter(Writer):
         return open(path(csv_name), 'w', newline='')
 
     def init(self):
+        """Opens all csv files for writing and write headers to them."""
         self.close()
         backup(self.target_dir, chain.from_iterable(CSV_FILES.values()))
 
@@ -315,6 +426,7 @@ class CSVWriter(Writer):
             writer.writerow(HEADERS[name])
 
     def close(self):
+        """Closes all csv files."""
         for name, file in self._files.items():
             try:
                 file.close()
@@ -324,5 +436,10 @@ class CSVWriter(Writer):
         self.csv = {}
 
     def add_new_data_from_dict(self, new_data: dict):
+        """Stores anacode api result converted to flat lists.
+
+        :param new_data: Anacode api result
+        :param new_data: list
+        """
         for name, row_list in new_data.items():
             self.csv[name].writerows(row_list)
