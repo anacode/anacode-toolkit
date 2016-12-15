@@ -7,6 +7,7 @@ from anacode.api.writers import CSV_FILES
 
 
 class ApiCallDataset:
+    """Base class for specific call data sets."""
     pass
 
 
@@ -318,18 +319,29 @@ class DatasetLoader:
         """Will construct DatasetLoader instance that is aware of what data is
         available to it. Raises ValueError if no data was given.
 
-        Data frames are expected to have format as if they were loaded from
-        :class:`anacode.api.writers.CsvWriter` written csv file.
+        Data frames are expected to have format that corresponds to format that
+        :class:`anacode.api.writers.Writer` would write.
 
-        :param concepts: Two `pandas.DataFrame` objects in a tuple or list.
-         First one with concepts and second one with concept's expressions
-        :type concepts: tuple of `pandas.DataFrame`
-        :param categories: Categories `pandas.DataFrame`
-        :type categories: `pandas.DataFrame`
-        :param sentiments: Sentiments `pandas.DataFrame`
-        :type sentiments: `pandas.DataFrame`
-        :param absa:
-        :type absa: tuple of `pandas.DataFrame`
+        :param concepts: List of found concepts with metadata
+        :type concepts: pandas.DataFrame
+        :param concepts_expressions: List of expressions realizing concepts
+        :type concepts_expressions: pandas.DataFrame
+        :param categories: List of document topic probabilities
+        :type categories: pandas.DateFrame
+        :param sentiments: List of document sentiment inclinations
+        :type sentiments: pandas.DateFrame
+        :param absa_entities: List of entities used in texts
+        :type absa_entities: pandas.DataFrame
+        :param absa_normalized_texts: List of chinese normalized texts
+        :type absa_normalized_texts: pandas.DataFrame
+        :param absa_relations: List of relations with metadata
+        :type absa_relations: pandas.DataFrame
+        :param absa_relations_entities: List of entities used in relations
+        :type absa_relations_entities: pandas.DataFrame
+        :param absa_evaluations: List of entity evaluations
+        :type absa_evaluations: pandas.DataFrame
+        :param absa_evaluations_entities: List of entities used in evaluations
+        :type absa_evaluations_entities: pandas.DataFrame
         """
         self.has_categories = categories is not None
         self.has_concepts = concepts is not None and \
@@ -413,16 +425,16 @@ class DatasetLoader:
 
     @classmethod
     def from_path(cls, path: str):
-        """Initializes ApiDataset from AnacodeAPI csv files present in given
+        """Initializes DatasetLoader from AnacodeAPI csv files present in given
         path. You could have obtained these by using
-        :class:`anacode.api.writers.CsvWriter` to write your request results
+        :class:`anacode.api.writers.CSVWriter` to write your request results
         when you were querying AnacodeAPI.
 
         :param path: Path to folder where AnacodeAPI analysis is stored in csv
          files
         :type path: str
-        :return: :class:`anacode.agg.aggregations.ApiDataset` -- ApiDataset
-         with found csv files loaded into data frames
+        :return: :class:`anacode.agg.DatasetLoader` -- DatasetLoader with found
+         csv files loaded into data frames
         """
         log = logging.getLogger(__name__)
         log.debug('Going to init ApiDataset from path %s', path)
@@ -456,31 +468,40 @@ class DatasetLoader:
 
     @classmethod
     def from_writer(cls, writer):
-        """
+        """Initializes DatasetLoader from writer instance that was used to store
+        anacode analysis. Accepts both
+        :class:`anacode.api.writers.DataFrameWriter` and
+        :class:`anacode.api.writers.CSVWriter`.
 
-        :param writer:
+        :param writer: Writer that was used by
+         :class:`anacode.api.client.Analyzer` to store analysis
         :type writer: anacode.api.writers.Writer
-        :return:
+        :return: :class:`anacode.agg.DatasetLoader` -- DatasetLoader with
+         available data frames loaded
         """
         if isinstance(writer, writers.CSVWriter):
             return cls.from_path(writer.target_dir)
         elif isinstance(writer, writers.DataFrameWriter):
             return cls(**writer.frames)
+        else:
+            raise ValueError('{} class not supported'.format(type(writer)))
 
     @classmethod
     def from_lists(cls, concepts=None, categories=None, sentiments=None,
                    absa=None):
-        """
+        """Initializes DatasetLoader from list of json-s that anacode api calls
+        return.
 
-        :param concepts:
+        :param concepts: List of concept analysis json-s
         :type concepts: list
-        :param categories:
+        :param categories: List of categories analysis json-s
         :type categories: list
-        :param sentiments:
+        :param sentiments: List of sentiment analysis json-s
         :type sentiments: list
-        :param absa:
+        :param absa: List of ABSA analysis json-s
         :type absa: list
-        :return: ApiDataset instance
+        :return: :class:`anacode.agg.DatasetLoader` -- DatasetLoader with
+         available analysis data loaded
         """
         concepts = concepts or []
         categories = categories or []
