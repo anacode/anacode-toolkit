@@ -151,45 +151,158 @@ class SentimentDataset(ApiCallDataset):
 
 
 class ABSADataset(ApiCallDataset):
+    """ABSA data set container that will provides easy aggregation and plotting
+    capabilities.
+
+    """
     def __init__(self, entities, normalized_texts,
-                 relations, relations_expressions,
-                 evaluations, evaluations_expressions):
+                 relations, relations_entities,
+                 evaluations, evaluations_entities):
+        """Initialize instance by providing all absa data sets.
+
+        :param entities: List of entities used in texts
+        :type entities: pandas.DataFrame
+        :param normalized_texts: List of chinese normalized texts
+        :type normalized_texts: pandas.DataFrame
+        :param relations: List of relations with metadata
+        :type relations: pandas.DataFrame
+        :param relations_entities: List of entities used in relations
+        :type relations_entities: pandas.DataFrame
+        :param evaluations: List of entity evaluations
+        :type evaluations: pandas.DataFrame
+        :param evaluations_entities: List of entities used in evaluations
+        :type evaluations_entities: pandas.DataFrame
+        """
         self._entities = entities
         self._normalized_texts = normalized_texts
         self._relations = relations
-        self._relations_expressions = relations_expressions
+        self._relations_entities = relations_entities
         self._evaluations = evaluations
-        self._evaluations_expressions = evaluations_expressions
+        self._evaluations_entities = evaluations_entities
 
-    def most_common_entities(self, n=15):
-        pass
+    def most_common_entities(self, n=15, entity_type='') -> pd.Series:
+        """Counts entities and returns n most occurring ones sorted by their
+        count descending. Counted entities can be filtered by their type.
 
-    def least_common_entities(self, n=15):
-        pass
-
-    def co_occurring_entities(self, entity: str) -> pd.Series:
+        :param n: Maximum number of most common entities to return
+        :type n: int
+        :param entity_type: Limit entities counts only to entities whose type
+         starts with this string
+        :type entity_type: str
+        :return: pandas.Series -- Entity names as index and their counts as
+         values sorted descending
         """
+        ent = self._entities
+        ent = ent[ent.concept_type.str.startswith(entity_type)]
+        ent_counts = ent.groupby('concept').agg({'freq': 'sum'}).freq
+        return ent_counts.rename('Count').sort_values(ascending=False)[:n]
 
-        :param entity:
+    def least_common_entities(self, n=15, entity_type='') -> pd.Series:
+        """Counts entities and returns n least occurring ones sorted by their
+        count ascending. Counted entities can be filtered by their type.
+
+        :param n: Maximum number of least common entities to return
+        :type n: int
+        :param entity_type: Limit entities counts only to entities whose type
+         starts with this string
+        :type entity_type: str
+        :return: pandas.Series -- Entity names as index and their counts as
+         values sorted descending
+        """
+        ent = self._entities
+        ent = ent[ent.concept_type.str.startswith(entity_type)]
+        ent_counts = ent.groupby('concept').agg({'freq': 'sum'}).freq
+        return ent_counts.rename('Count').sort_values()[:n]
+
+    def co_occurring_entities(self, entity: str, n=15,
+                              entity_type='') -> pd.Series:
+        """Find n entities co-occurring frequently in texts of this dataset with
+        given entity, sorted descending. Co-occurring entities can be
+        filtered by their type.
+
+        :param entity: Concept to inspect for co-occurring concepts
         :type entity: str
-        :return:
+        :param n: Maximum count of returned concepts
+        :type n: int
+        :param entity_type: Limit co-occurring concept counts only to this type
+         of concepts.
+        :type entity_type: str
+        :return: pandas.Series -- Co-occurring concept names as index and their
+         counts as values sorted descending
         """
+        ent, doc_txt = self._entities, ['doc_id', 'text_order']
+        entity_filter = ent.entity_name.str.lower() == entity.lower()
+        type_filter = ent.entity_type.str.startswith(entity_type)
+        ent = ent[type_filter | entity_filter]
+
+        all_entities_grp = ent.groupby(['doc_id', 'text_order', 'entity_name'])
+        all_entities = all_entities_grp.size().rename('Count')
+        all_entities = all_entities.reset_index().set_index(doc_txt)
+        relevant = all_entities[all_entities.entity_name == entity]
+        relevant = relevant.reset_index()[doc_txt].set_index(doc_txt)
+
+        result = relevant.join(all_entities).reset_index()
+        result = result[['entity_name', 'Count']]
+        result = result[result['entity_name'] != entity]
+        result = result.groupby('entity_name').sum()['Count']
+        return result.sort_values(ascending=False)[:n]
+
+    def best_rated_entities(self, n=15, entity_type='') -> pd.Series:
+        """Find top n rated entities in this dataset sorted descending by their
+        mean rating.
+
+        :param n: Maximum count of returned entities
+        :type n: int
+        :param entity_type: Optional filter for entity type to consider
+        :type entity_type: str
+        :return: pandas.DataFrame -- Best rated entities in this dataset as
+         index and their ratings as values sorted descending
+        """
+        idx = ['doc_id', 'text_order', 'evaluation_id']
+        evals, ents = self._evaluations, self._evaluations_entities
+        ent_evals = evals.set_index(idx).join(ents.set_index(idx)).reset_index()
+        ent_evals = ent_evals[ent_evals.entity_type.str.startswith(entity_type)]
+        mean_evals = ent_evals.groupby('entity_name').agg({'sentiment': 'mean'})
+        mean_evals = mean_evals.sentiment.rename('Sentiment')
+        return mean_evals.sort_values(ascending=False)[:n]
+
+    def worst_rated_entities(self, n=15, entity_type='') -> pd.Series:
+        """Find n worst rated entities in this dataset sorted ascending by their
+        mean rating.
+
+        :param n: Maximum count of returned entities
+        :type n: int
+        :param entity_type: Optional filter for entity type to consider
+        :type entity_type: str
+        :return: pandas.DataFrame -- Worst rated entities in this dataset as
+         index and their ratings as values sorted ascending
+        """
+        idx = ['doc_id', 'text_order', 'evaluation_id']
+        evals, ents = self._evaluations, self._evaluations_entities
+        ent_evals = evals.set_index(idx).join(ents.set_index(idx)).reset_index()
+        ent_evals = ent_evals[ent_evals.entity_type.str.startswith(entity_type)]
+        mean_evals = ent_evals.groupby('entity_name').agg({'sentiment': 'mean'})
+        mean_evals = mean_evals.sentiment.rename('Sentiment')
+        return mean_evals.sort_values()[:n]
+
+    def entity_texts(self, entity: str):
         pass
 
-    def relevant_entities(self):
-        pass
+    def entity_sentiment(self, entity: str) -> float:
+        """Computes and return mean rating for given entity.
 
-    def best_rated_entities(self):
-        pass
+        :param entity: Name of entity to compute mean sentiment for
+        :type entity: str
+        :return: float -- Mean rating for entity, np.nan if entity was not rated
+        """
+        idx = ['doc_id', 'text_order', 'evaluation_id']
+        evals, ents = self._evaluations, self._evaluations_entities
+        all_ent_evals = evals.set_index(idx).join(ents.set_index(idx))
 
-    def worst_rated_entities(self):
-        pass
-
-    def entity_texts(self):
-        pass
-
-    def feature_sentiment(self, feature):
-        pass
+        entity_evals = all_ent_evals.reset_index()
+        entity_filter = entity_evals.entity_name.str.lower() == entity.lower()
+        entity_eval = entity_evals[entity_filter].sentiment.mean()
+        return entity_eval
 
 
 class DatasetLoader:

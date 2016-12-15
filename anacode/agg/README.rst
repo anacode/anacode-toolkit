@@ -49,8 +49,7 @@ Here is list of all possible analysis you can do with this library:
     - most_common_entities
     - least_common_entities
     - co_occurring_entities
-    - relevant_entities
     - best_rated_entities
     - worst_rated_entities
     - entity_texts
-    - feature_sentiment
+    - entity_sentiment
