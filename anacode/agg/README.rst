@@ -1,3 +1,17 @@
+What can this do?
+
+ - most/least popular concepts
+ - aggregate document sentiment
+ - find co-occuring entities
+ - best/worst rated features
+
+
+
+ #. Are we ok asking user to join tables himself for some of agg functions?
+ #.
+
+
+
 To load parsed data in your working directory simply run `load` method. `load`
 takes one optional positional argument that is path to folder with analyzed
 data.
