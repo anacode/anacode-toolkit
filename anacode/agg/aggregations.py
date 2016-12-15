@@ -11,7 +11,7 @@ class ApiCallDataset:
 
 
 class ConceptsDataset(ApiCallDataset):
-    """Concept data sets container that provides easy aggregations and
+    """Concept data sets container that provides easy aggregation and
     plotting capabilities.
 
     """
@@ -104,20 +104,50 @@ class ConceptsDataset(ApiCallDataset):
 
 
 class CategoriesDataset(ApiCallDataset):
+    """Categories data set container that will provides easy aggregation
+    capabilities.
+
+    """
     def __init__(self, categories):
+        """Initialize instance by providing categories data set.
+
+        :param categories: List of document topic probabilities
+        :type categories: pandas.DateFrame
+        """
         self._categories = categories
+
+    def main_topic(self) -> str:
+        """Finds what topic is this dataset about. Does not support nested
+        categories output.
+
+        :return: str -- Name of main topic of all texts.
+        """
+        cat = self._categories
+        all_cats = cat.groupby('category')['probability'].mean()
+        return all_cats.sort_values(ascending=False)[0].index[0]
 
 
 class SentimentDataset(ApiCallDataset):
+    """Sentiments data set container that will provides easy aggregation
+    capabilities.
+
+    """
     def __init__(self, sentiments):
+        """Initialize instance by providing sentiments data set.
+
+        :param sentiments: List of document sentiment inclinations
+        :type sentiments: pandas.DateFrame
+        """
         self._sentiments = sentiments
 
     def average_sentiment(self):
-        """Computes and returns average document sentiment
+        """Computes and returns average document sentiment. Result is a number
+        from [0,1], where higher number means more positive sentiment.
 
         :return: float -- Average document sentiment
         """
-        pass
+        sen = self._sentiments
+        return sen.positive.mean()
 
 
 class ABSADataset(ApiCallDataset):
