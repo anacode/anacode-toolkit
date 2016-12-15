@@ -1,9 +1,10 @@
 import os
 import csv
 import datetime
+import pandas as pd
 from itertools import chain
 from functools import partial
-from collections import defaultdict
+
 
 
 from anacode.api import codes
@@ -160,12 +161,12 @@ def _absa_evaluations_to_list(doc_id, order, evaluations):
 
 def absa_to_list(doc_id, analyzed):
     absa = {
-        'entities': [],
-        'normalized_texts': [],
-        'relations': [],
-        'relations_entities': [],
-        'evaluations': [],
-        'evaluations_entities': []
+        'absa_entities': [],
+        'absa_normalized_texts': [],
+        'absa_relations': [],
+        'absa_relations_entities': [],
+        'absa_evaluations': [],
+        'absa_evaluations_entities': []
     }
     for text_order, text_analyzed in enumerate(analyzed):
         entities = text_analyzed['entities']
@@ -177,12 +178,12 @@ def absa_to_list(doc_id, analyzed):
         evaluations = text_analyzed['evaluations']
         evals, eval_ents = _absa_evaluations_to_list(doc_id, text_order,
                                                      evaluations)
-        absa['entities'].extend(ents)
-        absa['normalized_texts'].extend(texts)
-        absa['relations'].extend(rels)
-        absa['relations_entities'].extend(rel_ents)
-        absa['evaluations'].extend(evals)
-        absa['evaluations_entities'].extend(eval_ents)
+        absa['absa_entities'].extend(ents)
+        absa['absa_normalized_texts'].extend(texts)
+        absa['absa_relations'].extend(rels)
+        absa['absa_relations_entities'].extend(rel_ents)
+        absa['absa_evaluations'].extend(evals)
+        absa['absa_evaluations_entities'].extend(eval_ents)
     return absa
 
 
@@ -208,13 +209,72 @@ class Writer:
         if call_type == codes.ABSA:
             self.write_absa(call_result)
 
+    def add_new_data_from_dict(self, new_data: dict):
+        pass
+
+    def write_scrape(self, scraped):
+        pass
+
+    def write_categories(self, analyzed):
+        doc_id = self._new_doc_id('category')
+        new_data = categories_to_list(doc_id, analyzed)
+        self.add_new_data_from_dict(new_data)
+
+    def write_concepts(self, analyzed):
+        doc_id = self._new_doc_id('concept')
+        new_data = concepts_to_list(doc_id, analyzed)
+        self.add_new_data_from_dict(new_data)
+
+    def write_sentiment(self, analyzed):
+        doc_id = self._new_doc_id('sentiment')
+        new_data = sentiments_to_list(doc_id, analyzed)
+        self.add_new_data_from_dict(new_data)
+
+    def write_absa(self, analyzed):
+        doc_id = self._new_doc_id('absa')
+        new_data = absa_to_list(doc_id, analyzed)
+        self.add_new_data_from_dict(new_data)
+
     def write_bulk(self, results: iter):
         for call_type, call_result in results:
             self.write_row(call_type, call_result)
 
+    def init(self):
+        pass
+
+    def close(self):
+        pass
+
 
 class DataFrameWriter(Writer):
-    pass
+    def __init__(self, frames: dict):
+        super().__init__()
+        self.frames = {} if frames is None else frames
+        self._row_data = {}
+
+    def init(self):
+        self._row_data = {
+            'categories': [],
+            'concepts': [],
+            'concepts_expressions': [],
+            'sentiments': [],
+            'absa_entities': [],
+            'absa_normalized_texts': [],
+            'absa_relations': [],
+            'absa_relations_entities': [],
+            'absa_evaluations': [],
+            'absa_evaluations_entities': [],
+        }
+
+    def close(self):
+        for name, row in self._row_data.items():
+            if len(row) > 0:
+                self.frames[name] = pd.DataFrame(row, columns=HEADERS[name])
+        self._row_data = {}
+
+    def add_new_data_from_dict(self, new_data: dict):
+        for name, row_list in new_data.items():
+            self._row_data[name].extend(row_list)
 
 
 class CSVWriter(Writer):
@@ -263,35 +323,6 @@ class CSVWriter(Writer):
         self._files = {}
         self.csv = {}
 
-    def write_scrape(self, scraped):
-        pass
-
-    def write_categories(self, analyzed):
-        doc_id = self._new_doc_id('category')
-        lists = categories_to_list(doc_id, analyzed)
-        self.csv['categories'].writerows(lists['categories'])
-
-    def write_concepts(self, analyzed):
-        doc_id = self._new_doc_id('concept')
-        lists = concepts_to_list(doc_id, analyzed)
-        self.csv['concepts'].writerows(lists['concepts'])
-        self.csv['concepts_expressions'].writerows(
-            lists['concepts_expressions'])
-
-    def write_sentiment(self, analyzed):
-        doc_id = self._new_doc_id('sentiment')
-        lists = sentiments_to_list(doc_id, analyzed)
-        self.csv['sentiments'].writerows(lists['sentiments'])
-
-    def write_absa(self, analyzed):
-        doc_id = self._new_doc_id('absa')
-        lists = absa_to_list(doc_id, analyzed)
-        self.csv['absa_entities'].writerows(lists['entities'])
-        self.csv['absa_normalized_texts'].writerows(
-            lists['normalized_texts'])
-        self.csv['absa_relations'].writerows(lists['relations'])
-        self.csv['absa_relations_entities'].writerows(
-            lists['relations_entities'])
-        self.csv['absa_evaluations'].writerows(lists['evaluations'])
-        self.csv['absa_evaluations_entities'].writerows(
-            lists['evaluations_entities'])
+    def add_new_data_from_dict(self, new_data: dict):
+        for name, row_list in new_data.items():
+            self.csv[name].writerows(row_list)

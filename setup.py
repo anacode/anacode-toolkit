@@ -7,6 +7,6 @@ setup(
     description='Anacode GmbH aggregation library',
     author='Tomas Stibrany',
     author_email='tomas.stibrany@anacode.de',
-    install_requires=['requests'],
+    install_requires=['requests', 'pandas', 'seaborn', 'matplotlib'],
     tests_require=['pytest', 'mock', 'freezegun'],
 )

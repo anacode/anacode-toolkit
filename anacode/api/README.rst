@@ -13,7 +13,6 @@ You can call our rest api one by one using anacode.api.AnacodeClient class.
 
 
 After you have output from our API you can use one of writer class to store it.
-Right now we support only csv writting.
 
 
 .. code-block:: python

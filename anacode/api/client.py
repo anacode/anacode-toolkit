@@ -25,75 +25,9 @@ def analysis(call_endpoint, auth, max_retries=3, **kwargs):
             return res
 
 
-class _Analyzer:
-    def __init__(self, client: AnacodeClient, threads, writer, bulk_size=100):
-        self.client = client
-        self.threads = threads
-        self.task_queue = []
-        self.analyzed = []
-        self.analyzed_types = []
-        self.bulk_size = bulk_size
-        self.writer = writer
-
-    def __enter__(self):
-        self.writer.init()
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.execute_tasks_and_store_output()
-        self.writer.close()
-
-    def should_start_analysis(self):
-        return self.task_queue >= self.bulk_size
-
-    def analyze_bulk(self):
-        if self.threads > 1:
-            pool = Pool(self.threads)
-            results = pool.map(self.client.call, self.task_queue)
-        else:
-            results = list(map(self.client.call, self.task_queue))
-        self.analyzed.extend(results)
-        self.analyzed_types.extend([t[0] for t in self.task_queue])
-        self.task_queue = []
-
-    def flush_analysis_data(self):
-        self.writer.write_bulk(zip(self.analyzed_types, self.analyzed))
-        self.analyzed_types = []
-        self.analyzed = []
-
-    def execute_tasks_and_store_output(self):
-        self.analyze_bulk()
-        self.flush_analysis_data()
-
-    def scrape(self, link):
-        self.task_queue.append((codes.SCRAPE, link))
-        if self.should_start_analysis():
-            self.execute_tasks_and_store_output()
-
-    def categories(self, texts, taxonomy, depth):
-        self.task_queue.append((codes.CATEGORIES, texts, taxonomy, depth))
-        if self.should_start_analysis():
-            self.execute_tasks_and_store_output()
-
-    def concepts(self, texts):
-        self.task_queue.append((codes.CONCEPTS, texts))
-        if self.should_start_analysis():
-            self.execute_tasks_and_store_output()
-
-    def sentiment(self, texts):
-        self.task_queue.append((codes.SENTIMENT, texts))
-        if self.should_start_analysis():
-            self.execute_tasks_and_store_output()
-
-    def absa(self, texts):
-        self.task_queue.append((codes.ABSA, texts))
-        if self.should_start_analysis():
-            self.execute_tasks_and_store_output()
-
-
 class AnacodeClient:
-    def __init__(self, username, password, base_url=ANACODE_API_URL):
-        self.auth = (username, password)
+    def __init__(self, auth, base_url=ANACODE_API_URL):
+        self.auth = auth
         self.base_url = base_url
 
     def scrape(self, link):
@@ -101,8 +35,8 @@ class AnacodeClient:
         res = analysis(url, self.auth, url=link)
         return res.json()
 
-    def categories(self, texts, taxonomy, depth):
-        data = {texts: texts}
+    def categories(self, texts, taxonomy=None, depth=None):
+        data = {'texts': texts}
         if taxonomy is not None:
             data['taxonomy'] = taxonomy
         if depth is not None:
@@ -129,18 +63,106 @@ class AnacodeClient:
     def call(self, task: tuple):
         call, args = task[0], task[1:]
 
-        if call == AnacodeClient.SCRAPE:
+        if call == codes.SCRAPE:
             return self.scrape(*args)
-        if call == AnacodeClient.CATEGORIES:
+        if call == codes.CATEGORIES:
             return self.categories(*args)
-        if call == AnacodeClient.CONCEPTS:
+        if call == codes.CONCEPTS:
             return self.concepts(*args)
-        if call == AnacodeClient.SENTIMENT:
+        if call == codes.SENTIMENT:
             return self.sentiment(*args)
-        if call == AnacodeClient.ABSA:
+        if call == codes.ABSA:
             return self.absa(*args)
 
-    def analyzer(self, threads=1, writer=None):
-        if writer is None:
-            writer = writers.CSVWriter('.')
-        return _Analyzer(self, threads, writer)
+
+class Analyzer:
+    """This class makes querying with multiple threads and storing in csv format
+    simple.
+
+    """
+    def __init__(self, client: AnacodeClient, threads: int, writer, bulk_size=100):
+        self.client = client
+        self.threads = threads
+        self.task_queue = []
+        self.analyzed = []
+        self.analyzed_types = []
+        self.bulk_size = bulk_size
+        self.writer = writer
+
+    def __enter__(self):
+        self.writer.init()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.execute_tasks_and_store_output()
+        self.writer.close()
+
+    def should_start_analysis(self):
+        return len(self.task_queue) >= self.bulk_size
+
+    def analyze_bulk(self):
+        if self.threads > 1:
+            pool = Pool(self.threads)
+            results = pool.map(self.client.call, self.task_queue)
+        else:
+            results = list(map(self.client.call, self.task_queue))
+        self.analyzed.extend(results)
+        self.analyzed_types.extend([t[0] for t in self.task_queue])
+        self.task_queue = []
+
+    def flush_analysis_data(self):
+        self.writer.write_bulk(zip(self.analyzed_types, self.analyzed))
+        self.analyzed_types = []
+        self.analyzed = []
+
+    def execute_tasks_and_store_output(self):
+        self.analyze_bulk()
+        self.flush_analysis_data()
+
+    def scrape(self, link):
+        self.task_queue.append((codes.SCRAPE, link))
+        if self.should_start_analysis():
+            self.execute_tasks_and_store_output()
+
+    def categories(self, texts, taxonomy=None, depth=None):
+        self.task_queue.append((codes.CATEGORIES, texts, taxonomy, depth))
+        if self.should_start_analysis():
+            self.execute_tasks_and_store_output()
+
+    def concepts(self, texts):
+        self.task_queue.append((codes.CONCEPTS, texts))
+        if self.should_start_analysis():
+            self.execute_tasks_and_store_output()
+
+    def sentiment(self, texts):
+        self.task_queue.append((codes.SENTIMENT, texts))
+        if self.should_start_analysis():
+            self.execute_tasks_and_store_output()
+
+    def absa(self, texts):
+        self.task_queue.append((codes.ABSA, texts))
+        if self.should_start_analysis():
+            self.execute_tasks_and_store_output()
+
+
+def analyzer(auth, writer, threads=1, base_url=ANACODE_API_URL):
+    """Docstring
+
+    :param auth:
+    :param threads:
+    :param writer:
+    :param base_url:
+    :return: :class:`Analyzer`
+    """
+    if isinstance(writer, writers.Writer):
+        pass
+    elif isinstance(writer, str) and os.path.isdir(writer):
+        writer = writers.CSVWriter(writer)
+    elif isinstance(writer, dict):
+        writer = writers.DataFrameWriter(writer)
+    else:
+        raise ValueError('Writer type not understood. Please use path to file, '
+                         'dictionary or object implementing writers.Writer '
+                         'interface.')
+    client = AnacodeClient(auth, base_url)
+    return Analyzer(client, threads, writer)
