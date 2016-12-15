@@ -41,6 +41,8 @@ Here is list of all possible analysis you can do with this library:
     - most_common_concepts
     - least_common_concepts
     - co_occurring_concepts
+- categories:
+    - main_topic
 - sentiments:
     - average_sentiment
 - absa:
