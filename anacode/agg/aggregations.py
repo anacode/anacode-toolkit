@@ -147,7 +147,7 @@ class CategoriesDataset(ApiCallDataset):
 
         cat = self._categories
         all_cats = cat.groupby('category')['probability'].mean()
-        return all_cats.sort_values(ascending=False)[0].index[0]
+        return all_cats.sort_values(ascending=False).index[0]
 
 
 class SentimentDataset(ApiCallDataset):
