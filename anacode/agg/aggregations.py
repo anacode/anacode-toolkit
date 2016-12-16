@@ -389,9 +389,9 @@ class DatasetLoader:
 
     @property
     def concepts(self) -> ConceptsDataset:
-        """Creates new :class:`ConceptsDataset` if data is available.
+        """Creates new ConceptsDataset if data is available.
 
-        :return:
+        :return: :class:`anacode.agg.aggregations.ConceptsDataset` --
         """
         if self.has_concepts:
             return ConceptsDataset(self._concepts, self._concepts_expressions)
@@ -400,6 +400,10 @@ class DatasetLoader:
 
     @property
     def categories(self) -> CategoriesDataset:
+        """Creates new CategoriesDataset if data is available.
+
+        :return: :class:`anacode.agg.aggregations.CategoriesDataset` --
+        """
         if self.has_categories:
             return CategoriesDataset(self._categories)
         else:
@@ -407,6 +411,10 @@ class DatasetLoader:
 
     @property
     def sentiments(self) -> SentimentDataset:
+        """Creates new SentimentDataset if data is available.
+
+        :return: :class:`anacode.agg.aggregations.SentimentDataset` --
+        """
         if self.has_sentiments:
             return SentimentDataset(self._sentiments)
         else:
@@ -414,6 +422,10 @@ class DatasetLoader:
 
     @property
     def absa(self) -> ABSADataset:
+        """Creates new ABSADataset if data is available.
+
+        :return: :class:`anacode.agg.aggregations.ABSADataset` --
+        """
         if self.has_absa:
             return ABSADataset(
                 self._absa_entities, self._absa_normalized_texts,
