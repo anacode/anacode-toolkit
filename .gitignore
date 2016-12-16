@@ -1,5 +1,6 @@
 .idea/
 *.pdf
+tmp
 
 ### IPythonNotebook template
 # Temporary data
