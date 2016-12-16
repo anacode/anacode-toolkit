@@ -1,11 +1,24 @@
 anacode.agg
 ***********
 
+..  autoclass:: anacode.agg.aggregations.CategoriesDataset
+    :members:
+    :special-members: __init__
 
-aggregation functions
-=====================
+..  autoclass:: anacode.agg.aggregations.ConceptsDataset
+    :members:
+    :special-members: __init__
+
+..  autoclass:: anacode.agg.aggregations.SentimentDataset
+    :members:
+    :special-members: __init__
+
+..  autoclass:: anacode.agg.aggregations.ABSADataset
+    :members:
+    :special-members: __init__
 
 ..  autoclass:: anacode.agg.aggregations.DatasetLoader
-    :members: __init__, from_path, from_lists
+    :members:
+    :special-members: __init__
 
 ..  automodule:: anacode.agg
