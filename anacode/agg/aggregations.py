@@ -575,6 +575,7 @@ class DatasetLoader:
         absa = absa or []
 
         frame_writer = writers.DataFrameWriter()
+        frame_writer.init()
         for analyzed in concepts:
             frame_writer.write_concepts(analyzed)
         for analyzed in categories:
@@ -583,5 +584,6 @@ class DatasetLoader:
             frame_writer.write_sentiment(analyzed)
         for analyzed in absa:
             frame_writer.write_absa(analyzed)
+        frame_writer.close()
 
         return cls(**frame_writer.frames)
