@@ -104,7 +104,7 @@ def concepts_to_list(doc_id, analyzed):
             con_list.append(row)
             try:
                 freq = int(concept.get('freq'))
-            except ValueError:
+            except (ValueError, TypeError):
                 freq = 0
             for string, count in concept.get('expressions', {}).items():
                 for _ in range(count):
@@ -260,7 +260,7 @@ class Writer:
         if call_type == codes.ABSA:
             self.write_absa(call_result)
 
-    def add_new_data_from_dict(self, new_data: dict):
+    def _add_new_data_from_dict(self, new_data: dict):
         """Not implemented here!
 
         Write methods use this to submit new anacode data for storage.
@@ -283,7 +283,7 @@ class Writer:
         """
         doc_id = self._new_doc_id('category')
         new_data = categories_to_list(doc_id, analyzed)
-        self.add_new_data_from_dict(new_data)
+        self._add_new_data_from_dict(new_data)
 
     def write_concepts(self, analyzed):
         """Converts concepts call response to flat lists and stores them using
@@ -294,7 +294,7 @@ class Writer:
         """
         doc_id = self._new_doc_id('concept')
         new_data = concepts_to_list(doc_id, analyzed)
-        self.add_new_data_from_dict(new_data)
+        self._add_new_data_from_dict(new_data)
 
     def write_sentiment(self, analyzed):
         """Converts sentiment call response to flat lists and stores them using
@@ -305,7 +305,7 @@ class Writer:
         """
         doc_id = self._new_doc_id('sentiment')
         new_data = sentiments_to_list(doc_id, analyzed)
-        self.add_new_data_from_dict(new_data)
+        self._add_new_data_from_dict(new_data)
 
     def write_absa(self, analyzed):
         """Converts absa call response to flat lists and stores them using
@@ -316,7 +316,7 @@ class Writer:
         """
         doc_id = self._new_doc_id('absa')
         new_data = absa_to_list(doc_id, analyzed)
-        self.add_new_data_from_dict(new_data)
+        self._add_new_data_from_dict(new_data)
 
     def write_bulk(self, results: iter):
         """Stores multiple anacode api's JSON responses marked with call IDs.
@@ -373,7 +373,7 @@ class DataFrameWriter(Writer):
                 self.frames[name] = pd.DataFrame(row, columns=HEADERS[name])
         self._row_data = {}
 
-    def add_new_data_from_dict(self, new_data: dict):
+    def _add_new_data_from_dict(self, new_data: dict):
         """Stores anacode api result converted to flat lists.
 
         :param new_data: Anacode api result
@@ -437,7 +437,7 @@ class CSVWriter(Writer):
         self._files = {}
         self.csv = {}
 
-    def add_new_data_from_dict(self, new_data: dict):
+    def _add_new_data_from_dict(self, new_data: dict):
         """Stores anacode api result converted to flat lists.
 
         :param new_data: Anacode api result
