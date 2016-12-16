@@ -11,6 +11,13 @@ class ApiCallDataset:
     pass
 
 
+class NoRelevantData(Exception):
+    """Thrown when :class:`anacode.agg.aggregations.ApiCallDataset` does not
+    have data needed to finish aggregation.
+    """
+    pass
+
+
 class ConceptsDataset(ApiCallDataset):
     """Concept data sets container that provides easy aggregation and
     plotting capabilities.
@@ -35,9 +42,12 @@ class ConceptsDataset(ApiCallDataset):
         :type concept: str
         :return: int -- Number of concept occurences in dataset
         """
+        if self._concepts is None:
+            raise NoRelevantData('Relevant concept data is not available!')
+
+        concept = concept.lower()
         con = self._concepts
-        con = con[con.concept.str.lower() == concept.lower()]
-        return con.freq.sum()
+        return con[con.concept.str.lower() == concept].freq.sum()
 
     def most_common_concepts(self, n=15, concept_type='') -> pd.Series:
         """Counts concepts and returns n most occurring ones sorted by their
@@ -51,6 +61,9 @@ class ConceptsDataset(ApiCallDataset):
         :return: pandas.Series -- Concept names as index and their counts as
          values sorted descending
         """
+        if self._concepts is None:
+            raise NoRelevantData('Relevant concept data is not available!')
+
         con = self._concepts
         con = con[con.concept_type.str.startswith(concept_type)]
         con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
@@ -68,6 +81,9 @@ class ConceptsDataset(ApiCallDataset):
         :return: pandas.Series -- Concept names as index and their counts as
          values sorted ascending
         """
+        if self._concepts is None:
+            raise NoRelevantData('Relevant concept data is not available!')
+
         con = self._concepts
         con = con[con.concept_type.str.startswith(concept_type)]
         con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
@@ -89,6 +105,9 @@ class ConceptsDataset(ApiCallDataset):
         :return: pandas.Series -- Co-occurring concept names as index and their
          counts as values sorted descending
         """
+        if self._concepts is None:
+            raise NoRelevantData('Relevant concept data is not available!')
+
         con = self._concepts
 
         identity_filter = con.concept.str.lower() == concept.lower()
@@ -123,6 +142,9 @@ class CategoriesDataset(ApiCallDataset):
 
         :return: str -- Name of main topic of all texts.
         """
+        if self._categories is None:
+            raise NoRelevantData('Relevant category data is not available!')
+
         cat = self._categories
         all_cats = cat.groupby('category')['probability'].mean()
         return all_cats.sort_values(ascending=False)[0].index[0]
@@ -147,6 +169,9 @@ class SentimentDataset(ApiCallDataset):
 
         :return: float -- Average document sentiment
         """
+        if self._sentiments is None:
+            raise NoRelevantData('Relevant sentiment data is not available!')
+
         sen = self._sentiments
         return sen.positive.mean()
 
@@ -193,8 +218,11 @@ class ABSADataset(ApiCallDataset):
         :return: pandas.Series -- Entity names as index and their counts as
          values sorted descending
         """
+        if self._entities is None:
+            raise NoRelevantData('Relevant entity data is not available!')
+
         ent = self._entities
-        ent = ent[ent.concept_type.str.startswith(entity_type)]
+        ent = ent[ent.entity_type.str.startswith(entity_type)]
         ent_counts = ent.groupby('concept').agg({'freq': 'sum'}).freq
         return ent_counts.rename('Count').sort_values(ascending=False)[:n]
 
@@ -210,8 +238,11 @@ class ABSADataset(ApiCallDataset):
         :return: pandas.Series -- Entity names as index and their counts as
          values sorted descending
         """
+        if self._entities is None:
+            raise NoRelevantData('Relevant entity data is not available!')
+
         ent = self._entities
-        ent = ent[ent.concept_type.str.startswith(entity_type)]
+        ent = ent[ent.entity_type.str.startswith(entity_type)]
         ent_counts = ent.groupby('concept').agg({'freq': 'sum'}).freq
         return ent_counts.rename('Count').sort_values()[:n]
 
@@ -231,6 +262,9 @@ class ABSADataset(ApiCallDataset):
         :return: pandas.Series -- Co-occurring concept names as index and their
          counts as values sorted descending
         """
+        if self._entities is None:
+            raise NoRelevantData('Relevant entity data is not available!')
+
         ent, doc_txt = self._entities, ['doc_id', 'text_order']
         entity_filter = ent.entity_name.str.lower() == entity.lower()
         type_filter = ent.entity_type.str.startswith(entity_type)
@@ -259,6 +293,9 @@ class ABSADataset(ApiCallDataset):
         :return: pandas.DataFrame -- Best rated entities in this dataset as
          index and their ratings as values sorted descending
         """
+        if self._evaluations is None or self._evaluations_entities is None:
+            raise NoRelevantData('Relevant evaluation data is not available!')
+
         idx = ['doc_id', 'text_order', 'evaluation_id']
         evals, ents = self._evaluations, self._evaluations_entities
         ent_evals = evals.set_index(idx).join(ents.set_index(idx)).reset_index()
@@ -278,6 +315,9 @@ class ABSADataset(ApiCallDataset):
         :return: pandas.DataFrame -- Worst rated entities in this dataset as
          index and their ratings as values sorted ascending
         """
+        if self._evaluations is None or self._evaluations_entities is None:
+            raise NoRelevantData('Relevant evaluation data is not available!')
+
         idx = ['doc_id', 'text_order', 'evaluation_id']
         evals, ents = self._evaluations, self._evaluations_entities
         ent_evals = evals.set_index(idx).join(ents.set_index(idx)).reset_index()
@@ -287,15 +327,33 @@ class ABSADataset(ApiCallDataset):
         return mean_evals.sort_values()[:n]
 
     def entity_texts(self, entity: str):
-        pass
+        """Returns list of normalized texts where entity is mentioned, case
+        insensitive.
+
+        :param entity: Entity to find in normalized texts
+        :type entity: str
+        :return: list -- List of strings that contain entity
+        """
+        if self._entities is None or self._normalized_texts is None:
+            raise NoRelevantData('Relevant entity data is not available!')
+
+        idx = ['doc_id', 'text_order']
+        ent, texts = self._entities, self._normalized_texts
+        entity_filter = ent.entity_name.str.lower() == entity.lower()
+        ent = ent[entity_filter][idx].drop_duplicates()
+        ent = ent.join(texts.set_index(idx), on=idx)
+        return ent.normalized_text.tolist()
 
     def entity_sentiment(self, entity: str) -> float:
-        """Computes and return mean rating for given entity.
+        """Computes and return mean rating for given entity, case insensitive.
 
         :param entity: Name of entity to compute mean sentiment for
         :type entity: str
         :return: float -- Mean rating for entity, np.nan if entity was not rated
         """
+        if self._evaluations is None or self._evaluations_entities is None:
+            raise NoRelevantData('Relevant evaluation data is not available!')
+
         idx = ['doc_id', 'text_order', 'evaluation_id']
         evals, ents = self._evaluations, self._evaluations_entities
         all_ent_evals = evals.set_index(idx).join(ents.set_index(idx))
@@ -344,14 +402,14 @@ class DatasetLoader:
         :type absa_evaluations_entities: pandas.DataFrame
         """
         self.has_categories = categories is not None
-        self.has_concepts = concepts is not None and \
+        self.has_concepts = concepts is not None or \
             concepts_expressions is not None
         self.has_sentiments = sentiments is not None
-        self.has_absa = absa_entities is not None and \
-            absa_normalized_texts is not None and \
-            absa_relations is not None and \
-            absa_relations_entities is not None and \
-            absa_evaluations is not None and \
+        self.has_absa = absa_entities is not None or \
+            absa_normalized_texts is not None or \
+            absa_relations is not None or \
+            absa_relations_entities is not None or \
+            absa_evaluations is not None or \
             absa_evaluations_entities is not None
 
         if not (self.has_categories or self.has_concepts or
@@ -457,18 +515,14 @@ class DatasetLoader:
         loaded = []
 
         for call, files in CSV_FILES.items():
-            log.debug('"%s" call needs these files %s', call, files)
-            if set(files).issubset(path_contents):
-                frames = {}
-                for file_name in files:
-                    name = file_name[-4:]
-                    if name.startswith('absa_'):
-                        name = name[5:]
-                    frames[name] = pd.read_csv(join(path, file_name))
-                kwargs.update(frames)
-                loaded.extend(files)
-            else:
-                kwargs[call] = None
+            for file_name in files:
+                name = file_name[:-4]
+                file_path = join(path, file_name)
+                if os.path.isfile(file_path):
+                    kwargs[name] = pd.read_csv(file_path)
+                    loaded.append(name)
+                else:
+                    kwargs[name] = None
 
         if len(loaded) == 0:
             raise ValueError('No relevant csv files in %s', path)

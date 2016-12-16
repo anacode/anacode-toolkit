@@ -58,7 +58,7 @@ HEADERS = {
 CSV_FILES = {
     'categories': ['categories.csv'],
     'concepts': ['concepts.csv', 'concepts_expressions.csv'],
-    'sentiments': ['sentiment.csv'],
+    'sentiments': ['sentiments.csv'],
     'absa': [
         'absa_entities.csv', 'absa_normalized_texts.csv',
         'absa_relations.csv', 'absa_relations_entities.csv',
@@ -427,13 +427,30 @@ class CSVWriter(Writer):
         for name, writer in self.csv.items():
             writer.writerow(HEADERS[name])
 
+    def _csv_has_content(self, csv_path):
+        if not os.path.isfile(csv_path):
+            return False
+
+        with open(csv_path) as fp:
+            for line_count, line in enumerate(fp):
+                if line_count == 1:
+                    return True
+        return False
+
     def close(self):
-        """Closes all csv files."""
+        """Closes all csv files and removes empty ones."""
         for name, file in self._files.items():
             try:
                 file.close()
             except (IOError, AttributeError):
                 print('Problem closing "{}"'.format(name))
+
+        for file_list in CSV_FILES.values():
+            for file_name in file_list:
+                path = os.path.join(self.target_dir, file_name)
+                if os.path.isfile(path) and not self._csv_has_content(path):
+                    os.unlink(path)
+
         self._files = {}
         self.csv = {}
 
