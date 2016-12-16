@@ -229,6 +229,8 @@ class Writer:
     """Base "abstract" class containing common methods that are expected to be
     needed by all implementations of Writer interface.
 
+    Writer interface consists of init, close and write_bulk methods.
+
     """
     def __init__(self):
         self.ids = {'scrape': 0, 'category': 0, 'concept': 0,
