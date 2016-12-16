@@ -454,7 +454,7 @@ class DatasetLoader:
         if self.has_concepts:
             return ConceptsDataset(self._concepts, self._concepts_expressions)
         else:
-            raise ValueError('Concepts data not available!')
+            raise NoRelevantData('Concepts data not available!')
 
     @property
     def categories(self) -> CategoriesDataset:
@@ -465,7 +465,7 @@ class DatasetLoader:
         if self.has_categories:
             return CategoriesDataset(self._categories)
         else:
-            raise ValueError('Categories data not available!')
+            raise NoRelevantData('Categories data not available!')
 
     @property
     def sentiments(self) -> SentimentDataset:
@@ -476,7 +476,7 @@ class DatasetLoader:
         if self.has_sentiments:
             return SentimentDataset(self._sentiments)
         else:
-            raise ValueError('Sentiment data is not available!')
+            raise NoRelevantData('Sentiment data is not available!')
 
     @property
     def absa(self) -> ABSADataset:
@@ -491,7 +491,7 @@ class DatasetLoader:
                 self._absa_evaluations, self._absa_evaluations_entities,
             )
         else:
-            raise ValueError('ABSA data is not available!')
+            raise NoRelevantData('ABSA data is not available!')
 
     @classmethod
     def from_path(cls, path: str):
