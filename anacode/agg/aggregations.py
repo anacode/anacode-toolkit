@@ -223,7 +223,7 @@ class ABSADataset(ApiCallDataset):
 
         ent = self._entities
         ent = ent[ent.entity_type.str.startswith(entity_type)]
-        ent_counts = ent.groupby('concept').agg({'freq': 'sum'}).freq
+        ent_counts = ent.groupby('entity_name').size()
         return ent_counts.rename('Count').sort_values(ascending=False)[:n]
 
     def least_common_entities(self, n=15, entity_type='') -> pd.Series:
@@ -243,7 +243,7 @@ class ABSADataset(ApiCallDataset):
 
         ent = self._entities
         ent = ent[ent.entity_type.str.startswith(entity_type)]
-        ent_counts = ent.groupby('concept').agg({'freq': 'sum'}).freq
+        ent_counts = ent.groupby('entity_name').size()
         return ent_counts.rename('Count').sort_values()[:n]
 
     def co_occurring_entities(self, entity: str, n=15,
@@ -267,19 +267,18 @@ class ABSADataset(ApiCallDataset):
 
         ent, doc_txt = self._entities, ['doc_id', 'text_order']
         entity_filter = ent.entity_name.str.lower() == entity.lower()
+        docs = ent[entity_filter][doc_txt].drop_duplicates()
+        if docs.shape[0] == 0:
+            return pd.Series([]).rename('Count')
+
+        docs = docs.set_index(doc_txt)
         type_filter = ent.entity_type.str.startswith(entity_type)
-        ent = ent[type_filter | entity_filter]
+        ent = ent[type_filter & (entity_filter == False)].set_index(doc_txt)
+        result = docs.join(ent, how='inner')
+        if result.shape[0] == 0:
+            return pd.Series([]).rename('Count')
 
-        all_entities_grp = ent.groupby(['doc_id', 'text_order', 'entity_name'])
-        all_entities = all_entities_grp.size().rename('Count')
-        all_entities = all_entities.reset_index().set_index(doc_txt)
-        relevant = all_entities[all_entities.entity_name == entity]
-        relevant = relevant.reset_index()[doc_txt].set_index(doc_txt)
-
-        result = relevant.join(all_entities).reset_index()
-        result = result[['entity_name', 'Count']]
-        result = result[result['entity_name'] != entity]
-        result = result.groupby('entity_name').sum()['Count']
+        result = result.groupby('entity_name').size().rename('Count')
         return result.sort_values(ascending=False)[:n]
 
     def best_rated_entities(self, n=15, entity_type='') -> pd.Series:
