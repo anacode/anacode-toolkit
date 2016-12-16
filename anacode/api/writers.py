@@ -247,7 +247,7 @@ class Writer:
         :param call_type: Library's ID of anacode call
         :type call_type: int
         :param call_result: JSON response from anacode api
-        :type call_result: dict
+        :type call_result: list
         """
         if call_type == codes.SCRAPE:
             self.write_scrape(call_result)
