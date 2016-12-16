@@ -50,34 +50,34 @@ def test_concept_frequency(dataset, concept, frequency):
 
 
 @pytest.mark.parametrize('args,concepts', [
-    ([1], {'Lenovo'}),
-    ([2], {'Lenovo', 'VisualAppearance'}),
-    ([2, 'brand'], {'Lenovo', 'Samsung'})
+    ([1], ['Lenovo']),
+    ([2], ['Lenovo', 'VisualAppearance']),
+    ([2, 'brand'], ['Lenovo', 'Samsung'])
 ])
 def test_most_common_concepts(dataset, args, concepts):
     result = dataset.most_common_concepts(*args)
     assert isinstance(result, pd.Series)
-    assert set(result.index.tolist()) == concepts
+    assert result.index.tolist() == concepts
 
 
 @pytest.mark.parametrize('args,concepts', [
-    ([1], {'Samsung'}),
-    ([2], {'Samsung', 'VisualAppearance'}),
-    ([10, 'feature_'], {'VisualAppearance'})
+    ([1], ['Samsung']),
+    ([2], ['Samsung', 'VisualAppearance']),
+    ([10, 'feature_'], ['VisualAppearance'])
 ])
 def test_least_common_concepts(dataset, args, concepts):
     result = dataset.least_common_concepts(*args)
     assert isinstance(result, pd.Series)
-    assert set(result.index.tolist()) == concepts
+    assert result.index.tolist() == concepts
 
 
 @pytest.mark.parametrize('args,concepts', [
-    (['lenovo', 1], {'VisualAppearance'}),
-    (['Lenovo', 1], {'VisualAppearance'}),
-    (['Lenovo', 1, 'brand'], {'Samsung'}),
-    (['VisualAppearance', 2], {'Samsung', 'Lenovo'}),
+    (['lenovo', 1], ['VisualAppearance']),
+    (['Lenovo', 1], ['VisualAppearance']),
+    (['Lenovo', 1, 'brand'], ['Samsung']),
+    (['VisualAppearance', 2], ['Lenovo', 'Samsung']),
 ])
 def test_co_occurring_concepts(dataset, args, concepts):
     result = dataset.co_occurring_concepts(*args)
     assert isinstance(result, pd.Series)
-    assert set(result.index.tolist()) == concepts
+    assert result.index.tolist() == concepts
