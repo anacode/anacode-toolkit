@@ -637,3 +637,33 @@ class DatasetLoader:
         frame_writer.close()
 
         return cls(**frame_writer.frames)
+
+    def filter(self, document_ids: iter):
+        """Creates new DatasetLoader instance using data only from documents
+        with ids in *document_ids*.
+
+        :param document_ids: Iterable with document ids. Cannot be empty.
+        :type document_ids: iterable
+        :return: DatasetLoader -- New DatasetLoader instance with data only from
+         desired documents
+        """
+        document_ids = set(document_ids)
+        if len(document_ids) == 0:
+            raise ValueError('Can\'t use empty filter')
+
+        def f(frame):
+            if frame is None:
+                return None
+            return frame[frame.doc_id.isin(document_ids)]
+
+        return DatasetLoader(
+            concepts=f(self._concepts),
+            concepts_expressions=f(self._concepts_expressions),
+            categories=f(self._categories), sentiments=f(self._sentiments),
+            absa_entities=f(self._absa_entities),
+            absa_normalized_texts=f(self._absa_normalized_texts),
+            absa_evaluations=f(self._absa_evaluations),
+            absa_evaluations_entities=f(self._absa_evaluations_entities),
+            absa_relations=f(self._absa_relations),
+            absa_relations_entities=f(self._absa_relations_entities),
+        )
