@@ -8,7 +8,7 @@ from anacode.api.writers import CSV_FILES
 
 import random
 import matplotlib.pyplot as plt
-from wordcloud import WordCloud
+from wordcloud import WordCloud, STOPWORDS
 
 
 class ApiCallDataset:
@@ -137,7 +137,7 @@ class ConceptsDataset(ApiCallDataset):
         return con_counts[:n].astype(int)
 
     def word_cloud(self, path, size=(600, 350), background='white',
-                   colormap_name='Accent', max_concepts=200):
+                   colormap_name='Accent', max_concepts=200, stopwords=None):
         """Saves word cloud image to *path*. If *path* is not returns image as
         np.ndarray. On way to view np.ndarray resulting image is to use
         matplotlib's imshow method.
@@ -154,6 +154,8 @@ class ConceptsDataset(ApiCallDataset):
         :type colormap_name: str
         :param max_concepts: Maximum number of concepts that will be plotted
         :type max_concepts: int
+        :param stopwords: Optionally set stopwords to use for the plot
+        :type stopwords: set
         """
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
@@ -162,8 +164,10 @@ class ConceptsDataset(ApiCallDataset):
         data = data.sort_values().tail(max_concepts).reset_index()
         frequencies = [tuple(row.tolist()) for _, row in data.iterrows()]
 
+        if stopwords is None:
+            stopwords = STOPWORDS
         word_cloud = WordCloud(
-            width=size[0], height=size[1],
+            width=size[0], height=size[1], stopwords=stopwords,
             background_color=background, prefer_horizontal=0.8,
             color_func=generate_color_func(colormap_name),
         ).fit_words(frequencies)
