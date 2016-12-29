@@ -23,7 +23,7 @@ class NoRelevantData(Exception):
     pass
 
 
-def _generate_color_func(colormap_name):
+def generate_color_func(colormap_name):
     def color_func(word, font_size, position, orientation, random_state=None,
                    **kwargs):
         color = plt.get_cmap(colormap_name)(random.random())
@@ -165,7 +165,7 @@ class ConceptsDataset(ApiCallDataset):
         word_cloud = WordCloud(
             width=size[0], height=size[1],
             background_color=background, prefer_horizontal=0.8,
-            color_func=_generate_color_func(colormap_name),
+            color_func=generate_color_func(colormap_name),
         ).fit_words(frequencies)
 
         if path is not None:
