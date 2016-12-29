@@ -1,9 +1,14 @@
 import os
+import numpy as np
 import pandas as pd
 import logging
 
 from anacode.api import writers
 from anacode.api.writers import CSV_FILES
+
+import random
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 
 
 class ApiCallDataset:
@@ -16,6 +21,15 @@ class NoRelevantData(Exception):
     have data needed to finish aggregation.
     """
     pass
+
+
+def _generate_color_func(colormap_name):
+    def color_func(word, font_size, position, orientation, random_state=None,
+                   **kwargs):
+        color = plt.get_cmap(colormap_name)(random.random())
+        color = map(lambda val: int(round(val * 255)), color)
+        return tuple(color)
+    return color_func
 
 
 class ConceptsDataset(ApiCallDataset):
@@ -121,6 +135,43 @@ class ConceptsDataset(ApiCallDataset):
         con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
         con_counts = con_counts.rename('Count').sort_values(ascending=False)
         return con_counts[:n].astype(int)
+
+    def word_cloud(self, path, size=(600, 350), background='white',
+                   colormap_name='Accent', max_concepts=200):
+        """Saves word cloud image to *path*. If *path* is not returns image as
+        np.ndarray. On way to view np.ndarray resulting image is to use
+        matplotlib's imshow method.
+
+        :param path: Save plot to this file. Set to None if you want IPython to
+         show this plot instead
+        :type path: str
+        :param size: Size of plot in pixels
+        :type size: tuple - pair - of ints
+        :param background: Name of background color
+        :type background: str
+        :param colormap_name: Name of matplotlib colormap that will be used to
+         sample random colors for concepts in plot
+        :type colormap_name: str
+        :param max_concepts: Maximum number of concepts that will be plotted
+        :type max_concepts: int
+        """
+        if self._concepts is None:
+            raise NoRelevantData('Relevant concept data is not available!')
+
+        data = self._concepts.groupby('concept')['freq'].sum()
+        data = data.sort_values().tail(max_concepts).reset_index()
+        frequencies = [tuple(row.tolist()) for _, row in data.iterrows()]
+
+        word_cloud = WordCloud(
+            width=size[0], height=size[1],
+            background_color=background, prefer_horizontal=0.8,
+            color_func=_generate_color_func(colormap_name),
+        ).fit_words(frequencies)
+
+        if path is not None:
+            word_cloud.to_file(path)
+        else:
+            return np.asarray(word_cloud.to_image())
 
 
 class CategoriesDataset(ApiCallDataset):
