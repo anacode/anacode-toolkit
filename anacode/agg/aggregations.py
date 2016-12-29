@@ -8,6 +8,7 @@ from anacode.api.writers import CSV_FILES
 
 import random
 import matplotlib.pyplot as plt
+import matplotlib.font_manager
 from wordcloud import WordCloud, STOPWORDS
 
 
@@ -137,7 +138,8 @@ class ConceptsDataset(ApiCallDataset):
         return con_counts[:n].astype(int)
 
     def word_cloud(self, path, size=(600, 350), background='white',
-                   colormap_name='Accent', max_concepts=200, stopwords=None):
+                   colormap_name='Accent', max_concepts=200, stopwords=None,
+                   font=None):
         """Saves word cloud image to *path*. If *path* is not returns image as
         np.ndarray. On way to view np.ndarray resulting image is to use
         matplotlib's imshow method.
@@ -156,6 +158,8 @@ class ConceptsDataset(ApiCallDataset):
         :type max_concepts: int
         :param stopwords: Optionally set stopwords to use for the plot
         :type stopwords: set
+        :param font: Path to font that will be used
+        :type font: str
         """
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
@@ -164,10 +168,15 @@ class ConceptsDataset(ApiCallDataset):
         data = data.sort_values().tail(max_concepts).reset_index()
         frequencies = [tuple(row.tolist()) for _, row in data.iterrows()]
 
+        if font is None:
+            font = matplotlib.font_manager.findfont('')
+        elif not os.path.isfile(font):
+            font = matplotlib.font_manager.findfont(font)
+
         if stopwords is None:
             stopwords = STOPWORDS
         word_cloud = WordCloud(
-            width=size[0], height=size[1], stopwords=stopwords,
+            width=size[0], height=size[1], stopwords=stopwords, font_path=font,
             background_color=background, prefer_horizontal=0.8,
             color_func=generate_color_func(colormap_name),
         ).fit_words(frequencies)
