@@ -157,14 +157,20 @@ class ConceptsDataset(ApiCallDataset):
         :param max_concepts: Maximum number of concepts that will be plotted
         :type max_concepts: int
         :param stopwords: Optionally set stopwords to use for the plot
-        :type stopwords: set
+        :type stopwords: iter
         :param font: Path to font that will be used
         :type font: str
         """
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
 
-        data = self._concepts.groupby('concept')['freq'].sum()
+        if stopwords is None:
+            stopwords = STOPWORDS
+        stopwords = set(w.lower() for w in stopwords)
+
+        con = self._concepts
+        data = con[con.concept.str.lower().isin(stopwords) == False]
+        data = data.groupby('concept')['freq'].sum()
         data = data.sort_values().tail(max_concepts).reset_index()
         frequencies = [tuple(row.tolist()) for _, row in data.iterrows()]
 
@@ -173,10 +179,8 @@ class ConceptsDataset(ApiCallDataset):
         elif not os.path.isfile(font):
             font = matplotlib.font_manager.findfont(font)
 
-        if stopwords is None:
-            stopwords = STOPWORDS
         word_cloud = WordCloud(
-            width=size[0], height=size[1], stopwords=stopwords, font_path=font,
+            width=size[0], height=size[1], font_path=font,
             background_color=background, prefer_horizontal=0.8,
             color_func=generate_color_func(colormap_name),
         ).fit_words(frequencies)
