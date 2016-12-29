@@ -144,8 +144,8 @@ class ConceptsDataset(ApiCallDataset):
         np.ndarray. On way to view np.ndarray resulting image is to use
         matplotlib's imshow method.
 
-        :param path: Save plot to this file. Set to None if you want IPython to
-         show this plot instead
+        :param path: Save plot to this file. Set to None if you want raw image
+         np.ndarray of this plot as a return value
         :type path: str
         :param size: Size of plot in pixels
         :type size: tuple - pair - of ints
