@@ -9,6 +9,6 @@ setup(
     author_email='tomas.stibrany@anacode.de',
     packages=find_packages(),
     install_requires=['requests', 'pandas', 'seaborn', 'matplotlib',
-                      'wordcloud'],
-    tests_require=['pytest', 'mock', 'freezegun'],
+                      'wordcloud', 'pillow'],
+    tests_require=['pytest', 'mock', 'pytest-mock', 'freezegun'],
 )
