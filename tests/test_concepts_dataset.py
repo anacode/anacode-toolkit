@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 import pandas as pd
 from anacode.agg import aggregations as agg
 
@@ -81,3 +82,8 @@ def test_co_occurring_concepts(dataset, args, concepts):
     result = dataset.co_occurring_concepts(*args)
     assert isinstance(result, pd.Series)
     assert result.index.tolist() == concepts
+
+
+def test_pil_image_word_cloud_throws_no_error(dataset):
+    word_cloud_image = dataset.word_cloud(None)
+    assert isinstance(word_cloud_image, np.ndarray)
