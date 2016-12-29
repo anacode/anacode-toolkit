@@ -9,6 +9,7 @@ from anacode.api.writers import CSV_FILES
 import random
 import matplotlib.pyplot as plt
 import matplotlib.font_manager
+from PIL import Image
 from wordcloud import WordCloud, STOPWORDS
 
 
@@ -163,6 +164,13 @@ class ConceptsDataset(ApiCallDataset):
         """
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
+
+        if path is not None:
+            for ext in Image.EXTENSION:
+                if path.endswith(ext):
+                    break
+            else:
+                raise ValueError('Unsupported image file type: {}'.format(path))
 
         if stopwords is None:
             stopwords = STOPWORDS
