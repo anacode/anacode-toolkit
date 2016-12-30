@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os
 import numpy as np
 import pandas as pd
@@ -13,7 +15,7 @@ from PIL import Image
 from wordcloud import WordCloud, STOPWORDS
 
 
-class ApiCallDataset:
+class ApiCallDataset(object):
     """Base class for specific call data sets."""
     pass
 
@@ -39,7 +41,7 @@ class ConceptsDataset(ApiCallDataset):
     plotting capabilities.
 
     """
-    def __init__(self, concepts: pd.DataFrame, expressions: pd.DataFrame):
+    def __init__(self, concepts, expressions):
         """Initialize instance by providing two concept relevant data frames.
 
         :param concepts: List of found concepts with metadata
@@ -50,7 +52,7 @@ class ConceptsDataset(ApiCallDataset):
         self._concepts = concepts
         self._expressions = expressions
 
-    def concept_frequency(self, concept: str):
+    def concept_frequency(self, concept):
         """Return count of concept occurrences in this dataset. It's case
         insensitive.
 
@@ -65,7 +67,7 @@ class ConceptsDataset(ApiCallDataset):
         con = self._concepts
         return con[con.concept.str.lower() == concept].freq.sum()
 
-    def most_common_concepts(self, n=15, concept_type='') -> pd.Series:
+    def most_common_concepts(self, n=15, concept_type=''):
         """Counts concepts and returns n most occurring ones sorted by their
         count descending. Counted concepts can be filtered by their type.
 
@@ -85,7 +87,7 @@ class ConceptsDataset(ApiCallDataset):
         con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
         return con_counts.rename('Count').sort_values(ascending=False)[:n]
 
-    def least_common_concepts(self, n=15, concept_type='') -> pd.Series:
+    def least_common_concepts(self, n=15, concept_type=''):
         """Counts concepts and returns n least occurring ones sorted by their
         count ascending. Counted concepts can be filtered by their type.
 
@@ -105,8 +107,7 @@ class ConceptsDataset(ApiCallDataset):
         con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
         return con_counts.rename('Count').sort_values()[:n]
 
-    def co_occurring_concepts(self, concept: str, n=15,
-                              concept_type='') -> pd.Series:
+    def co_occurring_concepts(self, concept, n=15, concept_type=''):
         """Find n concepts co-occurring frequently in texts of this dataset with
         given concept, sorted descending. Co-occurring concepts can be
         filtered by their type.
@@ -212,7 +213,7 @@ class CategoriesDataset(ApiCallDataset):
         """
         self._categories = categories
 
-    def main_topic(self) -> str:
+    def main_topic(self):
         """Finds what topic is this dataset about. Does not support nested
         categories output.
 
@@ -282,7 +283,7 @@ class ABSADataset(ApiCallDataset):
         self._evaluations = evaluations
         self._evaluations_entities = evaluations_entities
 
-    def most_common_entities(self, n=15, entity_type='') -> pd.Series:
+    def most_common_entities(self, n=15, entity_type=''):
         """Counts entities and returns n most occurring ones sorted by their
         count descending. Counted entities can be filtered by their type.
 
@@ -302,7 +303,7 @@ class ABSADataset(ApiCallDataset):
         ent_counts = ent.groupby('entity_name').size()
         return ent_counts.rename('Count').sort_values(ascending=False)[:n]
 
-    def least_common_entities(self, n=15, entity_type='') -> pd.Series:
+    def least_common_entities(self, n=15, entity_type=''):
         """Counts entities and returns n least occurring ones sorted by their
         count ascending. Counted entities can be filtered by their type.
 
@@ -322,8 +323,7 @@ class ABSADataset(ApiCallDataset):
         ent_counts = ent.groupby('entity_name').size()
         return ent_counts.rename('Count').sort_values()[:n]
 
-    def co_occurring_entities(self, entity: str, n=15,
-                              entity_type='') -> pd.Series:
+    def co_occurring_entities(self, entity, n=15, entity_type=''):
         """Find n entities co-occurring frequently in texts of this dataset with
         given entity, sorted descending. Co-occurring entities can be
         filtered by their type.
@@ -357,7 +357,7 @@ class ABSADataset(ApiCallDataset):
         result = result.groupby('entity_name').size().rename('Count')
         return result.sort_values(ascending=False)[:n]
 
-    def best_rated_entities(self, n=15, entity_type='') -> pd.Series:
+    def best_rated_entities(self, n=15, entity_type=''):
         """Find top n rated entities in this dataset sorted descending by their
         mean rating.
 
@@ -379,7 +379,7 @@ class ABSADataset(ApiCallDataset):
         mean_evals = mean_evals.sentiment.rename('Sentiment')
         return mean_evals.sort_values(ascending=False)[:n]
 
-    def worst_rated_entities(self, n=15, entity_type='') -> pd.Series:
+    def worst_rated_entities(self, n=15, entity_type=''):
         """Find n worst rated entities in this dataset sorted ascending by their
         mean rating.
 
@@ -401,7 +401,7 @@ class ABSADataset(ApiCallDataset):
         mean_evals = mean_evals.sentiment.rename('Sentiment')
         return mean_evals.sort_values()[:n]
 
-    def entity_texts(self, entity: str):
+    def entity_texts(self, entity):
         """Returns list of normalized texts where entity is mentioned, case
         insensitive.
 
@@ -419,7 +419,7 @@ class ABSADataset(ApiCallDataset):
         ent = ent.join(texts.set_index(idx), on=idx)
         return ent.normalized_text.tolist()
 
-    def entity_sentiment(self, entity: str) -> float:
+    def entity_sentiment(self, entity):
         """Computes and return mean rating for given entity, case insensitive.
 
         :param entity: Name of entity to compute mean sentiment for
@@ -439,7 +439,7 @@ class ABSADataset(ApiCallDataset):
         return entity_eval
 
 
-class DatasetLoader:
+class DatasetLoader(object):
     """Meant for loading analysed data obtained via AnacodeAPI from various
     formats.
 
@@ -521,7 +521,7 @@ class DatasetLoader:
             self._absa_evaluations = self._absa_evaluations_entities = None
 
     @property
-    def concepts(self) -> ConceptsDataset:
+    def concepts(self):
         """Creates new ConceptsDataset if data is available.
 
         :return: :class:`anacode.agg.aggregations.ConceptsDataset` --
@@ -532,7 +532,7 @@ class DatasetLoader:
             raise NoRelevantData('Concepts data not available!')
 
     @property
-    def categories(self) -> CategoriesDataset:
+    def categories(self):
         """Creates new CategoriesDataset if data is available.
 
         :return: :class:`anacode.agg.aggregations.CategoriesDataset` --
@@ -543,7 +543,7 @@ class DatasetLoader:
             raise NoRelevantData('Categories data not available!')
 
     @property
-    def sentiments(self) -> SentimentDataset:
+    def sentiments(self):
         """Creates new SentimentDataset if data is available.
 
         :return: :class:`anacode.agg.aggregations.SentimentDataset` --
@@ -554,7 +554,7 @@ class DatasetLoader:
             raise NoRelevantData('Sentiment data is not available!')
 
     @property
-    def absa(self) -> ABSADataset:
+    def absa(self):
         """Creates new ABSADataset if data is available.
 
         :return: :class:`anacode.agg.aggregations.ABSADataset` --
@@ -569,7 +569,7 @@ class DatasetLoader:
             raise NoRelevantData('ABSA data is not available!')
 
     @classmethod
-    def from_path(cls, path: str):
+    def from_path(cls, path):
         """Initializes DatasetLoader from AnacodeAPI csv files present in given
         path. You could have obtained these by using
         :class:`anacode.api.writers.CSVWriter` to write your request results
@@ -663,7 +663,7 @@ class DatasetLoader:
 
         return cls(**frame_writer.frames)
 
-    def filter(self, document_ids: iter):
+    def filter(self, document_ids):
         """Creates new DatasetLoader instance using data only from documents
         with ids in *document_ids*.
 

@@ -1,8 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import time
 import mock
 import pytest
 import requests
-from urllib.parse import urljoin
+
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
 
 from anacode.api import client
 from anacode.api import codes

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os
 import csv
 import datetime
@@ -6,7 +8,6 @@ from itertools import chain
 from functools import partial
 
 from anacode.api import codes
-
 
 def backup(root, files):
     """Backs up `files` from `root` directory and return list of backed up
@@ -33,23 +34,24 @@ def backup(root, files):
 
 
 HEADERS = {
-    'categories': ['doc_id', 'text_order', 'category', 'probability'],
-    'concepts': ['doc_id', 'text_order', 'concept', 'freq',
-                 'relevance_score', 'concept_type'],
-    'concepts_expressions': ['doc_id', 'text_order', 'concept', 'expression'],
-    'sentiments': ['doc_id', 'text_order', 'positive', 'negative'],
-    'absa_entities': ['doc_id', 'text_order', 'entity_name', 'entity_type',
-                      'surface_string', 'text_span'],
-    'absa_normalized_texts': ['doc_id', 'text_order', 'normalized_text'],
-    'absa_relations': ['doc_id', 'text_order', 'relation_id',
-                       'opinion_holder', 'restriction', 'sentiment',
-                       'is_external', 'surface_string', 'text_span'],
-    'absa_relations_entities': ['doc_id', 'text_order', 'relation_id',
-                                'entity_type', 'entity_name'],
-    'absa_evaluations': ['doc_id', 'text_order', 'evaluation_id',
-                         'sentiment', 'surface_string', 'text_span'],
-    'absa_evaluations_entities': ['doc_id', 'text_order', 'evaluation_id',
-                                  'entity_type', 'entity_name'],
+    'categories': [u'doc_id', u'text_order', u'category', u'probability'],
+    'concepts': [u'doc_id', u'text_order', u'concept', u'freq',
+                 u'relevance_score', u'concept_type'],
+    'concepts_expressions': [u'doc_id', u'text_order', u'concept',
+                             u'expression'],
+    'sentiments': [u'doc_id', u'text_order', u'positive', u'negative'],
+    'absa_entities': [u'doc_id', u'text_order', u'entity_name', u'entity_type',
+                      u'surface_string', u'text_span'],
+    'absa_normalized_texts': [u'doc_id', u'text_order', u'normalized_text'],
+    'absa_relations': [u'doc_id', u'text_order', u'relation_id',
+                       u'opinion_holder', u'restriction', u'sentiment',
+                       u'is_external', u'surface_string', u'text_span'],
+    'absa_relations_entities': [u'doc_id', u'text_order', u'relation_id',
+                                u'entity_type', u'entity_name'],
+    'absa_evaluations': [u'doc_id', u'text_order', u'evaluation_id',
+                         u'sentiment', u'surface_string', u'text_span'],
+    'absa_evaluations_entities': [u'doc_id', u'text_order', u'evaluation_id',
+                                  u'entity_type', u'entity_name'],
 }
 
 
@@ -225,7 +227,7 @@ def absa_to_list(doc_id, analyzed):
     return absa
 
 
-class Writer:
+class Writer(object):
     """Base "abstract" class containing common methods that are expected to be
     needed by all implementations of Writer interface.
 
@@ -260,7 +262,7 @@ class Writer:
         if call_type == codes.ABSA:
             self.write_absa(call_result)
 
-    def _add_new_data_from_dict(self, new_data: dict):
+    def _add_new_data_from_dict(self, new_data):
         """Not implemented here!
 
         Write methods use this to submit new anacode data for storage.
@@ -318,7 +320,7 @@ class Writer:
         new_data = absa_to_list(doc_id, analyzed)
         self._add_new_data_from_dict(new_data)
 
-    def write_bulk(self, results: iter):
+    def write_bulk(self, results):
         """Stores multiple anacode api's JSON responses marked with call IDs.
 
         :param results: List of anacode responses with IDs of calls used
@@ -338,14 +340,14 @@ class Writer:
 
 class DataFrameWriter(Writer):
     """Capable of writing anacode api output into pandas.DataFrame instances."""
-    def __init__(self, frames: dict=None):
+    def __init__(self, frames=None):
         """Initializes dictionary of result frames. Alternatively uses given
         frames dict for storage.
 
         :param frames: Might be specified to use this instead of new dict
         :type frames: dict
         """
-        super().__init__()
+        super(DataFrameWriter, self).__init__()
         self.frames = {} if frames is None else frames
         self._row_data = {}
 
@@ -373,7 +375,7 @@ class DataFrameWriter(Writer):
                 self.frames[name] = pd.DataFrame(row, columns=HEADERS[name])
         self._row_data = {}
 
-    def _add_new_data_from_dict(self, new_data: dict):
+    def _add_new_data_from_dict(self, new_data):
         """Stores anacode api result converted to flat lists.
 
         :param new_data: Anacode api result
@@ -391,14 +393,17 @@ class CSVWriter(Writer):
         :param target_dir: Path to file where to store csv-s
         :type target_dir: str
         """
-        super().__init__()
+        super(CSVWriter, self).__init__()
         self.target_dir = os.path.abspath(os.path.expanduser(target_dir))
         self._files = {}
         self.csv = {}
 
     def _open_csv(self, csv_name):
         path = partial(os.path.join, self.target_dir)
-        return open(path(csv_name), 'w', newline='')
+        try:
+            return open(path(csv_name), 'w', newline='')
+        except TypeError:
+            return open(path(csv_name), 'wb')
 
     def init(self):
         """Opens all csv files for writing and write headers to them."""
@@ -454,7 +459,7 @@ class CSVWriter(Writer):
         self._files = {}
         self.csv = {}
 
-    def _add_new_data_from_dict(self, new_data: dict):
+    def _add_new_data_from_dict(self, new_data):
         """Stores anacode api result converted to flat lists.
 
         :param new_data: Anacode api result

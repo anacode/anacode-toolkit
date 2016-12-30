@@ -1,8 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os
 import time
 import requests
-from urllib.parse import urljoin
 from multiprocessing.dummy import Pool
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
 
 from anacode.api import writers
 from anacode.api import codes
@@ -25,7 +30,7 @@ def _analysis(call_endpoint, auth, max_retries=3, **kwargs):
             return res
 
 
-class AnacodeClient:
+class AnacodeClient(object):
     """Makes posting data to server for analysis simpler by keeping user's auth,
     url to Anacode API server and also knows paths for analysis calls.
 
@@ -112,7 +117,7 @@ class AnacodeClient:
         res = _analysis(url, self.auth, texts=texts)
         return res.json()
 
-    def call(self, task: tuple):
+    def call(self, task):
         """Given tuple of Anacode API analysis code and arguments for this
         analysis this will call appropriate method out of scrape, categories,
         concepts, sentiment or absa and return it's result
@@ -135,13 +140,12 @@ class AnacodeClient:
             return self.absa(*args)
 
 
-class Analyzer:
+class Analyzer(object):
     """This class makes querying with multiple threads and storing in other
     formats then list of json-s simple.
 
     """
-    def __init__(self, client: AnacodeClient, writer, threads: int=1,
-                 bulk_size: int=100):
+    def __init__(self, client, writer, threads=1, bulk_size=100):
         """
 
         :param client: Will be used to post analysis to anacode api

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import pytest
 import pandas as pd
 from anacode.api import writers

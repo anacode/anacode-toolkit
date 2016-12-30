@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import pytest
 import numpy as np
 import pandas as pd
@@ -23,7 +25,7 @@ def frame_concepts():
 
 
 @pytest.fixture
-def dataset(frame_concepts) -> agg.ConceptsDataset:
+def dataset(frame_concepts):
     return agg.ConceptsDataset(**frame_concepts)
 
 
