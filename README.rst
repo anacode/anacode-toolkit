@@ -3,8 +3,11 @@ Anacode aggregation library
 ***************************
 
 This is the Python client library for `Anacode API <https://api.anacode.de>`_.
-To get started you can check out READMEs in *api* and *agg* subfolders that
-provide usage samples.
+To get started you can check out READMEs in
+`api <https://github.com/anacode/anacode-toolkit/tree/master/anacode/api>`_
+and
+`agg <https://github.com/anacode/anacode-toolkit/tree/master/anacode/agg>`_
+subfolders that provide usage examples.
 
 
 Installation
