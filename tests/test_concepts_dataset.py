@@ -3,7 +3,7 @@
 import pytest
 import numpy as np
 import pandas as pd
-from anacode.agg import aggregations as agg
+from anacode.agg import aggregation as agg
 
 
 @pytest.fixture

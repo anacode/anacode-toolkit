@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 import pandas as pd
-from anacode.agg import aggregations as agg
+from anacode.agg import aggregation as agg
 
 
 @pytest.fixture

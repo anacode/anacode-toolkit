@@ -1,1 +1,1 @@
-from anacode.agg.aggregations import DatasetLoader
+from anacode.agg.aggregation import DatasetLoader

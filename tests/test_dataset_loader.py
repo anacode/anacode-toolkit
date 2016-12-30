@@ -3,7 +3,7 @@
 import pytest
 import pandas as pd
 from anacode.api import writers
-from anacode.agg import aggregations as agg
+from anacode.agg import aggregation as agg
 
 
 @pytest.mark.parametrize('call_type,dataset_name,data', [
