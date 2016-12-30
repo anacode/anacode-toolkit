@@ -14,6 +14,13 @@ from anacode import codes
 
 
 def generate_color_func(colormap_name):
+    """Creates color_func that picks random color from matplotlib's colormap
+    *colormap_name* when called.
+
+    :param colormap_name: Name of matplotlib's colormap
+    :type colormap_name: str
+    :return: callable -- color_func that returns random color from colormap
+    """
     def color_func(word, font_size, position, orientation, random_state=None,
                    **kwargs):
         color = plt.get_cmap(colormap_name)(random.random())
@@ -79,14 +86,16 @@ def word_cloud(frequencies, path, size=(600, 400), background='white',
         return np.asarray(word_cloud.to_image())
 
 
-def _get_color(color, default):
-    if isinstance(color, str) and color in sns.xkcd_rgb:
-        return sns.xkcd_rgb[color]
-    else:
-        return sns.xkcd_rgb[default]
+def plot(aggregation, color='dull green'):
+    """Plots result from some of the aggregation results in form of horizontal
+    bar chart.
 
-
-def plot(aggregation, figsize=(8, 5), color=None):
+    :param aggregation: Aggregation library result
+    :type aggregation: pd.Series
+    :param color: Seaborn named color for bars
+    :type color: str
+    :return: matplotlib.axes._subplots.AxesSubplot -- Axes for generated plot
+    """
     if not hasattr(aggregation, '_plot_id'):
         raise ValueError('Aggregation needs to be pd.Series result from '
                          'aggregation library!')
@@ -96,16 +105,15 @@ def plot(aggregation, figsize=(8, 5), color=None):
     agg = aggregation.reset_index()
     name = getattr(aggregation, '_entity', None) or \
            getattr(aggregation, '_concept', None)
-    color = _get_color(color, 'dull green')
+    color = sns.xkcd_rgb.get(color, sns.xkcd_rgb['dull green'])
     plot_id = aggregation._plot_id
 
-    with sns.plotting_context(rc={'figure.figzise': '{}, {}'.format(*figsize)}):
-        plot = sns.barplot(x=val_name, y=cat_name, data=agg, color=color)
-        plot.set_xlabel(val_name)
-        if name is not None:
-            plot.set_title('{} - {}'.format(plot_id, name), fontsize=14)
-        else:
-            plot.set_title(plot_id, fontsize=14)
-        if val_name == 'Sentiment':
-            plot.set_xticks(list(range(-5, 6, 1)))
-        return plot
+    plot = sns.barplot(x=val_name, y=cat_name, data=agg, color=color)
+    plot.set_xlabel(val_name)
+    if name is not None:
+        plot.set_title('{} - {}'.format(plot_id, name), fontsize=14)
+    else:
+        plot.set_title(plot_id, fontsize=14)
+    if val_name == 'Sentiment':
+        plot.set_xticks(list(range(-5, 6, 1)))
+    return plot
