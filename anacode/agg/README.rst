@@ -34,22 +34,33 @@ For example you can find 10 most commonly used concepts in your dataset.
     >>> data.concepts.most_common_concepts(n=10)
 
 
-Here is list of all possible analysis you can do with this library:
+To visualize these 10 most common concepts as a horizontal bar chart you can use
+`plotting.plot` method:
+
+.. code-block:: python
+
+    >>> from anacode.agg import plotting
+    >>> common_concepts = data.concepts.most_common_concepts(n=10)
+    >>> plotting.plot(common_concepts)
+
+
+Here is list of all possible analysis you can do with this library. Those that
+can be visualized are marked with asterix:
 
 - concepts:
     - concept_frequency
-    - most_common_concepts
-    - least_common_concepts
-    - co_occurring_concepts
+    - most_common_concepts *
+    - least_common_concepts *
+    - co_occurring_concepts *
 - categories:
     - main_topic
 - sentiments:
     - average_sentiment
 - absa:
-    - most_common_entities
-    - least_common_entities
-    - co_occurring_entities
-    - best_rated_entities
-    - worst_rated_entities
+    - most_common_entities *
+    - least_common_entities *
+    - co_occurring_entities *
+    - best_rated_entities *
+    - worst_rated_entities *
     - entity_texts
     - entity_sentiment
