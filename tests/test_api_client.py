@@ -9,8 +9,8 @@ try:
 except ImportError:
     from urlparse import urljoin
 
+from anacode import codes
 from anacode.api import client
-from anacode.api import codes
 from anacode.api import writers
 
 
