@@ -22,7 +22,7 @@ Library is published via PyPI so you can install it using pip:
 
     pip install anacode_toolkit
 
-You can also clone this repository and install from source using setup.py
+You can also clone it's repository and install from source using setup.py
 script:
 
 .. code-block:: shell
@@ -58,3 +58,9 @@ Test dependencies:
 * mock
 * pytest-mock
 * freezegun
+
+
+License
+=======
+
+Licensed under `BSD-3-Clause <https://github.com/anacode/anacode-toolkit/blob/master/LICENSE.txt>`_.
