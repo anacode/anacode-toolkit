@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='anacode',
-    version='0.5',
+    version='0.6',
     description='Anacode API querying and aggregation library',
     author='Tomas Stibrany',
     author_email='tomas.stibrany@anacode.de',
