@@ -1,3 +1,4 @@
+import time
 import mock
 import pytest
 import requests
@@ -5,6 +6,7 @@ from urllib.parse import urljoin
 
 from anacode.api import client
 from anacode.api import codes
+from anacode.api import writers
 
 
 def empty_response(*args, **kwargs):
@@ -99,3 +101,73 @@ def test_proper_method_call(api, code, call, mocker):
     mocker.spy(api, call)
     api.call((code, text))
     getattr(api, call).assert_called_once_with(text)
+
+
+@pytest.mark.parametrize('call', [
+    'categories', 'sentiment', 'scrape', 'absa', 'concepts',
+])
+@pytest.mark.parametrize('count,call_count', [
+    (0, 0), (5, 0), (9, 0), (10, 1), (11, 1), (19, 1), (20, 2),
+])
+def test_should_start_analysis(api, mocker, call, count, call_count):
+    text = ['安全性能很好，很帅气。']
+    writer = writers.DataFrameWriter()
+    writer.init()
+
+    to_mock = 'anacode.api.client.AnacodeClient.' + call
+    mock.patch(to_mock, empty_json)
+
+    analyzer = client.Analyzer(api, writer, bulk_size=10)
+    mocker.spy(analyzer, 'execute_tasks_and_store_output')
+
+    for _ in range(count):
+        analyzer.categories(text)
+
+    assert analyzer.execute_tasks_and_store_output.call_count == call_count
+
+
+@pytest.mark.parametrize('call, args', [
+    ('categories', ([], )),
+    ('sentiment', ([], )),
+    ('scrape', ([], )),
+    ('absa', ([], )),
+    ('concepts', ([], )),
+])
+def test_analysis_execution(api, mocker, call, args):
+    text = ['安全性能很好，很帅气。']
+    writer = writers.DataFrameWriter()
+    writer.init()
+
+    to_mock = 'anacode.api.client.AnacodeClient.' + call
+    mock.patch(to_mock, empty_json)
+    mocker.spy(api, call)
+
+    analyzer = client.Analyzer(api, writer, bulk_size=10)
+    for _ in range(4):
+        getattr(analyzer, call)(*args)
+
+    analyzer.execute_tasks_and_store_output()
+    assert getattr(api, call).call_count == 4
+
+
+def time_consuming(*args, **kwargs):
+    time.sleep(0.1)
+    return {}
+
+
+@mock.patch('anacode.api.client.AnacodeClient.categories', time_consuming)
+def test_parallel_queries(api, mocker):
+    text = ['安全性能很好，很帅气。']
+    writer = writers.DataFrameWriter()
+    writer.init()
+
+    mocker.spy(api, 'categories')
+    analyzer = client.Analyzer(api, writer, threads=4, bulk_size=4)
+
+    start = time.time()
+    with analyzer:
+        for _ in range(4):
+            analyzer.categories(text)
+    stop = time.time()
+    duration = stop - start
+    assert abs(duration - 0.1) < 0.1
