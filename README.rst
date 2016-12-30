@@ -9,6 +9,9 @@ and
 `agg <https://github.com/anacode/anacode-toolkit/tree/master/anacode/agg>`_
 subfolders that provide usage examples.
 
+If you want to learn more about API calls please read their
+`documentation <https://api.anacode.de/api-docs/>`_.
+
 
 Installation
 ============
