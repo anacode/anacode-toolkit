@@ -20,7 +20,7 @@ Library is published via PyPI so you can install it using pip:
 
 .. code-block:: shell
 
-    pip install anacode_toolkit
+    pip install anacode
 
 You can also clone it's repository and install from source using setup.py
 script:
