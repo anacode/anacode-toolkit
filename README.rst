@@ -22,6 +22,15 @@ Library is published via PyPI so you can install it using pip:
 
     pip install anacode_toolkit
 
+You can also clone this repository and install from source using setup.py
+script:
+
+.. code-block:: shell
+
+    git clone https://github.com/anacode/anacode-toolkit.git
+    cd anacode-toolkit
+    python setup.py install
+
 
 Python Version
 ==============
