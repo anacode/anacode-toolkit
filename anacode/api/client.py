@@ -104,16 +104,22 @@ class AnacodeClient(object):
         res = _analysis(url, self.auth, texts=texts)
         return res.json()
 
-    def absa(self, texts):
+    def absa(self, texts, external_entity_data=None):
         """Use Anacode API to perform Aspect Based Sentiment Analysis for given
         list of texts.
 
         :param texts: List of texts to perform fine grained sentiment analysis
         :type texts: list
+        :param external_entity_data: Ensure that found evaluations will have
+         relations with entities specified here
+        :type external_entity_data: dict
         :return: dict --
         """
         url = urljoin(self.base_url, '/absa/')
-        res = _analysis(url, self.auth, texts=texts)
+        data = {'texts': texts}
+        if external_entity_data is not None:
+            data['external_entity_data'] = external_entity_data
+        res = _analysis(url, self.auth, **data)
         return res.json()
 
     def call(self, task):
@@ -239,11 +245,11 @@ class Analyzer(object):
         if self.should_start_analysis():
             self.execute_tasks_and_store_output()
 
-    def absa(self, texts):
+    def absa(self, texts, external_entity_data=None):
         """Dummy clone for
         :meth:`anacode.api.client.AnacodeClient.absa`
         """
-        self.task_queue.append((codes.ABSA, texts))
+        self.task_queue.append((codes.ABSA, texts, external_entity_data))
         if self.should_start_analysis():
             self.execute_tasks_and_store_output()
 
