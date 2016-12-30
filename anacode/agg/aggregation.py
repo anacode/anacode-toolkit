@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
-import numpy as np
-import pandas as pd
 import logging
 
+import pandas as pd
+
+from anacode import codes
 from anacode.api import writers
 from anacode.api.writers import CSV_FILES
-
-import random
-import matplotlib.pyplot as plt
-import matplotlib.font_manager
-from PIL import Image
-from wordcloud import WordCloud, STOPWORDS
+from anacode.agg import plotting
 
 
 class ApiCallDataset(object):
@@ -24,15 +20,6 @@ class NoRelevantData(Exception):
     have data needed to finish aggregation.
     """
     pass
-
-
-def generate_color_func(colormap_name):
-    def color_func(word, font_size, position, orientation, random_state=None,
-                   **kwargs):
-        color = plt.get_cmap(colormap_name)(random.random())
-        color = map(lambda val: int(round(val * 255)), color)
-        return tuple(color)
-    return color_func
 
 
 class ConceptsDataset(ApiCallDataset):
@@ -84,7 +71,10 @@ class ConceptsDataset(ApiCallDataset):
         con = self._concepts
         con = con[con.concept_type.str.startswith(concept_type)]
         con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
-        return con_counts.rename('Count').sort_values(ascending=False)[:n]
+        result = con_counts.rename('Count').sort_values(ascending=False)[:n]
+        result.index.name = 'Concept'
+        result._plot_id = codes.MOST_COMMON_CONCEPTS
+        return result
 
     def least_common_concepts(self, n=15, concept_type=''):
         """Counts concepts and returns n least occurring ones sorted by their
@@ -104,7 +94,10 @@ class ConceptsDataset(ApiCallDataset):
         con = self._concepts
         con = con[con.concept_type.str.startswith(concept_type)]
         con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
-        return con_counts.rename('Count').sort_values()[:n]
+        result = con_counts.rename('Count').sort_values()[:n]
+        result.index.name = 'Concept'
+        result._plot_id = codes.LEAST_COMMON_CONCEPTS
+        return result
 
     def co_occurring_concepts(self, concept, n=15, concept_type=''):
         """Find n concepts co-occurring frequently in texts of this dataset with
@@ -136,7 +129,11 @@ class ConceptsDataset(ApiCallDataset):
 
         con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
         con_counts = con_counts.rename('Count').sort_values(ascending=False)
-        return con_counts[:n].astype(int)
+        result = con_counts[:n].astype(int)
+        result.index.name = 'Concept'
+        result._concept = concept
+        result._plot_id = codes.CO_OCCURING_CONCEPTS
+        return result
 
     def word_cloud(self, path, size=(600, 350), background='white',
                    colormap_name='Accent', max_concepts=200, stopwords=None,
@@ -165,38 +162,12 @@ class ConceptsDataset(ApiCallDataset):
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
 
-        if path is not None:
-            for ext in Image.EXTENSION:
-                if path.endswith(ext):
-                    break
-            else:
-                raise ValueError('Unsupported image file type: {}'.format(path))
-
-        if stopwords is None:
-            stopwords = STOPWORDS
-        stopwords = set(w.lower() for w in stopwords)
-
-        con = self._concepts
-        data = con[con.concept.str.lower().isin(stopwords) == False]
-        data = data.groupby('concept')['freq'].sum()
+        data = self._concepts.groupby('concept')['freq'].sum()
         data = data.sort_values().tail(max_concepts).reset_index()
         frequencies = [tuple(row.tolist()) for _, row in data.iterrows()]
 
-        if font is None:
-            font = matplotlib.font_manager.findfont('')
-        elif not os.path.isfile(font):
-            font = matplotlib.font_manager.findfont(font)
-
-        word_cloud = WordCloud(
-            width=size[0], height=size[1], font_path=font,
-            background_color=background, prefer_horizontal=0.8,
-            color_func=generate_color_func(colormap_name),
-        ).fit_words(frequencies)
-
-        if path is not None:
-            word_cloud.to_file(path)
-        else:
-            return np.asarray(word_cloud.to_image())
+        return plotting.word_cloud(frequencies, path, size, background,
+                                   colormap_name, max_concepts, stopwords, font)
 
 
 class CategoriesDataset(ApiCallDataset):
@@ -300,7 +271,10 @@ class ABSADataset(ApiCallDataset):
         ent = self._entities
         ent = ent[ent.entity_type.str.startswith(entity_type)]
         ent_counts = ent.groupby('entity_name').size()
-        return ent_counts.rename('Count').sort_values(ascending=False)[:n]
+        result = ent_counts.rename('Count').sort_values(ascending=False)[:n]
+        result._plot_id = codes.MOST_COMMON_ENTITIES
+        result.index.name = 'Entity'
+        return result
 
     def least_common_entities(self, n=15, entity_type=''):
         """Counts entities and returns n least occurring ones sorted by their
@@ -320,7 +294,10 @@ class ABSADataset(ApiCallDataset):
         ent = self._entities
         ent = ent[ent.entity_type.str.startswith(entity_type)]
         ent_counts = ent.groupby('entity_name').size()
-        return ent_counts.rename('Count').sort_values()[:n]
+        result = ent_counts.rename('Count').sort_values()[:n]
+        result._plot_id = codes.LEAST_COMMON_ENTITIES
+        result.index.name = 'Entity'
+        return result
 
     def co_occurring_entities(self, entity, n=15, entity_type=''):
         """Find n entities co-occurring frequently in texts of this dataset with
@@ -354,7 +331,11 @@ class ABSADataset(ApiCallDataset):
             return pd.Series([]).rename('Count')
 
         result = result.groupby('entity_name').size().rename('Count')
-        return result.sort_values(ascending=False)[:n]
+        result = result.sort_values(ascending=False)[:n]
+        result._plot_id = codes.CO_OCCURING_ENTITIES
+        result._entity = entity
+        result.index.name = 'Entity'
+        return result
 
     def best_rated_entities(self, n=15, entity_type=''):
         """Find top n rated entities in this dataset sorted descending by their
@@ -376,7 +357,10 @@ class ABSADataset(ApiCallDataset):
         ent_evals = ent_evals[ent_evals.entity_type.str.startswith(entity_type)]
         mean_evals = ent_evals.groupby('entity_name').agg({'sentiment': 'mean'})
         mean_evals = mean_evals.sentiment.rename('Sentiment')
-        return mean_evals.sort_values(ascending=False)[:n]
+        result = mean_evals.sort_values(ascending=False)[:n]
+        result._plot_id = codes.BEST_RATED_ENTITIES
+        result.index.name = 'Entity'
+        return result
 
     def worst_rated_entities(self, n=15, entity_type=''):
         """Find n worst rated entities in this dataset sorted ascending by their
@@ -398,7 +382,10 @@ class ABSADataset(ApiCallDataset):
         ent_evals = ent_evals[ent_evals.entity_type.str.startswith(entity_type)]
         mean_evals = ent_evals.groupby('entity_name').agg({'sentiment': 'mean'})
         mean_evals = mean_evals.sentiment.rename('Sentiment')
-        return mean_evals.sort_values()[:n]
+        result = mean_evals.sort_values()[:n]
+        result._plot_id = codes.WORST_RATED_ENTITIES
+        result.index.name = 'Entity'
+        return result
 
     def entity_texts(self, entity):
         """Returns list of normalized texts where entity is mentioned, case

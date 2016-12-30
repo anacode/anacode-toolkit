@@ -6,7 +6,7 @@ import pandas as pd
 from itertools import chain
 from functools import partial
 
-from anacode.api import codes
+from anacode import codes
 
 def backup(root, files):
     """Backs up `files` from `root` directory and return list of backed up

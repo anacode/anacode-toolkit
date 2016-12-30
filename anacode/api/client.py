@@ -8,8 +8,8 @@ try:
 except ImportError:
     from urlparse import urljoin
 
+from anacode import codes
 from anacode.api import writers
-from anacode.api import codes
 
 
 ANACODE_API_URL = os.getenv('ANACODE_API_URL', 'https://api.anacode.de/')
