@@ -8,7 +8,7 @@ setup(
     author='Tomas Stibrany',
     author_email='tomas.stibrany@anacode.de',
     url='https://github.com/anacode/anacode-toolkit',
-    download_url='',
+    download_url='https://github.com/anacode/anacode-toolkit/tarball/0.6',
     license='BSD-3-Clause',
     keywords=['anacode', 'nlp', 'chinese'],
     packages=find_packages(),
