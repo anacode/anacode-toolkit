@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import pytest
 import numpy as np
 import pandas as pd
@@ -88,3 +89,10 @@ def test_co_occurring_concepts(dataset, args, concepts):
 def test_pil_image_word_cloud_throws_no_error(dataset):
     word_cloud_image = dataset.word_cloud(None)
     assert isinstance(word_cloud_image, np.ndarray)
+
+
+def test_word_cloud_save_throws_no_error(dataset, tmpdir):
+    target = tmpdir.mkdir('target')
+    cloud_path = os.path.join(str(target), 'test.png')
+    dataset.word_cloud(cloud_path)
+    assert os.path.isfile(cloud_path)
