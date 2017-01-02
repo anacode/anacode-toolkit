@@ -353,6 +353,7 @@ class ABSADataset(ApiCallDataset):
 
         idx = ['doc_id', 'text_order', 'relation_id']
         rels, ents = self._relations, self._relations_entities
+        rels = rels[rels.sentiment.abs() < 100]
         ent_evals = rels.set_index(idx).join(ents.set_index(idx)).reset_index()
         ent_evals = ent_evals[ent_evals.entity_type.str.startswith(entity_type)]
         mean_evals = ent_evals.groupby('entity_name').agg({'sentiment': 'mean'})
@@ -378,6 +379,7 @@ class ABSADataset(ApiCallDataset):
 
         idx = ['doc_id', 'text_order', 'relation_id']
         rels, ents = self._relations, self._relations_entities
+        rels = rels[rels.sentiment.abs() < 100]
         ent_evals = rels.set_index(idx).join(ents.set_index(idx)).reset_index()
         ent_evals = ent_evals[ent_evals.entity_type.str.startswith(entity_type)]
         mean_evals = ent_evals.groupby('entity_name').agg({'sentiment': 'mean'})
@@ -417,6 +419,7 @@ class ABSADataset(ApiCallDataset):
 
         idx = ['doc_id', 'text_order', 'relation_id']
         rels, ents = self._relations, self._relations_entities
+        rels = rels[rels.sentiment.abs() < 100]
         all_ent_evals = rels.set_index(idx).join(ents.set_index(idx))
 
         entity_evals = all_ent_evals.reset_index()
