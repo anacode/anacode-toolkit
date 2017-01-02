@@ -7,10 +7,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.font_manager
 
-from PIL import Image
 from wordcloud import WordCloud, STOPWORDS
-
-from anacode import codes
 
 
 def generate_color_func(colormap_name):
@@ -55,13 +52,6 @@ def word_cloud(frequencies, path, size=(600, 400), background='white',
     :param font: Path to font that will be used
     :type font: str
     """
-    if path is not None:
-        for ext in Image.EXTENSION:
-            if path.endswith(ext):
-                break
-        else:
-            raise ValueError('Unsupported image file type: {}'.format(path))
-
     if stopwords is None:
         stopwords = STOPWORDS
     stopwords = set(w.lower() for w in stopwords)
@@ -81,7 +71,10 @@ def word_cloud(frequencies, path, size=(600, 400), background='white',
     ).fit_words(frequencies)
 
     if path is not None:
-        word_cloud.to_file(path)
+        try:
+            word_cloud.to_file(path)
+        except KeyError:
+            raise ValueError('Unsupported image file type: {}'.format(path))
     else:
         return np.asarray(word_cloud.to_image())
 
