@@ -348,12 +348,12 @@ class ABSADataset(ApiCallDataset):
         :return: pandas.DataFrame -- Best rated entities in this dataset as
          index and their ratings as values sorted descending
         """
-        if self._evaluations is None or self._evaluations_entities is None:
-            raise NoRelevantData('Relevant evaluation data is not available!')
+        if self._relations is None or self._relations_entities is None:
+            raise NoRelevantData('Relevant relation data is not available!')
 
-        idx = ['doc_id', 'text_order', 'evaluation_id']
-        evals, ents = self._evaluations, self._evaluations_entities
-        ent_evals = evals.set_index(idx).join(ents.set_index(idx)).reset_index()
+        idx = ['doc_id', 'text_order', 'relation_id']
+        rels, ents = self._relations, self._relations_entities
+        ent_evals = rels.set_index(idx).join(ents.set_index(idx)).reset_index()
         ent_evals = ent_evals[ent_evals.entity_type.str.startswith(entity_type)]
         mean_evals = ent_evals.groupby('entity_name').agg({'sentiment': 'mean'})
         mean_evals = mean_evals.sentiment.rename('Sentiment')
@@ -373,12 +373,12 @@ class ABSADataset(ApiCallDataset):
         :return: pandas.DataFrame -- Worst rated entities in this dataset as
          index and their ratings as values sorted ascending
         """
-        if self._evaluations is None or self._evaluations_entities is None:
-            raise NoRelevantData('Relevant evaluation data is not available!')
+        if self._relations is None or self._relations_entities is None:
+            raise NoRelevantData('Relevant relation data is not available!')
 
-        idx = ['doc_id', 'text_order', 'evaluation_id']
-        evals, ents = self._evaluations, self._evaluations_entities
-        ent_evals = evals.set_index(idx).join(ents.set_index(idx)).reset_index()
+        idx = ['doc_id', 'text_order', 'relation_id']
+        rels, ents = self._relations, self._relations_entities
+        ent_evals = rels.set_index(idx).join(ents.set_index(idx)).reset_index()
         ent_evals = ent_evals[ent_evals.entity_type.str.startswith(entity_type)]
         mean_evals = ent_evals.groupby('entity_name').agg({'sentiment': 'mean'})
         mean_evals = mean_evals.sentiment.rename('Sentiment')
@@ -412,12 +412,12 @@ class ABSADataset(ApiCallDataset):
         :type entity: str
         :return: float -- Mean rating for entity, np.nan if entity was not rated
         """
-        if self._evaluations is None or self._evaluations_entities is None:
-            raise NoRelevantData('Relevant evaluation data is not available!')
+        if self._relations is None or self._relations_entities is None:
+            raise NoRelevantData('Relevant relation data is not available!')
 
-        idx = ['doc_id', 'text_order', 'evaluation_id']
-        evals, ents = self._evaluations, self._evaluations_entities
-        all_ent_evals = evals.set_index(idx).join(ents.set_index(idx))
+        idx = ['doc_id', 'text_order', 'relation_id']
+        rels, ents = self._relations, self._relations_entities
+        all_ent_evals = rels.set_index(idx).join(ents.set_index(idx))
 
         entity_evals = all_ent_evals.reset_index()
         entity_filter = entity_evals.entity_name.str.lower() == entity.lower()

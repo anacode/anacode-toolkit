@@ -24,10 +24,21 @@ def frame_absa():
     rel_header = ['doc_id', 'text_order', 'relation_id', 'opinion_holder',
                   'restriction', 'sentiment', 'is_external', 'surface_string',
                   'text_span']
-    rels = pd.DataFrame([], columns=rel_header)
+    rels = pd.DataFrame([
+        [0, 0, 0, '', '', 2.0, False, '安全', '0-2'],
+        [0, 0, 1, '', '', 3.5, False, '很帅气', '7-10'],
+        [0, 1, 0, '', '', 1.0, False, '安全', '0-2'],
+        [0, 1, 1, '', '', 2.5, False, '很帅气', '7-10'],
+    ], columns=rel_header)
     rel_ent_header = ['doc_id', 'text_order', 'relation_id',
                       'entity_type', 'entity_name']
-    rel_entities = pd.DataFrame([], columns=rel_ent_header)
+    rel_entities = pd.DataFrame([
+        [0, 0, 0, 'feature_quantitative', 'Safety'],
+        [0, 0, 0, 'feature_objective', 'Hardiness'],
+        [0, 0, 1, 'feature_subjective', 'VisualAppearance'],
+        [0, 1, 0, 'feature_quantitative', 'Safety'],
+        [0, 1, 1, 'feature_subjective', 'VisualAppearance'],
+    ], columns=rel_ent_header)
     eval_header = ['doc_id', 'text_order', 'evaluation_id', 'sentiment',
                    'surface_string', 'text_span']
     evals = pd.DataFrame([
@@ -109,7 +120,8 @@ def test_co_occurring_concepts(dataset, args, entities):
 @pytest.mark.parametrize('args,entities', [
     ([1], ['VisualAppearance']),
     ([1, 'feature_quantitative'], ['Safety']),
-    ([2], ['VisualAppearance', 'Safety'])
+    ([2], ['VisualAppearance', 'Hardiness']),
+    ([19], ['VisualAppearance', 'Hardiness', 'Safety'])
 ])
 def test_best_rated_entities(dataset, args, entities):
     result = dataset.best_rated_entities(*args)
@@ -120,7 +132,8 @@ def test_best_rated_entities(dataset, args, entities):
 @pytest.mark.parametrize('args,entities', [
     ([1], ['Safety']),
     ([1, 'feature_subjective'], ['VisualAppearance']),
-    ([2], ['Safety', 'VisualAppearance'])
+    ([2], ['Safety', 'Hardiness']),
+    ([5], ['Safety', 'Hardiness', 'VisualAppearance']),
 ])
 def test_worst_rated_entities(dataset, args, entities):
     result = dataset.worst_rated_entities(*args)
@@ -143,6 +156,7 @@ def test_entity_texts(dataset, entity, texts):
     ('Safety', 1.5),
     ('safety', 1.5),
     ('VisualAppearance', 3.0),
+    ('Hardiness', 2.0),
 ])
 def test_entity_sentiment(dataset, entity, sentiment):
     result = dataset.entity_sentiment(entity)
