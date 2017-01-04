@@ -64,3 +64,15 @@ can be visualized are marked with asterix:
     - worst_rated_entities *
     - entity_texts
     - entity_sentiment
+
+
+If you want to access underlying pandas DataFrame objects, you can do so by
+subscripting DatasetLoader instance with "categories", "concepts",
+"concepts_expressions", "sentiments", "absa_entities", "absa_normalized_texts",
+"absa_relations", "absa_relations_entities", "absa_evaluations" and
+"absa_evaluations_entities" strings like this:
+
+.. code-block:: python
+
+    >>> relation_entities = dataset['absa_relations_entities']
+

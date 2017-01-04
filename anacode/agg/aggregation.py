@@ -582,6 +582,23 @@ class DatasetLoader(object):
             self._absa_relations = self._absa_relations_entities = None
             self._absa_evaluations = self._absa_evaluations_entities = None
 
+    def __getitem__(self, item):
+        dataset_map = {
+            'categories': self._categories,
+            'concepts': self._concepts,
+            'concepts_expressions': self._concepts_expressions,
+            'sentiments': self._sentiments,
+            'absa_entities': self._absa_entities,
+            'absa_normalized_texts': self._absa_normalized_texts,
+            'absa_relations': self._absa_relations,
+            'absa_relations_entities': self._absa_relations_entities,
+            'absa_evaluations': self._absa_evaluations,
+            'absa_evaluations_entities': self._absa_evaluations_entities,
+        }
+        if item not in dataset_map:
+            raise KeyError('Don\'t recognize "{}" dataset'.format(item))
+        return dataset_map[item]
+
     @property
     def concepts(self):
         """Creates new ConceptsDataset if data is available.

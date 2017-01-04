@@ -106,6 +106,26 @@ def test_data_load_from_path(data_folder, dataset_name, shape):
     assert dataset.shape == shape
 
 
+@pytest.mark.parametrize('dataset_name,shape', [
+    ('categories', (60, 4)),
+    ('sentiments', (2, 4)),
+    ('concepts', (2, 6)),
+    ('concepts_expressions', (2, 4)),
+    ('absa_entities', (1, 6)),
+    ('absa_normalized_texts', (1, 3)),
+    ('absa_relations', (1, 9)),
+    ('absa_relations_entities', (2, 5)),
+    ('absa_evaluations', (2, 6)),
+    ('absa_evaluations_entities', (2, 5))
+])
+def test_data_frame_getitem_access(data_folder, dataset_name, shape):
+    dataset_loader = agg.DatasetLoader.from_path(data_folder)
+    dataset = dataset_loader[dataset_name]
+    assert dataset is not None
+    assert isinstance(dataset, pd.DataFrame)
+    assert dataset.shape == shape
+
+
 @pytest.fixture
 def frame_writer(concepts, sentiments, categories, absa):
     frame_writer = writers.DataFrameWriter()
