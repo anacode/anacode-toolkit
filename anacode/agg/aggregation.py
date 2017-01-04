@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import logging
+from itertools import chain
 
 import pandas as pd
 
@@ -8,6 +9,8 @@ from anacode import codes
 from anacode.api import writers
 from anacode.api.writers import CSV_FILES
 from anacode.agg import plotting
+
+from nltk.text import TextCollection, Text
 
 
 class ApiCallDataset(object):
@@ -135,9 +138,63 @@ class ConceptsDataset(ApiCallDataset):
         result._plot_id = codes.CO_OCCURING_CONCEPTS
         return result
 
+    def nltk_textcollection(self, concept_type=''):
+        """Wraps concepts of each represented documents into nltk.text.Text and
+        returns these wrapped in nltk.text.TextCollection.
+
+        :param concept_type: Limit gathered concepts only to this type of
+         concepts
+        :type concept_type: str
+        :return: nltk.text.TextCollection -- TextCollection of represented
+         documents
+        """
+        if self._concepts is None:
+            raise NoRelevantData('Relevant concept data is not available!')
+
+        con = self._concepts
+        con = con[con.concept_type.str.startswith(concept_type)]
+
+        texts = []
+        docs_concepts = con.groupby(['doc_id', 'concept'])['freq'].sum()
+        docs_concepts = docs_concepts.reset_index()
+        for doc_id in self._concepts.doc_id.unique():
+            concepts = docs_concepts[docs_concepts.doc_id == doc_id]
+            concepts = concepts.set_index('concept')['freq']
+            doc = chain.from_iterable([w] * c for w, c in concepts.iteritems())
+            texts.append(Text(doc))
+
+        return TextCollection(texts)
+
+    def make_idf_filter(self, threshold, concept_type=''):
+        """Generates concept filter based on idf value of concept in represented
+        documents. This filter can be directly used as parameter for word_cloud
+        call.
+
+        :param threshold: Minimum IDF of concept that will pass the filter
+        :type threshold: float
+        :param concept_type: Limit co-occurring concept counts only to this type
+         of concepts.
+        :type concept_type: str
+        :return: callable -- Function that can be used as idf_func in word_cloud
+        """
+        corpus = self.nltk_textcollection(concept_type)
+
+        def idf_filter(word):
+            """Computes idf of word in corpus and decides if word is important
+            or not.
+
+            :param word: Concept name to decide if bears significant meaning
+            :type word: str
+            :return: bool -- True if concept has meaning in text, False
+             otherwise
+            """
+            return corpus.idf(word) >= threshold
+
+        return idf_filter
+
     def word_cloud(self, path, size=(600, 350), background='white',
                    colormap_name='Accent', max_concepts=200, stopwords=None,
-                   font=None):
+                   concept_type='', concept_filter=None, font=None):
         """Saves word cloud image to *path*. If *path* is not returns image as
         np.ndarray. On way to view np.ndarray resulting image is to use
         matplotlib's imshow method.
@@ -156,13 +213,29 @@ class ConceptsDataset(ApiCallDataset):
         :type max_concepts: int
         :param stopwords: Optionally set stopwords to use for the plot
         :type stopwords: iter
+        :param concept_type: Limit concepts only to concepts whose type starts
+         with this string
+        :type concept_type: str
+        :param concept_filter: If not None given callable needs to accept one
+         string parameter that is concept name and evaluate it if it should pass
+         the filter - callable returns True - or not - callable returns False.
+         Only concepts that pass can be seen on resulting word cloud image
+        :type concept_filter: callable
         :param font: Path to font that will be used
         :type font: str
+        :return: numpy.ndarray or None -- Returns numpy.ndarray if no path to
+         save was provided otherwise returns None.
         """
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
 
-        data = self._concepts.groupby('concept')['freq'].sum()
+        con = self._concepts
+        con = con[con.concept_type.str.startswith(concept_type)]
+
+        if concept_filter is not None:
+            con = con[list(map(concept_filter, con.concept))]
+
+        data = con.groupby('concept')['freq'].sum()
         data = data.sort_values().tail(max_concepts).reset_index()
         frequencies = [tuple(row.tolist()) for _, row in data.iterrows()]
 

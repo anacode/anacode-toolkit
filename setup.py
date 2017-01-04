@@ -13,7 +13,7 @@ setup(
     keywords=['anacode', 'nlp', 'chinese'],
     packages=find_packages(),
     install_requires=['requests', 'pandas', 'seaborn', 'matplotlib',
-                      'wordcloud', 'pillow'],
+                      'wordcloud', 'pillow', 'nltk'],
     tests_require=['pytest', 'mock', 'pytest-mock', 'freezegun'],
     classifiers=[],
 )

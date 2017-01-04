@@ -51,6 +51,7 @@ Library dependencies are:
 * seaborn
 * wordcloud
 * pillow
+* nltk
 
 Test dependencies:
 

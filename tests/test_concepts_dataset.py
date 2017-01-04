@@ -96,3 +96,63 @@ def test_word_cloud_save_throws_no_error(dataset, tmpdir):
     cloud_path = os.path.join(str(target), 'test.png')
     dataset.word_cloud(cloud_path)
     assert os.path.isfile(cloud_path)
+
+
+@pytest.fixture
+def idf_dataset():
+    con_header = ['doc_id', 'text_order', 'concept', 'freq', 'relevance_score',
+                  'concept_type']
+    concepts = pd.DataFrame([
+        [0, 0, 'Lenovo', 1, 1.0, 'brand'],
+        [0, 0, 'BMW', 1, 1.0, 'brand'],
+        [1, 0, 'Samsung', 1, 1.0, 'brand'],
+        [1, 0, 'Lenovo', 1, 1.0, 'brand'],
+        [2, 0, 'Lenovo', 2, 1.0, 'brand'],
+        [2, 1, 'VisualAppearance', 2, 1.0, 'feature_subjective'],
+        [3, 0, 'VisualAppearance', 2, 1.0, 'feature_subjective'],
+    ], columns=con_header)
+    return agg.ConceptsDataset(concepts, None)
+
+
+def test_text_collection_contain_appropriate_concepts(idf_dataset):
+    corpus = idf_dataset.nltk_textcollection()
+    assert 'Lenovo' in corpus
+    assert 'BMW' in corpus
+    assert 'Samsung' in corpus
+    assert 'VisualAppearance' in corpus
+    assert 'Wheel' not in corpus
+
+
+def test_text_collection_creation_no_concept_in_doc(idf_dataset):
+    corpus = idf_dataset.nltk_textcollection('brand')
+    assert 'Lenovo' in corpus
+    assert 'BMW' in corpus
+    assert 'Samsung' in corpus
+    assert 'VisualAppearance' not in corpus
+
+
+def test_text_collection_idf_is_correct(idf_dataset):
+    corpus = idf_dataset.nltk_textcollection()
+    assert corpus.idf('Lenovo') < corpus.idf('Samsung')
+    assert corpus.idf('Lenovo') < corpus.idf('BMW')
+    assert corpus.idf('Lenovo') < corpus.idf('VisualAppearance')
+
+    assert corpus.idf('Samsung') == corpus.idf('BMW')
+    assert corpus.idf('VisualAppearance') < corpus.idf('Samsung')
+
+
+@pytest.fixture
+def idf_filter(idf_dataset):
+    corpus = idf_dataset.nltk_textcollection()
+    threshold = corpus.idf('VisualAppearance')
+    return idf_dataset.make_idf_filter(threshold)
+
+
+@pytest.mark.parametrize('word,result', [
+    ('VisualAppearance', True),
+    ('Lenovo', False),
+    ('Samsung', True),
+    ('BMW', True),
+])
+def test_concept_idf_filter(idf_filter, word, result):
+    assert idf_filter(word) is result
