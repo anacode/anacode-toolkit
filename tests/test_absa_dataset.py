@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
+import numpy as np
 import pandas as pd
 from anacode.agg import aggregation as agg
 
@@ -88,7 +89,7 @@ def test_empty_dataset_failure(aggreg_func, args):
     ([2], ['Lenovo', 'VisualAppearance']),
     ([2, 'brand'], ['Lenovo', 'Samsung'])
 ])
-def test_most_common_concepts(dataset, args, entities):
+def test_most_common_entities(dataset, args, entities):
     result = dataset.most_common_entities(*args)
     assert isinstance(result, pd.Series)
     assert result.index.tolist() == entities
@@ -99,7 +100,7 @@ def test_most_common_concepts(dataset, args, entities):
     ([2], ['Samsung', 'VisualAppearance']),
     ([10, 'feature_'], ['VisualAppearance'])
 ])
-def test_least_common_concepts(dataset, args, entities):
+def test_least_common_entities(dataset, args, entities):
     result = dataset.least_common_entities(*args)
     assert isinstance(result, pd.Series)
     assert result.index.tolist() == entities
@@ -111,7 +112,7 @@ def test_least_common_concepts(dataset, args, entities):
     (['Lenovo', 1, 'brand'], ['Samsung']),
     (['VisualAppearance', 2], ['Lenovo', 'Samsung']),
 ])
-def test_co_occurring_concepts(dataset, args, entities):
+def test_co_occurring_entities(dataset, args, entities):
     result = dataset.co_occurring_entities(*args)
     assert isinstance(result, pd.Series)
     assert result.index.tolist() == entities
@@ -142,22 +143,26 @@ def test_worst_rated_entities(dataset, args, entities):
 
 
 @pytest.mark.parametrize('entity,texts', [
-    ('Safety', []),
-    ('VisualAppearance', ['安全性能很好，很帅气。']),
-    ('visualappearance', ['安全性能很好，很帅气。']),
+    ('Safety', {'Safety': []}),
+    ('VisualAppearance', {'VisualAppearance': ['安全性能很好，很帅气。']}),
+    ('visualappearance', {'visualappearance': []}),
+    (['Lenovo', 'Safety'], {'Lenovo': ['Hey lenovo', '安全性能很好，很帅气。'],
+                            'Safety': []}),
 ])
 def test_entity_texts(dataset, entity, texts):
     result = dataset.entity_texts(entity)
-    assert isinstance(result, list)
+    assert isinstance(result, dict)
     assert result == texts
 
 
 @pytest.mark.parametrize('entity,sentiment', [
-    ('Safety', 1.5),
-    ('safety', 1.5),
-    ('VisualAppearance', 3.0),
-    ('Hardiness', 2.0),
+    ('Safety', [1.5]),
+    ('VisualAppearance', [3.0]),
+    ('Hardiness', [2.0]),
+    ('NotHere', [np.nan]),
+    (['Hardiness', 'NotHere'], [2.0, np.nan]),
+    (['Safety', 'VisualAppearance'], [1.5, 3.0]),
 ])
 def test_entity_sentiment(dataset, entity, sentiment):
     result = dataset.entity_sentiment(entity)
-    assert result == sentiment
+    np.testing.assert_equal(result.values, sentiment)

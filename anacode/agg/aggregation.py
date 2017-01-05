@@ -3,6 +3,7 @@ import os
 import logging
 from itertools import chain
 
+import numpy as np
 import pandas as pd
 
 from anacode import codes
@@ -42,19 +43,30 @@ class ConceptsDataset(ApiCallDataset):
         self._expressions = expressions
 
     def concept_frequency(self, concept):
-        """Return count of concept occurrences in this dataset. It's case
-        insensitive.
+        """Return occurrence count of input concept or concept list. Resulting
+        list has concepts sorted just like they were in input if it was list or
+        tuple.
 
-        :param concept: name of concept to count it's occurrences
-        :type concept: str
-        :return: int -- Number of concept occurences in dataset
+        :param concept: name(s) of concept to count occurrences for
+        :type concept: list, tuple, set or string
+        :return: pandas.Series -- Concept names as index and their counts as
+         values sorted as they were in input.
         """
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
 
-        concept = concept.lower()
-        con = self._concepts
-        return con[con.concept.str.lower() == concept].freq.sum()
+        if not isinstance(concept, (tuple, list, set)):
+            concept = {concept}
+
+        con = self._concepts[self._concepts.concept.isin(concept)]
+        counts = con.groupby('concept')['freq'].sum()
+
+        if isinstance(concept, (tuple, list)):
+            counts = counts[concept]
+
+        result = counts.rename('Count').replace(np.nan, 0).astype(int)
+        result.index.name = 'Concept'
+        return result
 
     def most_common_concepts(self, n=15, concept_type=''):
         """Counts concepts and returns n most occurring ones sorted by their
@@ -463,29 +475,43 @@ class ABSADataset(ApiCallDataset):
         return result
 
     def entity_texts(self, entity):
-        """Returns list of normalized texts where entity is mentioned, case
-        insensitive.
+        """Returns dict of entities to list of normalized texts where entity is
+        mentioned
 
-        :param entity: Entity to find in normalized texts
-        :type entity: str
-        :return: list -- List of strings that contain entity
+        :param entity: Name of entities to find in normalized texts
+        :type entity: tuple, list, set or str
+        :return: dict -- Map where keys are concept names and values are lists
+         of normalized strings
         """
         if self._entities is None or self._normalized_texts is None:
             raise NoRelevantData('Relevant entity data is not available!')
 
-        idx = ['doc_id', 'text_order']
-        ent, texts = self._entities, self._normalized_texts
-        entity_filter = ent.entity_name.str.lower() == entity.lower()
-        ent = ent[entity_filter][idx].drop_duplicates()
-        ent = ent.join(texts.set_index(idx), on=idx)
-        return ent.normalized_text.tolist()
+        if not isinstance(entity, (tuple, list, set)):
+            entity = {entity}
+
+        col_filter = ['doc_id', 'text_order', 'entity_name']
+        ent, texts = self._entities[col_filter], self._normalized_texts
+        ent = ent[ent.entity_name.isin(entity)].drop_duplicates()
+        ent_texts = pd.merge(ent, texts, on=['doc_id', 'text_order'])
+        grp = ent_texts.groupby('entity_name')['normalized_text']
+
+        result = {key: [] for key in entity}
+        result.update({
+            entity_name: grp.get_group(entity_name).tolist()
+            for entity_name in grp.groups
+        })
+        return result
 
     def entity_sentiment(self, entity):
-        """Computes and return mean rating for given entity, case insensitive.
+        """Computes and return mean rating for given entity or entities if list,
+        tuple or set is given. If input is list or tuple result Series is sorted
+        as input was.
 
-        :param entity: Name of entity to compute mean sentiment for
-        :type entity: str
-        :return: float -- Mean rating for entity, np.nan if entity was not rated
+        :param entity: Name(s) of entity(ies) to compute mean sentiment for
+        :type entity: tuple, list, set or str
+        :return: pandas.Series -- Mean ratings for entities, np.nan if entity
+         was not rated. Entity names are in index and their sentiments are
+         values
         """
         if self._relations is None or self._relations_entities is None:
             raise NoRelevantData('Relevant relation data is not available!')
@@ -493,12 +519,16 @@ class ABSADataset(ApiCallDataset):
         idx = ['doc_id', 'text_order', 'relation_id']
         rels, ents = self._relations, self._relations_entities
         rels = rels[rels.sentiment.abs() < 100]
-        all_ent_evals = rels.set_index(idx).join(ents.set_index(idx))
+        all_ent_evals = pd.merge(rels, ents, on=idx)
 
-        entity_evals = all_ent_evals.reset_index()
-        entity_filter = entity_evals.entity_name.str.lower() == entity.lower()
-        entity_eval = entity_evals[entity_filter].sentiment.mean()
-        return entity_eval
+        if not isinstance(entity, (tuple, list, set)):
+            entity = {entity}
+
+        entity_filter = all_ent_evals.entity_name.isin(set(entity))
+        entity_evals = all_ent_evals[entity_filter]
+
+        means = entity_evals.groupby('entity_name')['sentiment'].mean()
+        return means[list(entity)]
 
 
 class DatasetLoader(object):

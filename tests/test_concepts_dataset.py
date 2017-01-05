@@ -43,13 +43,14 @@ def test_empty_dataset_failure(aggreg_func, args):
 
 
 @pytest.mark.parametrize('concept,frequency', [
-    ('Lenovo', 3),
-    ('lenovo', 3),
-    ('Samsung', 1),
-    ('samsung', 1),
+    ('Lenovo', [3]),
+    ('Samsung', [1]),
+    (['Lenovo', 'Samsung'], [3, 1]),
+    ('NotHere', [0]),
+    (['Lenovo', 'NotHere'], [3, 0]),
 ])
 def test_concept_frequency(dataset, concept, frequency):
-    assert dataset.concept_frequency(concept) == frequency
+    assert (dataset.concept_frequency(concept) == frequency).all()
 
 
 @pytest.mark.parametrize('args,concepts', [
