@@ -660,6 +660,19 @@ class DatasetLoader(object):
             raise KeyError('Don\'t recognize "{}" dataset'.format(item))
         return dataset_map[item]
 
+    def remove_concepts(self, concepts):
+        """Remove given concepts from dataset if they are present.
+
+        :param concepts: These concepts will be removed from dataset
+        :type concepts: iterable
+        """
+        con = self._concepts
+        if con is None:
+            return
+
+        concepts = set(concepts)
+        self._concepts = con[con.concept.isin(concepts) == False]
+
     @property
     def concepts(self):
         """Creates new ConceptsDataset if data is available.

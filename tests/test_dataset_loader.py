@@ -196,3 +196,9 @@ def test_data_load_from_frame_writer(frame_writer, dataset_name, shape):
     dataset = getattr(dataset_loader, dataset_name)
     assert dataset is not None
     assert dataset.shape == shape
+
+
+def test_dataset_loader_remove_concepts(frame_writer):
+    dataset = agg.DatasetLoader.from_writer(frame_writer)
+    dataset.remove_concepts(['Lenovo'])
+    assert (dataset.concepts.concept_frequency(['Lenovo']) == [0]).all()
