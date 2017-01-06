@@ -15,7 +15,7 @@ def frame_concepts():
         [0, 0, 'Lenovo', 1, 1.0, 'brand'],
         [0, 1, 'Samsung', 1, 1.0, 'brand'],
         [0, 1, 'Lenovo', 2, 1.0, 'brand'],
-        [0, 1, 'VisualAppearance', 2, 1.0, 'feature_subjective'],
+        [0, 1, 'VisualAppearance', 2, 1.0, 'feature'],
     ], columns=con_header)
     exps = pd.DataFrame([
         [0, 0, 'Lenovo', 'lenovo'],
@@ -53,26 +53,88 @@ def test_concept_frequency(dataset, concept, frequency):
     assert (dataset.concept_frequency(concept) == frequency).all()
 
 
-@pytest.mark.parametrize('args,concepts', [
-    ([1], ['Lenovo']),
-    ([2], ['Lenovo', 'VisualAppearance']),
-    ([2, 'brand'], ['Lenovo', 'Samsung'])
+@pytest.mark.parametrize('concept,frequency', [
+    ('Lenovo', [3.0/6.0]),
+    ('Samsung', [1.0/6]),
+    (['Lenovo', 'Samsung'], [3.0/6.0, 1.0/6.0]),
+    ('NotHere', [0.0]),
+    (['Lenovo', 'NotHere'], [3.0/6.0, 0.0]),
 ])
-def test_most_common_concepts(dataset, args, concepts):
+def test_concept_frequency_normalized(dataset, concept, frequency):
+    result = dataset.concept_frequency(concept, normalize=True)
+    assert (result == frequency).all()
+
+
+@pytest.mark.parametrize('concept,frequency', [
+    ('Lenovo', [3]),
+    ('Samsung', [1]),
+    (['Lenovo', 'Samsung'], [3, 1]),
+    ('NotHere', [0]),
+    (['Lenovo', 'NotHere'], [3, 0]),
+])
+def test_concept_frequency_brand(dataset, concept, frequency):
+    result = dataset.concept_frequency(concept, concept_type='brand')
+    assert (result == frequency).all()
+
+
+@pytest.mark.parametrize('concept,frequency', [
+    ('Lenovo', [3.0/4]),
+    ('Samsung', [1.0/4]),
+    (['Lenovo', 'Samsung'], [3.0/4, 1.0/4]),
+    ('NotHere', [0.0]),
+    (['Lenovo', 'NotHere'], [3.0/4, 0.0]),
+])
+def test_concept_frequency_brand_normalized(dataset, concept, frequency):
+    result = dataset.concept_frequency(concept, 'brand', True)
+    assert (result == frequency).all()
+
+
+@pytest.mark.parametrize('args,concepts,counts', [
+    ([1], ['Lenovo'], [3]),
+    ([2], ['Lenovo', 'VisualAppearance'], [3, 2]),
+    ([2, 'brand'], ['Lenovo', 'Samsung'], [3, 1])
+])
+def test_most_common_concepts(dataset, args, concepts, counts):
     result = dataset.most_common_concepts(*args)
     assert isinstance(result, pd.Series)
     assert result.index.tolist() == concepts
+    assert (result.values == counts).all()
 
 
-@pytest.mark.parametrize('args,concepts', [
-    ([1], ['Samsung']),
-    ([2], ['Samsung', 'VisualAppearance']),
-    ([10, 'feature_'], ['VisualAppearance'])
+@pytest.mark.parametrize('args,concepts,freqs', [
+    ([1], ['Lenovo'], [3.0/6]),
+    ([2], ['Lenovo', 'VisualAppearance'], [3.0/6, 2.0/6]),
+    ([2, 'brand'], ['Lenovo', 'Samsung'], [3.0/4, 1.0/4])
 ])
-def test_least_common_concepts(dataset, args, concepts):
+def test_most_common_concepts_normalized(dataset, args, concepts, freqs):
+    result = dataset.most_common_concepts(*args, normalize=True)
+    assert isinstance(result, pd.Series)
+    assert result.index.tolist() == concepts
+    assert (result.values == freqs).all()
+
+
+@pytest.mark.parametrize('args,concepts, freqs', [
+    ([1], ['Samsung'], [1]),
+    ([2], ['Samsung', 'VisualAppearance'], [1, 2]),
+    ([10, 'feature'], ['VisualAppearance'], [2])
+])
+def test_least_common_concepts(dataset, args, concepts, freqs):
     result = dataset.least_common_concepts(*args)
     assert isinstance(result, pd.Series)
     assert result.index.tolist() == concepts
+    assert (result.values == freqs).all()
+
+
+@pytest.mark.parametrize('args,concepts, freqs', [
+    ([1], ['Samsung'], [1.0/6]),
+    ([2], ['Samsung', 'VisualAppearance'], [1.0/6, 2.0/6]),
+    ([10, 'feature'], ['VisualAppearance'], [2.0/2])
+])
+def test_least_common_concepts_normalized(dataset, args, concepts, freqs):
+    result = dataset.least_common_concepts(*args, normalize=True)
+    assert isinstance(result, pd.Series)
+    assert result.index.tolist() == concepts
+    assert (result.values == freqs).all()
 
 
 @pytest.mark.parametrize('args,concepts', [
@@ -109,8 +171,8 @@ def idf_dataset():
         [1, 0, 'Samsung', 1, 1.0, 'brand'],
         [1, 0, 'Lenovo', 1, 1.0, 'brand'],
         [2, 0, 'Lenovo', 2, 1.0, 'brand'],
-        [2, 1, 'VisualAppearance', 2, 1.0, 'feature_subjective'],
-        [3, 0, 'VisualAppearance', 2, 1.0, 'feature_subjective'],
+        [2, 1, 'VisualAppearance', 2, 1.0, 'feature'],
+        [3, 0, 'VisualAppearance', 2, 1.0, 'feature'],
     ], columns=con_header)
     return agg.ConceptsDataset(concepts, None)
 

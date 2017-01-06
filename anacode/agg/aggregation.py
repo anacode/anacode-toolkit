@@ -42,13 +42,19 @@ class ConceptsDataset(ApiCallDataset):
         self._concepts = concepts
         self._expressions = expressions
 
-    def concept_frequency(self, concept):
+    def concept_frequency(self, concept, concept_type='', normalize=False):
         """Return occurrence count of input concept or concept list. Resulting
         list has concepts sorted just like they were in input if it was list or
         tuple.
 
         :param concept: name(s) of concept to count occurrences for
         :type concept: list, tuple, set or string
+        :param concept_type: Limit concept counts only to concepts whose type
+         starts with this string
+        :type concept_type: str
+        :param normalize: Returns relative counts of concepts in specified
+         concept type
+        :type normalize: bool
         :return: pandas.Series -- Concept names as index and their counts as
          values sorted as they were in input.
         """
@@ -58,17 +64,28 @@ class ConceptsDataset(ApiCallDataset):
         if not isinstance(concept, (tuple, list, set)):
             concept = {concept}
 
-        con = self._concepts[self._concepts.concept.isin(concept)]
-        counts = con.groupby('concept')['freq'].sum()
+        con = self._concepts
+        con = con[con.concept_type.str.startswith(concept_type)]
+        counts = con[con.concept.isin(concept)].groupby('concept')['freq'].sum()
 
         if isinstance(concept, (tuple, list)):
             counts = counts[concept]
+        elif isinstance(concept, set):
+            counts = counts[list(concept)]
+        else:
+            counts = counts[concept]
 
-        result = counts.rename('Count').replace(np.nan, 0).astype(int)
+        result = counts.rename('Count').replace(np.nan, 0)
         result.index.name = 'Concept'
+
+        if normalize:
+            size = con.freq.sum()
+            result = result.astype(float) / size
+        else:
+            result = result.astype(int)
         return result
 
-    def most_common_concepts(self, n=15, concept_type=''):
+    def most_common_concepts(self, n=15, concept_type='', normalize=False):
         """Counts concepts and returns n most occurring ones sorted by their
         count descending. Counted concepts can be filtered by their type.
 
@@ -77,6 +94,8 @@ class ConceptsDataset(ApiCallDataset):
         :param concept_type: Limit concept counts only to concepts whose type
          starts with this string
         :type concept_type: str
+        :param normalize: Returns relative frequencies if normalize is True
+        :type normalize: bool
         :return: pandas.Series -- Concept names as index and their counts as
          values sorted descending
         """
@@ -89,9 +108,11 @@ class ConceptsDataset(ApiCallDataset):
         result = con_counts.rename('Count').sort_values(ascending=False)[:n]
         result.index.name = 'Concept'
         result._plot_id = codes.MOST_COMMON_CONCEPTS
+        if normalize:
+            result = result.astype(float) / con.freq.sum()
         return result
 
-    def least_common_concepts(self, n=15, concept_type=''):
+    def least_common_concepts(self, n=15, concept_type='', normalize=False):
         """Counts concepts and returns n least occurring ones sorted by their
         count ascending. Counted concepts can be filtered by their type.
 
@@ -100,6 +121,8 @@ class ConceptsDataset(ApiCallDataset):
         :param concept_type: Limit concept counts only to concepts whose type
          starts with this string
         :type concept_type: str
+        :param normalize: Returns relative frequencies if normalize is True
+        :type normalize: bool
         :return: pandas.Series -- Concept names as index and their counts as
          values sorted ascending
         """
@@ -112,6 +135,8 @@ class ConceptsDataset(ApiCallDataset):
         result = con_counts.rename('Count').sort_values()[:n]
         result.index.name = 'Concept'
         result._plot_id = codes.LEAST_COMMON_CONCEPTS
+        if normalize:
+            result = result.astype(float) / con.freq.sum()
         return result
 
     def co_occurring_concepts(self, concept, n=15, concept_type=''):
@@ -338,7 +363,44 @@ class ABSADataset(ApiCallDataset):
         self._evaluations = evaluations
         self._evaluations_entities = evaluations_entities
 
-    def most_common_entities(self, n=15, entity_type=''):
+    def entity_frequency(self, entity, entity_type='', normalize=False):
+        """Return occurrence count of input entity or entity list. Resulting
+        list has entities sorted just like they were in input if it was list or
+        tuple.
+
+        :param entity: Entity name or tuple/list/set of entity names
+        :type entity: tuple, list, set or str
+        :param entity_type: Optional filter for entity type to consider
+        :type entity_type: str
+        :param normalize: Returns relative frequencies if normalize is True
+        :type normalize: bool
+        :return: pandas.Series -- Entity names as index entity frequencies as
+         values sorted as input if it was tuple or list
+        """
+        if self._entities is None:
+            raise NoRelevantData('Relevant entities data is not available!')
+
+        if not isinstance(entity, (tuple, list, set)):
+            entity = {entity}
+
+        ents = self._entities
+        ents = ents[ents.entity_type.str.startswith(entity_type)]
+        counts = ents['entity_name'].value_counts(normalize=normalize)
+
+        if isinstance(entity, (tuple, list)):
+            counts = counts[entity]
+        elif isinstance(entity, set):
+            counts = counts[list(entity)]
+        else:
+            counts = counts[entity]
+
+        result = counts.rename('Count').replace(np.nan, 0)
+        result.index.name = 'Entity'
+        if not normalize:
+            result = result.astype(int)
+        return result
+
+    def most_common_entities(self, n=15, entity_type='', normalize=False):
         """Counts entities and returns n most occurring ones sorted by their
         count descending. Counted entities can be filtered by their type.
 
@@ -347,6 +409,8 @@ class ABSADataset(ApiCallDataset):
         :param entity_type: Limit entities counts only to entities whose type
          starts with this string
         :type entity_type: str
+        :param normalize: Returns relative frequencies if normalize is True
+        :type normalize: bool
         :return: pandas.Series -- Entity names as index and their counts as
          values sorted descending
         """
@@ -355,13 +419,12 @@ class ABSADataset(ApiCallDataset):
 
         ent = self._entities
         ent = ent[ent.entity_type.str.startswith(entity_type)]
-        ent_counts = ent.groupby('entity_name').size()
-        result = ent_counts.rename('Count').sort_values(ascending=False)[:n]
+        result = ent['entity_name'].value_counts(normalize=normalize)[:n]
         result._plot_id = codes.MOST_COMMON_ENTITIES
         result.index.name = 'Entity'
-        return result
+        return result.rename('Count')
 
-    def least_common_entities(self, n=15, entity_type=''):
+    def least_common_entities(self, n=15, entity_type='', normalize=False):
         """Counts entities and returns n least occurring ones sorted by their
         count ascending. Counted entities can be filtered by their type.
 
@@ -370,6 +433,8 @@ class ABSADataset(ApiCallDataset):
         :param entity_type: Limit entities counts only to entities whose type
          starts with this string
         :type entity_type: str
+        :param normalize: Returns relative frequencies if normalize is True
+        :type normalize: bool
         :return: pandas.Series -- Entity names as index and their counts as
          values sorted descending
         """
@@ -377,9 +442,8 @@ class ABSADataset(ApiCallDataset):
             raise NoRelevantData('Relevant entity data is not available!')
 
         ent = self._entities
-        ent = ent[ent.entity_type.str.startswith(entity_type)]
-        ent_counts = ent.groupby('entity_name').size()
-        result = ent_counts.rename('Count').sort_values()[:n]
+        ent = ent[ent.entity_type.str.startswith(entity_type)]['entity_name']
+        result = ent.value_counts(normalize=normalize, ascending=True)[:n]
         result._plot_id = codes.LEAST_COMMON_ENTITIES
         result.index.name = 'Entity'
         return result
@@ -473,37 +537,6 @@ class ABSADataset(ApiCallDataset):
         result._plot_id = codes.WORST_RATED_ENTITIES
         result.index.name = 'Entity'
         return result
-
-    def entity_frequency(self, entity, n=15):
-        """Return occurrence count of input entity or entity list. Resulting
-        list has entities sorted just like they were in input if it was list or
-        tuple.
-
-        :param entity: Entity name or tuple/list/set of entity names
-        :type entity: tuple, list, set or str
-        :param n: Maximum count of returned entities
-        :type n: int
-        :return: pandas.Series -- Entity names as index entity frequencies as
-         values sorted as input if it was tuple or list
-        """
-        if self._entities is None:
-            raise NoRelevantData('Relevant entities data is not available!')
-
-        if not isinstance(entity, (tuple, list, set)):
-            entity = {entity}
-
-        ents = self._entities
-        ents = ents[ents.entity_name.isin(entity)]
-        counts = ents.groupby('entity_name').size()
-
-        if isinstance(entity, (tuple, list)):
-            counts = counts[entity]
-
-        result = counts.rename('Count').replace(np.nan, 0).astype(int)
-        result.index.name = 'Entity'
-        return result
-
-
 
     def entity_texts(self, entity):
         """Returns dict of entities to list of normalized texts where entity is

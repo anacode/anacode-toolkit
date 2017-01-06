@@ -84,26 +84,52 @@ def test_empty_dataset_failure(aggreg_func, args):
         func(*args)
 
 
-@pytest.mark.parametrize('args,entities', [
-    ([1], ['Lenovo']),
-    ([2], ['Lenovo', 'VisualAppearance']),
-    ([2, 'brand'], ['Lenovo', 'Samsung'])
+@pytest.mark.parametrize('args,entities,freq', [
+    ([1], ['Lenovo'], [3]),
+    ([2], ['Lenovo', 'VisualAppearance'], [3, 2]),
+    ([2, 'brand'], ['Lenovo', 'Samsung'], [3, 1]),
 ])
-def test_most_common_entities(dataset, args, entities):
+def test_most_common_entities(dataset, args, entities, freq):
     result = dataset.most_common_entities(*args)
     assert isinstance(result, pd.Series)
     assert result.index.tolist() == entities
+    assert (result == freq).all()
 
 
-@pytest.mark.parametrize('args,entities', [
-    ([1], ['Samsung']),
-    ([2], ['Samsung', 'VisualAppearance']),
-    ([10, 'feature_'], ['VisualAppearance'])
+@pytest.mark.parametrize('args,entities,freq', [
+    ([1], ['Lenovo'], [3.0/6]),
+    ([2], ['Lenovo', 'VisualAppearance'], [3.0/6, 2.0/6]),
+    ([2, 'brand'], ['Lenovo', 'Samsung'], [3.0/4, 1.0/4]),
 ])
-def test_least_common_entities(dataset, args, entities):
+def test_most_common_entities_normalized(dataset, args, entities, freq):
+    result = dataset.most_common_entities(*args, normalize=True)
+    assert isinstance(result, pd.Series)
+    assert result.index.tolist() == entities
+    assert (result == freq).all()
+
+
+@pytest.mark.parametrize('args,entities,freq', [
+    ([1], ['Samsung'], [1]),
+    ([2], ['Samsung', 'VisualAppearance'], [1, 2]),
+    ([10, 'feature_'], ['VisualAppearance'], [2])
+])
+def test_least_common_entities(dataset, args, entities, freq):
     result = dataset.least_common_entities(*args)
     assert isinstance(result, pd.Series)
     assert result.index.tolist() == entities
+    assert (result == freq).all()
+
+
+@pytest.mark.parametrize('args,entities,freq', [
+    ([1], ['Samsung'], [1.0/6]),
+    ([2], ['Samsung', 'VisualAppearance'], [1.0/6, 2.0/6]),
+    ([10, 'feature_'], ['VisualAppearance'], [2.0/2])
+])
+def test_least_common_entities_normalized(dataset, args, entities, freq):
+    result = dataset.least_common_entities(*args, normalize=True)
+    assert isinstance(result, pd.Series)
+    assert result.index.tolist() == entities
+    assert (result == freq).all()
 
 
 @pytest.mark.parametrize('args,entities', [
@@ -143,16 +169,33 @@ def test_worst_rated_entities(dataset, args, entities):
 
 
 @pytest.mark.parametrize('args,counts', [
-    ('Lenovo', [3]),
     (['Lenovo'], [3]),
-    (['Lenovo', 'VisualAppearance'], [3, 2]),
-    (['VisualAppearance', 'Lenovo'], [2, 3]),
-    ('NotHere', [0]),
+    ([['Lenovo']], [3]),
+    ([['Lenovo', 'VisualAppearance']], [3, 2]),
+    ([['VisualAppearance', 'Lenovo']], [2, 3]),
     (['NotHere'], [0]),
-    (['Samsung', 'NotHere'], [1, 0])
+    ([['NotHere']], [0]),
+    ([['Samsung', 'NotHere']], [1, 0]),
+    ([['Samsung', 'VisualAppearance'], 'brand'], [1, 0])
 ])
 def test_entity_frequencies(dataset, args, counts):
-    result = dataset.entity_frequency(args)
+    result = dataset.entity_frequency(*args)
+    assert isinstance(result, pd.Series)
+    assert (result == counts).all()
+
+
+@pytest.mark.parametrize('args,counts', [
+    (['Lenovo'], [3.0/6]),
+    ([['Lenovo']], [3.0/6]),
+    ([['Lenovo', 'VisualAppearance']], [3.0/6, 2.0/6]),
+    ([['VisualAppearance', 'Lenovo']], [2.0/6, 3.0/6]),
+    (['NotHere'], [0]),
+    ([['NotHere']], [0]),
+    ([['Samsung', 'NotHere']], [1.0/6, 0]),
+    ([['Samsung', 'VisualAppearance'], 'brand'], [1.0/4, 0])
+])
+def test_entity_frequencies_normalized(dataset, args, counts):
+    result = dataset.entity_frequency(*args, normalize=True)
     assert isinstance(result, pd.Series)
     assert (result == counts).all()
 
