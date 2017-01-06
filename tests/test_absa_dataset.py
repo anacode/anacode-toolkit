@@ -142,6 +142,21 @@ def test_worst_rated_entities(dataset, args, entities):
     assert result.index.tolist() == entities
 
 
+@pytest.mark.parametrize('args,counts', [
+    ('Lenovo', [3]),
+    (['Lenovo'], [3]),
+    (['Lenovo', 'VisualAppearance'], [3, 2]),
+    (['VisualAppearance', 'Lenovo'], [2, 3]),
+    ('NotHere', [0]),
+    (['NotHere'], [0]),
+    (['Samsung', 'NotHere'], [1, 0])
+])
+def test_entity_frequencies(dataset, args, counts):
+    result = dataset.entity_frequency(args)
+    assert isinstance(result, pd.Series)
+    assert (result == counts).all()
+
+
 @pytest.mark.parametrize('entity,texts', [
     ('Safety', {'Safety': []}),
     ('VisualAppearance', {'VisualAppearance': ['安全性能很好，很帅气。']}),

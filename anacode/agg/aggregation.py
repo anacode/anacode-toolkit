@@ -430,7 +430,7 @@ class ABSADataset(ApiCallDataset):
         :type n: int
         :param entity_type: Optional filter for entity type to consider
         :type entity_type: str
-        :return: pandas.DataFrame -- Best rated entities in this dataset as
+        :return: pandas.Series -- Best rated entities in this dataset as
          index and their ratings as values sorted descending
         """
         if self._relations is None or self._relations_entities is None:
@@ -473,6 +473,37 @@ class ABSADataset(ApiCallDataset):
         result._plot_id = codes.WORST_RATED_ENTITIES
         result.index.name = 'Entity'
         return result
+
+    def entity_frequency(self, entity, n=15):
+        """Return occurrence count of input entity or entity list. Resulting
+        list has entities sorted just like they were in input if it was list or
+        tuple.
+
+        :param entity: Entity name or tuple/list/set of entity names
+        :type entity: tuple, list, set or str
+        :param n: Maximum count of returned entities
+        :type n: int
+        :return: pandas.Series -- Entity names as index entity frequencies as
+         values sorted as input if it was tuple or list
+        """
+        if self._entities is None:
+            raise NoRelevantData('Relevant entities data is not available!')
+
+        if not isinstance(entity, (tuple, list, set)):
+            entity = {entity}
+
+        ents = self._entities
+        ents = ents[ents.entity_name.isin(entity)]
+        counts = ents.groupby('entity_name').size()
+
+        if isinstance(entity, (tuple, list)):
+            counts = counts[entity]
+
+        result = counts.rename('Count').replace(np.nan, 0).astype(int)
+        result.index.name = 'Entity'
+        return result
+
+
 
     def entity_texts(self, entity):
         """Returns dict of entities to list of normalized texts where entity is
