@@ -224,3 +224,22 @@ def test_entity_texts(dataset, entity, texts):
 def test_entity_sentiment(dataset, entity, sentiment):
     result = dataset.entity_sentiment(entity)
     np.testing.assert_equal(result.values, sentiment)
+
+
+@pytest.mark.parametrize('agg,args,name', [
+    ('entity_frequency', ['lenovo'], 'Entity'),
+    ('entity_frequency', ['lenovo', 'brand'], 'Brand'),
+    ('entity_frequency', ['VisualAppearance', 'feature'], 'Feature'),
+    ('most_common_entities', [1], 'Entity'),
+    ('most_common_entities', [1, 'brand'], 'Brand'),
+    ('most_common_entities', [1, 'feature'], 'Feature'),
+    ('least_common_entities', [1], 'Entity'),
+    ('least_common_entities', [1, 'brand'], 'Brand'),
+    ('least_common_entities', [1, 'feature'], 'Feature'),
+    ('co_occurring_entities', ['Lenovo', 1], 'Entity'),
+    ('co_occurring_entities', ['Lenovo', 1, 'brand'], 'Brand'),
+    ('co_occurring_entities', ['BackSeats', 1, 'feature'], 'Feature'),
+])
+def test_entity_result_name(dataset, agg, args, name):
+    result = getattr(dataset, agg)(*args)
+    assert result.index.name == name

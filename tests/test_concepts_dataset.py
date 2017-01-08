@@ -219,3 +219,22 @@ def idf_filter(idf_dataset):
 ])
 def test_concept_idf_filter(idf_filter, word, result):
     assert idf_filter(word) is result
+
+
+@pytest.mark.parametrize('agg,args,name', [
+    ('concept_frequency', ['lenovo'], 'Concept'),
+    ('concept_frequency', ['lenovo', 'brand'], 'Brand'),
+    ('concept_frequency', ['VisualAppearance', 'feature'], 'Feature'),
+    ('most_common_concepts', [1], 'Concept'),
+    ('most_common_concepts', [1, 'brand'], 'Brand'),
+    ('most_common_concepts', [1, 'feature'], 'Feature'),
+    ('least_common_concepts', [1], 'Concept'),
+    ('least_common_concepts', [1, 'brand'], 'Brand'),
+    ('least_common_concepts', [1, 'feature'], 'Feature'),
+    ('co_occurring_concepts', ['Lenovo', 1], 'Concept'),
+    ('co_occurring_concepts', ['Lenovo', 1, 'brand'], 'Brand'),
+    ('co_occurring_concepts', ['BackSeats', 1, 'feature'], 'Feature'),
+])
+def test_concept_result_name(idf_dataset, agg, args, name):
+    result = getattr(idf_dataset, agg)(*args)
+    assert result.index.name == name

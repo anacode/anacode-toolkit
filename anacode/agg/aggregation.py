@@ -14,6 +14,10 @@ from anacode.agg import plotting
 from nltk.text import TextCollection, Text
 
 
+def _capitalize(string):
+    return ''.join(map(lambda s: s.capitalize(), string.split('_')))
+
+
 class ApiCallDataset(object):
     """Base class for specific call data sets."""
     pass
@@ -41,6 +45,11 @@ class ConceptsDataset(ApiCallDataset):
         """
         self._concepts = concepts
         self._expressions = expressions
+        if self._concepts is not None and 'concept_type' in self._concepts:
+            self._concept_filter = set(self._concepts.concept_type.unique())
+        else:
+            self._concept_filter = set()
+        self._concept_filter.add('')
 
     def concept_frequency(self, concept, concept_type='', normalize=False):
         """Return occurrence count of input concept or concept list. Resulting
@@ -61,11 +70,16 @@ class ConceptsDataset(ApiCallDataset):
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
 
+        if concept_type not in self._concept_filter:
+            msg = '"{}" not valid filter string'.format(concept_type)
+            raise ValueError(msg)
+
         if not isinstance(concept, (tuple, list, set)):
             concept = {concept}
 
         con = self._concepts
-        con = con[con.concept_type.str.startswith(concept_type)]
+        if concept_type:
+            con = con[con.concept_type == concept_type]
         counts = con[con.concept.isin(concept)].groupby('concept')['freq'].sum()
 
         if isinstance(concept, (tuple, list)):
@@ -76,7 +90,7 @@ class ConceptsDataset(ApiCallDataset):
             counts = counts[concept]
 
         result = counts.rename('Count').replace(np.nan, 0)
-        result.index.name = 'Concept'
+        result.index.name = _capitalize(concept_type) or 'Concept'
 
         if normalize:
             size = con.freq.sum()
@@ -102,11 +116,16 @@ class ConceptsDataset(ApiCallDataset):
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
 
+        if concept_type not in self._concept_filter:
+            msg = '"{}" not valid filter string'.format(concept_type)
+            raise ValueError(msg)
+
         con = self._concepts
-        con = con[con.concept_type.str.startswith(concept_type)]
+        if concept_type:
+            con = con[con.concept_type == concept_type]
         con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
         result = con_counts.rename('Count').sort_values(ascending=False)[:n]
-        result.index.name = 'Concept'
+        result.index.name = _capitalize(concept_type) or 'Concept'
         result._plot_id = codes.MOST_COMMON_CONCEPTS
         if normalize:
             result = result.astype(float) / con.freq.sum()
@@ -129,11 +148,17 @@ class ConceptsDataset(ApiCallDataset):
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
 
+        if concept_type not in self._concept_filter:
+            msg = '"{}" not valid filter string'.format(concept_type)
+            raise ValueError(msg)
+
         con = self._concepts
-        con = con[con.concept_type.str.startswith(concept_type)]
+        if concept_type:
+            con = con[con.concept_type == concept_type]
         con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
-        result = con_counts.rename('Count').sort_values()[:n]
-        result.index.name = 'Concept'
+        new_name = _capitalize(concept_type) or 'Concept'
+        result = con_counts.rename(new_name).sort_values()[:n]
+        result.index.name = _capitalize(concept_type) or 'Concept'
         result._plot_id = codes.LEAST_COMMON_CONCEPTS
         if normalize:
             result = result.astype(float) / con.freq.sum()
@@ -157,20 +182,27 @@ class ConceptsDataset(ApiCallDataset):
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
 
+        if concept_type not in self._concept_filter:
+            msg = '"{}" not valid filter string'.format(concept_type)
+            raise ValueError(msg)
+
         con = self._concepts
 
         identity_filter = con.concept.str.lower() == concept.lower()
         relevant_texts = con[identity_filter][['doc_id', 'text_order']]
         relevant_texts = relevant_texts.set_index(['doc_id', 'text_order'])
 
-        type_filter = con.concept_type.str.startswith(concept_type)
+        if concept_type:
+            type_filter = con.concept_type == concept_type
+        else:
+            type_filter = True
         con = con[type_filter & (identity_filter == False)]
         con = relevant_texts.join(con.set_index(['doc_id', 'text_order']))
 
         con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
         con_counts = con_counts.rename('Count').sort_values(ascending=False)
         result = con_counts[:n].astype(int)
-        result.index.name = 'Concept'
+        result.index.name = _capitalize(concept_type) or 'Concept'
         result._concept = concept
         result._plot_id = codes.CO_OCCURING_CONCEPTS
         return result
@@ -188,8 +220,13 @@ class ConceptsDataset(ApiCallDataset):
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
 
+        if concept_type not in self._concept_filter:
+            msg = '"{}" not valid filter string'.format(concept_type)
+            raise ValueError(msg)
+
         con = self._concepts
-        con = con[con.concept_type.str.startswith(concept_type)]
+        if concept_type:
+            con = con[con.concept_type == concept_type]
 
         texts = []
         docs_concepts = con.groupby(['doc_id', 'concept'])['freq'].sum()
@@ -266,8 +303,13 @@ class ConceptsDataset(ApiCallDataset):
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
 
+        if concept_type not in self._concept_filter:
+            msg = '"{}" not valid filter string'.format(concept_type)
+            raise ValueError(msg)
+
         con = self._concepts
-        con = con[con.concept_type.str.startswith(concept_type)]
+        if concept_type:
+            con = con[con.concept_type == concept_type]
 
         if concept_filter is not None:
             con = con[list(map(concept_filter, con.concept))]
@@ -395,7 +437,7 @@ class ABSADataset(ApiCallDataset):
             counts = counts[entity]
 
         result = counts.rename('Count').replace(np.nan, 0)
-        result.index.name = 'Entity'
+        result.index.name = _capitalize(entity_type) or 'Entity'
         if not normalize:
             result = result.astype(int)
         return result
@@ -421,7 +463,7 @@ class ABSADataset(ApiCallDataset):
         ent = ent[ent.entity_type.str.startswith(entity_type)]
         result = ent['entity_name'].value_counts(normalize=normalize)[:n]
         result._plot_id = codes.MOST_COMMON_ENTITIES
-        result.index.name = 'Entity'
+        result.index.name = _capitalize(entity_type) or 'Entity'
         return result.rename('Count')
 
     def least_common_entities(self, n=15, entity_type='', normalize=False):
@@ -445,7 +487,7 @@ class ABSADataset(ApiCallDataset):
         ent = ent[ent.entity_type.str.startswith(entity_type)]['entity_name']
         result = ent.value_counts(normalize=normalize, ascending=True)[:n]
         result._plot_id = codes.LEAST_COMMON_ENTITIES
-        result.index.name = 'Entity'
+        result.index.name = _capitalize(entity_type) or 'Entity'
         return result
 
     def co_occurring_entities(self, entity, n=15, entity_type=''):
@@ -466,24 +508,30 @@ class ABSADataset(ApiCallDataset):
         if self._entities is None:
             raise NoRelevantData('Relevant entity data is not available!')
 
+        index_name = _capitalize(entity_type) or 'Entity'
+
         ent, doc_txt = self._entities, ['doc_id', 'text_order']
         entity_filter = ent.entity_name.str.lower() == entity.lower()
         docs = ent[entity_filter][doc_txt].drop_duplicates()
         if docs.shape[0] == 0:
-            return pd.Series([]).rename('Count')
+            result = pd.Series([]).rename('Count')
+            result.index.name = index_name
+            return result
 
         docs = docs.set_index(doc_txt)
         type_filter = ent.entity_type.str.startswith(entity_type)
         ent = ent[type_filter & (entity_filter == False)].set_index(doc_txt)
         result = docs.join(ent, how='inner')
         if result.shape[0] == 0:
-            return pd.Series([]).rename('Count')
+            result = pd.Series([]).rename('Count')
+            result.index.name = index_name
+            return result
 
         result = result.groupby('entity_name').size().rename('Count')
         result = result.sort_values(ascending=False)[:n]
         result._plot_id = codes.CO_OCCURING_ENTITIES
         result._entity = entity
-        result.index.name = 'Entity'
+        result.index.name = index_name
         return result
 
     def best_rated_entities(self, n=15, entity_type=''):
@@ -509,7 +557,7 @@ class ABSADataset(ApiCallDataset):
         mean_evals = mean_evals.sentiment.rename('Sentiment')
         result = mean_evals.sort_values(ascending=False)[:n]
         result._plot_id = codes.BEST_RATED_ENTITIES
-        result.index.name = 'Entity'
+        result.index.name = _capitalize(entity_type) or 'Entity'
         return result
 
     def worst_rated_entities(self, n=15, entity_type=''):
@@ -535,7 +583,7 @@ class ABSADataset(ApiCallDataset):
         mean_evals = mean_evals.sentiment.rename('Sentiment')
         result = mean_evals.sort_values()[:n]
         result._plot_id = codes.WORST_RATED_ENTITIES
-        result.index.name = 'Entity'
+        result.index.name = _capitalize(entity_type) or 'Entity'
         return result
 
     def entity_texts(self, entity):
@@ -592,7 +640,8 @@ class ABSADataset(ApiCallDataset):
         entity_evals = all_ent_evals[entity_filter]
 
         means = entity_evals.groupby('entity_name')['sentiment'].mean()
-        return means[list(entity)]
+        means.index.name = 'Entity'
+        return means[list(entity)].rename('Sentiment')
 
 
 class DatasetLoader(object):
