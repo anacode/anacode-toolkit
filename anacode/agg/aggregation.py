@@ -586,6 +586,33 @@ class ABSADataset(ApiCallDataset):
         result.index.name = _capitalize(entity_type) or 'Entity'
         return result
 
+    def surface_strings(self, entity):
+        """Returns dict of entities to list of their surface strings in
+        relations.
+
+        :param entity: Name of entities to find in normalized texts
+        :type entity: tuple, list, set or str
+        :return: dict -- Map where keys are concept names and values are lists
+         of normalized strings
+        """
+        if self._relations is None or self._relations_entities is None:
+            raise NoRelevantData('Relevant relation data is not available!')
+
+        if not isinstance(entity, (tuple, list, set)):
+            entity = {entity}
+
+        idx = ['doc_id', 'text_order', 'relation_id', 'entity_name']
+        rels, ents = self._relations, self._relations_entities
+        ents = ents[ents.entity_name.isin(entity)][idx].drop_duplicates()
+        grp = pd.merge(rels, ents, on=idx[:3]).groupby('entity_name')
+
+        result = {key: [] for key in entity}
+        result.update({
+            entity_name: grp.get_group(entity_name)['surface_string'].tolist()
+            for entity_name in grp.groups
+        })
+        return result
+
     def entity_texts(self, entity):
         """Returns dict of entities to list of normalized texts where entity is
         mentioned

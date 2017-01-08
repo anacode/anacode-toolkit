@@ -213,6 +213,20 @@ def test_entity_texts(dataset, entity, texts):
     assert result == texts
 
 
+@pytest.mark.parametrize('entity,texts', [
+    ('Safety', {'Safety': ['安全', '安全']}),
+    ('Hardiness', {'Hardiness': ['安全']}),
+    (['Safety', 'VisualAppearance'], {'VisualAppearance': ['很帅气', '很帅气'],
+                                      'Safety': ['安全', '安全']}),
+    ('NotHere', {'NotHere': []}),
+    (['Safety', 'NotHere'], {'Safety': ['安全', '安全'], 'NotHere': []}),
+])
+def test_entity_surface_strings(dataset, entity, texts):
+    result = dataset.surface_strings(entity)
+    assert isinstance(result, dict)
+    assert result == texts
+
+
 @pytest.mark.parametrize('entity,sentiment', [
     ('Safety', [1.5]),
     ('VisualAppearance', [3.0]),
