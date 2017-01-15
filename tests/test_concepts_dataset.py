@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
+from datetime import date, timedelta
+
 import pytest
 import numpy as np
 import pandas as pd
@@ -238,3 +240,64 @@ def test_concept_idf_filter(idf_filter, word, result):
 def test_concept_result_name(idf_dataset, agg, args, name):
     result = getattr(idf_dataset, agg)(*args)
     assert result.index.name == name
+
+
+@pytest.fixture
+def time_dataset():
+    con_header = ['doc_id', 'text_order', 'concept', 'freq', 'relevance_score',
+                  'concept_type']
+    concepts = pd.DataFrame([
+        [0, 0, 'Lenovo', 1, 1.0, 'brand'],
+        [0, 0, 'BMW', 1, 1.0, 'brand'],
+        [1, 0, 'Samsung', 1, 1.0, 'brand'],
+        [1, 0, 'Lenovo', 1, 1.0, 'brand'],
+        [2, 0, 'Lenovo', 2, 1.0, 'brand'],
+        [3, 0, 'Samsung', 2, 1.0, 'brand'],
+        [3, 1, 'Lenovo', 1, 1.0, 'brand'],
+        [4, 0, 'Samsung', 10, 1.0, 'brand'],
+        [4, 0, 'Lenovo', 10, 1.0, 'brand'],
+    ], columns=con_header)
+    return agg.ConceptsDataset(concepts, None)
+
+
+@pytest.fixture
+def time_info():
+    return {
+        0: date(2016, 1, 1),
+        1: date(2016, 1, 5),
+        2: date(2016, 1, 18),
+        3: date(2016, 1, 21),
+        4: date(2016, 2, 1),
+    }
+
+
+@pytest.mark.parametrize('days,start,stop,counts', [
+    (7, date(2016, 1, 1), date(2016, 1, 21), [2, 0, 3, 1, 0, 2]),
+    (16, date(2016, 1, 1), date(2016, 1, 21), [2, 13, 1, 12]),
+    (32, date(2016, 1, 1), date(2016, 1, 2), [15, 13]),
+    (2, date(2016, 1, 18), date(2016, 1, 21), [2, 1, 0, 2]),
+])
+def test_time_series(time_dataset, time_info, days, start, stop, counts):
+    concepts = ['Lenovo', 'Samsung']
+    delta = timedelta(days=days)
+    interval = start, stop
+    res_len = int(len(counts) / 2)
+
+    result = time_dataset.make_time_series(concepts, time_info, delta, interval)
+    assert set(result.columns) == {'Concept', 'Count', 'Start', 'Stop'}
+
+    target_concept_list = ['Lenovo'] * res_len + ['Samsung'] * res_len
+    assert result['Concept'].tolist() == target_concept_list
+    assert result['Count'].tolist() == counts
+
+    current = start + delta
+    starts, stops = [], []
+    while start <= stop:
+        starts.append(start)
+        stops.append(current)
+        start, current = current, current + delta
+
+    assert len(result['Start'].tolist()) == len(starts) * len(concepts)
+    assert result['Start'].tolist()[:len(starts)] == starts
+    assert len(result['Stop'].tolist()) == len(stops) * len(concepts)
+    assert result['Stop'].tolist()[:len(stops)] == stops

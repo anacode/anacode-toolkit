@@ -266,6 +266,63 @@ class ConceptsDataset(ApiCallDataset):
 
         return idf_filter
 
+    def make_time_series(self, concepts, date_info, delta, interval):
+        """Creates DataFrame with counts for each *concepts* in every *delta*
+        time tick that exists in *interval*. Since concepts do not know what
+        are timestamps of documents they are from you need to provide this as
+        *date_info* map.
+
+        Result will include 0 counts for ticks where concepts were not
+        mentioned. In each row there will also be start and stop date. For that
+        particular count.
+
+        :param concepts: List of concept names to make time series for
+        :type concepts: list
+        :param date_info: Keys need to be document ids in this dataset and
+         values datetime.datetime or datetime.date objects
+        :type date_info: dict
+        :param delta: Step size
+        :param interval: (start, stop) where both values are datetimes or dates
+        :type interval: tuple
+        :return: pandas.DataFrame -- DataFrame with columns "Concept", "Count",
+         "Start" and "Stop"
+        """
+        if self._concepts is None:
+            raise NoRelevantData('Relevant concept data is not available!')
+
+        tick_counts, ticks = [], []
+
+        con = self._concepts
+        con = con[con.concept.isin(concepts)]
+        dates = pd.Series([date_info[doc_id] for doc_id in con.doc_id])
+
+        last, stop = interval
+        current = last + delta
+        while last < stop:
+            relevant = con[((dates >= last) & (dates < current)).tolist()]
+            counts = relevant.groupby('concept').agg({'freq': 'sum'})['freq']
+            concept_counts = [counts.get(c, 0) for c in concepts]
+            tick_counts.append(concept_counts)
+            ticks.append((last, current))
+
+            last = current
+            current = current + delta
+
+        concept_frames = []
+        concept_count_lists = list(zip(*tick_counts))
+        ticks = list(zip(*ticks))
+        for concept, counts in zip(concepts, concept_count_lists):
+            count_df = pd.Series(counts, name='Count').reset_index()
+            count_df['Concept'] = concept
+            count_df['Start'] = ticks[0]
+            count_df['Stop'] = ticks[1]
+            concept_frames.append(count_df)
+
+        retval = pd.concat(concept_frames)
+        retval.reset_index(drop=True, inplace=True)
+        retval.drop('index', axis=1, inplace=True)
+        return retval
+
     def word_cloud(self, path, size=(600, 350), background='white',
                    colormap_name='Accent', max_concepts=200, stopwords=None,
                    concept_type='', concept_filter=None, font=None):
