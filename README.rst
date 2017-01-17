@@ -7,7 +7,9 @@ To get started you can check out READMEs in
 `api <https://github.com/anacode/anacode-toolkit/tree/master/anacode/api>`_
 and
 `agg <https://github.com/anacode/anacode-toolkit/tree/master/anacode/agg>`_
-subfolders that provide usage examples.
+subfolders that provide usage examples. More detailed documentation is
+available at
+`anacode-toolkit.readthedocs.io <http://anacode-toolkit.readthedocs.io/en/latest/>`_.
 
 If you want to learn more about API calls please read their
 `documentation <https://api.anacode.de/api-docs/>`_.
