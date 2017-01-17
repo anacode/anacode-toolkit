@@ -45,7 +45,7 @@ To visualize these 10 most common concepts as a horizontal bar chart you can use
 
 
 Here is list of all possible analysis you can do with this library. Those that
-can be visualized are marked with asterix:
+can be visualized are marked with asterisk:
 
 - concepts:
     - concept_frequency

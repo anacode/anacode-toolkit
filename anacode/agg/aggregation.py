@@ -54,15 +54,23 @@ class ConceptsDataset(ApiCallDataset):
     def concept_frequency(self, concept, concept_type='', normalize=False):
         """Return occurrence count of input concept or concept list. Resulting
         list has concepts sorted just like they were in input if it was list or
-        tuple.
+        tuple. Concepts that are not of *concept_type* or that are not in the
+        dataset will always have zero count. Setting normalize will turn
+        absolute counts into relative percentages.
+
+        Specifying *concept_type* is intended to be used only with
+        normalization. If used without *normalize* set it will have no effect
+        except for concepts that do not have said type whose count will be zero.
+        When used with *normalize* set percentages will reflect counts only
+        within specified *concept_type* instead of the whole dataset.
 
         :param concept: name(s) of concept to count occurrences for
         :type concept: list, tuple, set or string
-        :param concept_type: Limit concept counts only to concepts whose type
-         starts with this string
+        :param concept_type: Limit result concepts counts only to concepts
+         with this type
         :type concept_type: str
         :param normalize: Returns relative counts of concepts in specified
-         concept type
+         concept type if set, otherwise returns absolute counts
         :type normalize: bool
         :return: pandas.Series -- Concept names as index and their counts as
          values sorted as they were in input.
@@ -101,7 +109,11 @@ class ConceptsDataset(ApiCallDataset):
 
     def most_common_concepts(self, n=15, concept_type='', normalize=False):
         """Counts concepts and returns n most occurring ones sorted by their
-        count descending. Counted concepts can be filtered by their type.
+        count descending. Counted concepts can be filtered by their type using
+        *concept_type* and returned counts can be normalized with *normalize*.
+
+        If both *concept_type* and *normalize* are specified concept ratios
+        will be computed only from concept counts within given *concept_type*.
 
         :param n: Maximum number of most common concepts to return
         :type n: int
@@ -133,7 +145,11 @@ class ConceptsDataset(ApiCallDataset):
 
     def least_common_concepts(self, n=15, concept_type='', normalize=False):
         """Counts concepts and returns n least occurring ones sorted by their
-        count ascending. Counted concepts can be filtered by their type.
+        count ascending. Counted concepts can be filtered by their type using
+        *concept_type* and returned counts can be normalized with *normalize*.
+
+        If both *concept_type* and *normalize* are specified concept ratios
+        will be computed only from concept counts within given *concept_type*.
 
         :param n: Maximum number of least common concepts to return
         :type n: int
@@ -165,8 +181,8 @@ class ConceptsDataset(ApiCallDataset):
         return result
 
     def co_occurring_concepts(self, concept, n=15, concept_type=''):
-        """Find n concepts co-occurring frequently in texts of this dataset with
-        given concept, sorted descending. Co-occurring concepts can be
+        """Find *n* concepts co-occurring frequently in texts of this dataset
+        with given *concept*, sorted descending. Co-occurring concepts can be
         filtered by their type.
 
         :param concept: Concept to inspect for co-occurring concepts
@@ -266,22 +282,27 @@ class ConceptsDataset(ApiCallDataset):
 
         return idf_filter
 
-    def make_time_series(self, concepts, date_info, delta, interval):
+    def make_time_series(self, concepts, date_info, delta, interval=None):
         """Creates DataFrame with counts for each *concepts* in every *delta*
-        time tick that exists in *interval*. Since concepts do not know what
-        are timestamps of documents they are from you need to provide this as
-        *date_info* map.
+        time tick that exists in *interval*. If you do not specify interval it
+        will be computed from date_info to include all documents.
+
+        In concepts dataset there is no information about document release date
+        so you will have to provide this information externally as *date_info*.
+        It needs to be a map object that has all document ids from concept's
+        dataset as keys and they refer to datetime.date representing release
+        date for the document.
 
         Result will include 0 counts for ticks where concepts were not
-        mentioned. In each row there will also be start and stop date. For that
-        particular count.
+        mentioned. In each row there will also be start and stop times for that
+        particular count. Counts from stop time are not included in the tick.
 
         :param concepts: List of concept names to make time series for
         :type concepts: list
         :param date_info: Keys need to be document ids in this dataset and
          values datetime.datetime or datetime.date objects
         :type date_info: dict
-        :param delta: Step size
+        :param delta: Time series tick size
         :param interval: (start, stop) where both values are datetimes or dates
         :type interval: tuple
         :return: pandas.DataFrame -- DataFrame with columns "Concept", "Count",
@@ -289,6 +310,9 @@ class ConceptsDataset(ApiCallDataset):
         """
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
+
+        if interval is None:
+            interval = min(date_info.values()), max(date_info.values()) + delta
 
         tick_counts, ticks = [], []
 
@@ -326,9 +350,16 @@ class ConceptsDataset(ApiCallDataset):
     def word_cloud(self, path, size=(600, 350), background='white',
                    colormap_name='Accent', max_concepts=200, stopwords=None,
                    concept_type='', concept_filter=None, font=None):
-        """Saves word cloud image to *path*. If *path* is not returns image as
-        np.ndarray. On way to view np.ndarray resulting image is to use
-        matplotlib's imshow method.
+        """Saves word cloud image to *path*. If *path* is not None returns
+        image as np.ndarray. One way to view np.ndarray resulting image is to
+        use matplotlib's imshow method.
+
+        To filter words that will be showed in the cloud you can use *stopwords*
+        and *concept_filter*. The former is simple iterable of words that will
+        be excluded and the latter is callable that takes concept name and
+        returns bool to indicate whether given concept should pass the filter.
+        You can set both at the same time. *concept_filter* is applied first,
+        *stopwords* second.
 
         :param path: Save plot to this file. Set to None if you want raw image
          np.ndarray of this plot as a return value
@@ -465,7 +496,15 @@ class ABSADataset(ApiCallDataset):
     def entity_frequency(self, entity, entity_type='', normalize=False):
         """Return occurrence count of input entity or entity list. Resulting
         list has entities sorted just like they were in input if it was list or
-        tuple.
+        tuple. Entities whose entity_type does not start with given one or that
+        are not in the dataset will always have zero count. Setting normalize
+        will turn absolute counts into relative percentages.
+
+        Specifying *entity_type* is intended to be used only with
+        normalization. If used without *normalize* set it will have no effect
+        except for possible before mentioned zeroing. When used with *normalize*
+        set result percentages will reflect counts only within specified
+        *concept_type* instead of the whole dataset.
 
         :param entity: Entity name or tuple/list/set of entity names
         :type entity: tuple, list, set or str
@@ -501,7 +540,11 @@ class ABSADataset(ApiCallDataset):
 
     def most_common_entities(self, n=15, entity_type='', normalize=False):
         """Counts entities and returns n most occurring ones sorted by their
-        count descending. Counted entities can be filtered by their type.
+        count descending. Counted entities can be filtered by their type using
+        *entity_type* and returned counts can be normalized with *normalize*.
+
+        If both *entity_type* and *normalize* are specified entity ratios
+        will be computed only from entity counts within given *entity_type*.
 
         :param n: Maximum number of most common entities to return
         :type n: int
@@ -525,7 +568,11 @@ class ABSADataset(ApiCallDataset):
 
     def least_common_entities(self, n=15, entity_type='', normalize=False):
         """Counts entities and returns n least occurring ones sorted by their
-        count ascending. Counted entities can be filtered by their type.
+        count ascending. Counted entities can be filtered by their type using
+        *entity_type* and returned counts can be normalized with *normalize*.
+
+        If both *entity_type* and *normalize* are specified entity ratios
+        will be computed only from entity counts within given *entity_type*.
 
         :param n: Maximum number of least common entities to return
         :type n: int
@@ -548,18 +595,18 @@ class ABSADataset(ApiCallDataset):
         return result
 
     def co_occurring_entities(self, entity, n=15, entity_type=''):
-        """Find n entities co-occurring frequently in texts of this dataset with
-        given entity, sorted descending. Co-occurring entities can be
+        """Find *n* entities co-occurring frequently in texts of this dataset
+        with given entity, sorted descending. Co-occurring entities can be
         filtered by their type.
 
-        :param entity: Concept to inspect for co-occurring concepts
+        :param entity: Entity to inspect for co-occurring entities
         :type entity: str
-        :param n: Maximum count of returned concepts
+        :param n: Maximum count of returned entities
         :type n: int
-        :param entity_type: Limit co-occurring concept counts only to this type
-         of concepts.
+        :param entity_type: Limit co-occurring entity counts only to this type
+         of entities.
         :type entity_type: str
-        :return: pandas.Series -- Co-occurring concept names as index and their
+        :return: pandas.Series -- Co-occurring entity names as index and their
          counts as values sorted descending
         """
         if self._entities is None:
@@ -592,8 +639,8 @@ class ABSADataset(ApiCallDataset):
         return result
 
     def best_rated_entities(self, n=15, entity_type=''):
-        """Find top n rated entities in this dataset sorted descending by their
-        mean rating.
+        """Find top *n* rated entities in this dataset sorted descending
+        by their mean rating.
 
         :param n: Maximum count of returned entities
         :type n: int
@@ -618,8 +665,8 @@ class ABSADataset(ApiCallDataset):
         return result
 
     def worst_rated_entities(self, n=15, entity_type=''):
-        """Find n worst rated entities in this dataset sorted ascending by their
-        mean rating.
+        """Find *n* worst rated entities in this dataset sorted ascending
+        by their mean rating.
 
         :param n: Maximum count of returned entities
         :type n: int
@@ -644,12 +691,12 @@ class ABSADataset(ApiCallDataset):
         return result
 
     def surface_strings(self, entity):
-        """Returns dict of entities to list of their surface strings in
-        relations.
+        """Returns list of surface strings for each entity specified in *entity*
+        as a dictionary.
 
         :param entity: Name of entities to find in normalized texts
         :type entity: tuple, list, set or str
-        :return: dict -- Map where keys are concept names and values are lists
+        :return: dict -- Map where keys are entity names and values are lists
          of normalized strings
         """
         if self._relations is None or self._relations_entities is None:
@@ -671,8 +718,8 @@ class ABSADataset(ApiCallDataset):
         return result
 
     def entity_texts(self, entity):
-        """Returns dict of entities to list of normalized texts where entity is
-        mentioned
+        """Returns list of normalized texts where each *entity* can be found
+        as a dictionary.
 
         :param entity: Name of entities to find in normalized texts
         :type entity: tuple, list, set or str
@@ -810,6 +857,17 @@ class DatasetLoader(object):
             self._absa_evaluations = self._absa_evaluations_entities = None
 
     def __getitem__(self, item):
+        """If requested item is name of linguistic dataset that DatasetLoader
+        recognizes it will return this dataset - it may be None if it was not
+        found. If item is not recognized throws KeyError.
+
+        :param item: Needs to be one of the following: categories, concepts,
+         concepts_expressions, sentiments, absa_entities, absa_normalized_texts,
+         absa_relations, absa_relations_entities, absa_evaluations,
+         absa_evaluations_entities
+        :type item: str
+        :return: pandas.DataFrame -- DataFrame with requested data or None
+        """
         dataset_map = {
             'categories': self._categories,
             'concepts': self._concepts,

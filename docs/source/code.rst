@@ -1,21 +1,74 @@
-Anacode Library Overview
-************************
+Library Docstrings
+******************
 
-This library has three main goals.
+Anacode library consists of two parts. One is for using api and another is for
+working with api analysis.
 
- #. Help it's users to concurrently analyze their data with multiple http
-    requests at the same time leveraging python's own :mod:`threading` module.
- #. Give users easy way to convert analysis results in json format to flat
-    sql-like data structures.
- #. Provide *out-of-the-box* solutions for common analysis that can be done
-    on analysis results.
+.. contents::
+    :local:
 
-First two goals are related to getting the data that you can perform analysis
-on and this library helps you achieve this with it's :mod:`anacode.api` module.
-Simple analysis tools are provided in :mod:`anacode.agg` module.
+anacode.api
+===========
+
+..  automodule:: anacode.api
+
+Writers
+-------
+
+..  autoclass:: anacode.api.writers.Writer
+    :members:
+
+..  autoclass:: anacode.api.writers.CSVWriter
+    :members: __init__
+
+..  autoclass:: anacode.api.writers.DataFrameWriter
+    :members: __init__
+
+Querying
+--------
+
+..  autoclass:: anacode.api.client.AnacodeClient
+    :members:
+    :special-members: __init__
+
+..  autoclass:: anacode.api.client.Analyzer
+    :members:
+    :special-members: __init__
+
+..  automodule:: anacode.api.client
+    :members: analyzer
 
 
-.. toctree::
+anacode.agg
+===========
 
-    anacode_api
-    anacode_agg
+..  automodule:: anacode.agg
+    :members:
+
+Dataset loader
+--------------
+
+..  autoclass:: anacode.agg.aggregation.DatasetLoader
+    :members:
+    :special-members: __init__, __getitem__
+
+API Datasets
+------------
+
+..  autoclass:: anacode.agg.aggregation.ApiCallDataset
+
+..  autoclass:: anacode.agg.aggregation.CategoriesDataset
+    :members:
+    :special-members: __init__
+
+..  autoclass:: anacode.agg.aggregation.ConceptsDataset
+    :members:
+    :special-members: __init__
+
+..  autoclass:: anacode.agg.aggregation.SentimentDataset
+    :members:
+    :special-members: __init__
+
+..  autoclass:: anacode.agg.aggregation.ABSADataset
+    :members:
+    :special-members: __init__
