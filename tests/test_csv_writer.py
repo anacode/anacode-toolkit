@@ -63,7 +63,8 @@ class TestCsvWriterConcepts:
         assert 'concepts_expressions.csv' in contents
         file_lines = target.join('concepts_expressions.csv').readlines()
         header = file_lines[0].strip().split(',')
-        assert header == ['doc_id', 'text_order', 'concept', 'expression']
+        assert header == ['doc_id', 'text_order', 'concept', 'expression',
+                          'text_span']
 
     def test_write_concepts(self, target, csv_concepts):
         file_lines = target.join('concepts.csv').readlines()
@@ -78,8 +79,8 @@ class TestCsvWriterConcepts:
         assert len(file_lines) == 3
         row1 = file_lines[1].strip().split(',')
         row2 = file_lines[2].strip().split(',')
-        assert row1 == ['0', '0', 'Lenovo', 'lenovo']
-        assert row2 == ['0', '1', 'Samsung', 'samsung']
+        assert row1 == ['0', '0', 'Lenovo', 'lenovo', '0-6']
+        assert row2 == ['0', '1', 'Samsung', 'samsung', '0-7']
 
 
 class TestCsvWriterSentiment:

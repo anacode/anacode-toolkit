@@ -8,7 +8,9 @@ def concepts():
         [
             {
                 'concept': 'Lenovo',
-                'expressions': {'lenovo': 1},
+                'surface': [
+                    {'surface_string': 'lenovo', 'span': (0, 6)}
+                ],
                 'freq': 1,
                 'relevance_score': 1.0,
                 'type': 'brand'
@@ -17,7 +19,9 @@ def concepts():
         [
             {
                 'concept': 'Samsung',
-                'expressions': {'samsung': 1},
+                'surface': [
+                    {'surface_string': 'samsung', 'span': (0, 7)}
+                ],
                 'freq': 1,
                 'relevance_score': 1.0,
                 'type': 'brand'
@@ -118,7 +122,7 @@ def absa():
                 'semantics': [
                     {'type': 'feature_subjective', 'value': 'OperationQuality'}
                 ],
-                'text': {'span': [2, 4], 'surface_string': '性能'}
+                'surface': {'span': [2, 4], 'surface_string': '性能'}
             }
         ],
         'evaluations': [
@@ -129,7 +133,7 @@ def absa():
                     ],
                     'value': 2.0
                 },
-                'text': {'span': [0, 2], 'surface_string': '安全'}
+                'surface': {'span': [0, 2], 'surface_string': '安全'}
             },
             {
                 'semantics': {
@@ -138,7 +142,7 @@ def absa():
                     ],
                     'value': 3.5
                 },
-                'text': {'span': [7, 10], 'surface_string': '很帅气'}
+                'surface': {'span': [7, 10], 'surface_string': '很帅气'}
             }
         ],
         'normalized_text': '安全性能很好，很帅气。',
@@ -154,7 +158,7 @@ def absa():
                     'restriction': None,
                     'value': 2.0
                 },
-                'text': {'span': [0, 4], 'surface_string': '安全性能'}
+                'surface': {'span': [0, 4], 'surface_string': '安全性能'}
             }
         ]
     }]

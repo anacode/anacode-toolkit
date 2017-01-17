@@ -273,6 +273,7 @@ can find out more about category classification in
 **concepts.csv**
 
 - *doc_id* - id of review from reviews.csv
+- *text_order* - specific text identifier
 - *concept* - concept identified by anacode nlp
 - *freq* - frequency of occurrences of this concept in the text
 - *relevance_score* - relative relevance of the concept in this text
@@ -284,8 +285,10 @@ concept_expressions.csv extends concepts.csv with expressions that were used
 in text that realize it’s concepts.
 
 - *doc_id* - id of review from reviews.csv
+- *text_order* - specific text identifier
 - *concept* - concept identified by anacode nlp
 - *expression* - expression found in original text that realizes this concept
+- *text_span* - string index to original text where you can find this concept
 
 Note that if expression is used multiple times in original text there will be
 multiple rows with it in this file.

@@ -8,6 +8,7 @@ from functools import partial
 
 from anacode import codes
 
+
 def backup(root, files):
     """Backs up `files` from `root` directory and return list of backed up
     file names. Backed up files will have datetime suffix appended to original
@@ -37,7 +38,7 @@ HEADERS = {
     'concepts': [u'doc_id', u'text_order', u'concept', u'freq',
                  u'relevance_score', u'concept_type'],
     'concepts_expressions': [u'doc_id', u'text_order', u'concept',
-                             u'expression'],
+                             u'expression', u'text_span'],
     'sentiments': [u'doc_id', u'text_order', u'positive', u'negative'],
     'absa_entities': [u'doc_id', u'text_order', u'entity_name', u'entity_type',
                       u'surface_string', u'text_span'],
@@ -103,18 +104,11 @@ def concepts_to_list(doc_id, analyzed):
                    concept.get('freq'), concept.get('relevance_score'),
                    concept.get('type')]
             con_list.append(row)
-            try:
-                freq = int(concept.get('freq'))
-            except (ValueError, TypeError):
-                freq = 0
-            for string, count in concept.get('expressions', {}).items():
-                for _ in range(count):
-                    freq -= 1
-                    exp_list.append([doc_id, text_order,
-                                     concept.get('concept'), string])
-                for _ in range(freq):
-                    exp_list.append([doc_id, text_order,
-                                    concept.get('concept'), None])
+            for string in concept.get('surface', []):
+                surface_str, span = string['surface_string'], string['span']
+                exp_list.append([doc_id, text_order,
+                                 concept.get('concept'), surface_str,
+                                 '-'.join(map(str, span))])
     return {'concepts': con_list, 'concepts_expressions': exp_list}
 
 
@@ -142,8 +136,8 @@ def sentiments_to_list(doc_id, analyzed):
 def _absa_entities_to_list(doc_id, order, entities):
     ent_list = []
     for entity_dict in entities:
-        text_span = '-'.join(map(str, entity_dict['text']['span']))
-        surface_string = entity_dict['text']['surface_string']
+        text_span = '-'.join(map(str, entity_dict['surface']['span']))
+        surface_string = entity_dict['surface']['surface_string']
         for semantics in entity_dict['semantics']:
             row = [doc_id, order, semantics['value'], semantics['type'],
                    surface_string, text_span]
@@ -162,8 +156,8 @@ def _absa_relations_to_list(doc_id, order, relations):
                    rel['semantics']['opinion_holder'],
                    rel['semantics']['restriction'],
                    rel['semantics']['value'], rel['external_entity'],
-                   rel['text']['surface_string'],
-                   '-'.join(map(str, rel['text']['span']))]
+                   rel['surface']['surface_string'],
+                   '-'.join(map(str, rel['surface']['span']))]
         rel_list.append(rel_row)
         for ent in rel['semantics']['entity']:
             ent_row = [doc_id, order, rel_index, ent['type'], ent['value']]
@@ -176,8 +170,8 @@ def _absa_evaluations_to_list(doc_id, order, evaluations):
     for eval_index, evaluation in enumerate(evaluations):
         eval_row = [doc_id, order, eval_index,
                     evaluation['semantics']['value'],
-                    evaluation['text']['surface_string'],
-                    '-'.join(map(str, evaluation['text']['span']))]
+                    evaluation['surface']['surface_string'],
+                    '-'.join(map(str, evaluation['surface']['span']))]
         eval_list.append(eval_row)
         for ent in evaluation['semantics']['entity']:
             ent_row = [doc_id, order, eval_index, ent['type'], ent['value']]

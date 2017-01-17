@@ -22,7 +22,8 @@ class TestDataFrameWriterConcepts:
     def test_concepts_exprs_file_have_headers(self, concept_frames):
         assert 'concepts_expressions' in concept_frames
         header = concept_frames['concepts_expressions'].columns.tolist()
-        assert header == ['doc_id', 'text_order', 'concept', 'expression']
+        assert header == ['doc_id', 'text_order', 'concept', 'expression',
+                          'text_span']
 
     def test_write_concepts(self, concept_frames):
         concepts = concept_frames['concepts']
@@ -33,10 +34,10 @@ class TestDataFrameWriterConcepts:
 
     def test_write_exprs(self, concept_frames):
         expressions = concept_frames['concepts_expressions']
-        assert expressions.shape == (2, 4)
+        assert expressions.shape == (2, 5)
         row1, row2 = expressions.iloc[0].tolist(), expressions.iloc[1].tolist()
-        assert row1 == [0, 0, 'Lenovo', 'lenovo']
-        assert row2 == [0, 1, 'Samsung', 'samsung']
+        assert row1 == [0, 0, 'Lenovo', 'lenovo', '0-6']
+        assert row2 == [0, 1, 'Samsung', 'samsung', '0-7']
 
 
 @pytest.fixture
