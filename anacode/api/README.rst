@@ -3,7 +3,7 @@ You can call our rest api one by one using anacode.api.AnacodeClient class.
 .. code-block:: python
 
     >>> from anacode.api import client
-    >>> client = client.AnacodeClient(('<username>', '<password>'))
+    >>> client = client.AnacodeClient('<token>')
     >>> concepts_result = client.concepts(texts=['Samsung'])
     >>> print(concepts_result)
     Output of concepts call
@@ -45,9 +45,8 @@ paid account to have access to multiple concurrent requests) and save results.
     >>>      '作为一辆王者之车，性价比还是挺高的！',
     >>>      '车内宽敞阔绰，载物空间丰富！'],
     >>> ]
-    >>> auth = '<username>', '<password>'
     >>> df_writer = writers.DataFrameWriter()
-    >>> with client.analyzer(auth, df_writer, threads=2) as api:
+    >>> with client.analyzer('<token>', df_writer, threads=2) as api:
     >>>     for texts in data:
     >>>         api.concepts(texts)
     >>>         api.absa(texts)

@@ -62,8 +62,8 @@ to analyze chinese texts.
 
     >>> from anacode.api import client
     >>> # base_url is optional
-    >>> api = client.AnacodeClient(('username', 'password'),
-    >>>                            base_url='https://api.anacode.de/')
+    >>> api = client.AnacodeClient(
+    >>>     'token', base_url='https://api.anacode.de/')
     >>> # this will create an http request for you, sent it to appropriate
     >>> # endpoint, parse result and returns python dict
     >>> json_analysis = api.concepts(['储物空间少', '后备箱空间不小'])
@@ -148,7 +148,7 @@ in single thread by bulks of size 100 and save resulting CSV files to folder
     >>>     ['Chinese text 1', 'Chinese text 2'],
     >>>     ['...'],
     >>> ]
-    >>> with client.analyzer(('username', 'password'), 'ling') as api:
+    >>> with client.analyzer('token', 'ling') as api:
     >>>     for document in documents:
     >>>         api.categories(document)
     >>>         api.absa(document)
@@ -165,9 +165,8 @@ DataFrames to provided dictionary.
     >>>     ['Chinese text 1', 'Chinese text 2'],
     >>>     ['...'],
     >>> ]
-    >>> auth = 'username', 'password'
     >>> output_dict = {}
-    >>> with analyzer(auth, output_dict, threads=2, bulk_size=200) as api:
+    >>> with analyzer('token', output_dict, threads=2, bulk_size=200) as api:
     >>>     for document in documents:
     >>>         api.concepts(document)
     >>>         api.sentiment(document)

@@ -16,9 +16,11 @@ ANACODE_API_URL = os.getenv('ANACODE_API_URL', 'https://api.anacode.de/')
 
 
 def _analysis(call_endpoint, auth, max_retries=3, **kwargs):
+    headers = {'Authorization': 'Token %s' % auth,
+               'Accept': 'application/json'}
     while True:
         try:
-            res = requests.post(call_endpoint, auth=auth, json=kwargs)
+            res = requests.post(call_endpoint, headers=headers, json=kwargs)
         except requests.RequestException:
             if max_retries == 0:
                 raise
@@ -41,8 +43,8 @@ class AnacodeClient(object):
         """Default value for base_url is taken from environment variable
         ANACODE_API_URL if set otherwise 'https://api.anacode.de/' is used.
 
-        :param auth: User's username and password
-        :type auth: tuple
+        :param auth: User's token
+        :type auth: str
         :param base_url: Anacode API server URL
         :type base_url: str
         """
@@ -258,8 +260,8 @@ def analyzer(auth, writer, threads=1, bulk_size=100, base_url=ANACODE_API_URL):
     """Convenient function for initializing bulk analyzer and potentially
     temporary writer instance as well.
 
-    :param auth: (username, password) tuple
-    :type auth: tuple
+    :param auth: User's token string
+    :type auth: str
     :param threads: Number of threads to use for http communication with server
     :type threads: int
     :param writer: Writer instance that will store analysis results or path to
