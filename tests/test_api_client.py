@@ -27,7 +27,13 @@ def empty_json(*args, **kwargs):
 
 @pytest.fixture
 def auth():
-    return 'user1', 'pass2'
+    return '1234567890'
+
+
+@pytest.fixture
+def auth_header(auth):
+    return {'Authorization': 'Token %s' % auth,
+            'Accept': 'application/json'}
 
 
 @pytest.fixture
@@ -36,13 +42,13 @@ def api(auth):
 
 
 @mock.patch('requests.post', empty_response)
-def test_scrape_call(api, auth, mocker):
+def test_scrape_call(api, auth_header, mocker):
     mocker.spy(requests, 'post')
     api.scrape('http://chinese.portal.com.ch')
     assert requests.post.call_count == 1
     requests.post.assert_called_once_with(
         urljoin(client.ANACODE_API_URL, 'scrape/'),
-        auth=auth, json={'url': 'http://chinese.portal.com.ch'})
+        headers=auth_header, json={'url': 'http://chinese.portal.com.ch'})
 
 
 @pytest.mark.parametrize('kwargs', [
@@ -52,7 +58,7 @@ def test_scrape_call(api, auth, mocker):
     {'depth': 2, 'taxonomy': 'anacode'},
 ])
 @mock.patch('requests.post', empty_response)
-def test_categories_call(api, auth, mocker, kwargs):
+def test_categories_call(api, auth_header, mocker, kwargs):
     mocker.spy(requests, 'post')
     api.categories(['安全性能很好，很帅气。'], **kwargs)
     assert requests.post.call_count == 1
@@ -60,37 +66,37 @@ def test_categories_call(api, auth, mocker, kwargs):
     json_data.update(kwargs)
     requests.post.assert_called_once_with(
         urljoin(client.ANACODE_API_URL, 'categories/'),
-        auth=auth, json=json_data)
+        headers=auth_header, json=json_data)
 
 
 @mock.patch('requests.post', empty_response)
-def test_sentiment_call(api, auth, mocker):
+def test_sentiment_call(api, auth_header, mocker):
     mocker.spy(requests, 'post')
     api.sentiment(['安全性能很好，很帅气。'])
     assert requests.post.call_count == 1
     requests.post.assert_called_once_with(
         urljoin(client.ANACODE_API_URL, 'sentiment/'),
-        auth=auth, json={'texts': ['安全性能很好，很帅气。']})
+        headers=auth_header, json={'texts': ['安全性能很好，很帅气。']})
 
 
 @mock.patch('requests.post', empty_response)
-def test_concepts_call(api, auth, mocker):
+def test_concepts_call(api, auth_header, mocker):
     mocker.spy(requests, 'post')
     api.concepts(['安全性能很好，很帅气。'])
     assert requests.post.call_count == 1
     requests.post.assert_called_once_with(
         urljoin(client.ANACODE_API_URL, 'concepts/'),
-        auth=auth, json={'texts': ['安全性能很好，很帅气。']})
+        headers=auth_header, json={'texts': ['安全性能很好，很帅气。']})
 
 
 @mock.patch('requests.post', empty_response)
-def test_absa_call(api, auth, mocker):
+def test_absa_call(api, auth_header, mocker):
     mocker.spy(requests, 'post')
     api.absa(['安全性能很好，很帅气。'])
     assert requests.post.call_count == 1
     requests.post.assert_called_once_with(
         urljoin(client.ANACODE_API_URL, 'absa/'),
-        auth=auth, json={'texts': ['安全性能很好，很帅气。']})
+        headers=auth_header, json={'texts': ['安全性能很好，很帅气。']})
 
 
 @pytest.mark.parametrize('code, call', [
