@@ -1,0 +1,12 @@
+div.code.python > .highlight > pre a,
+div.highlight-python > .highlight > pre a,
+div.code.python > .highlight > pre a:focus,
+div.highlight-python > .highlight > pre a:focus {
+    color: #a1a1a1;
+    text-decoration: none;
+}
+
+div.code.python > .highlight > pre a:hover,
+div.highlight-python > .highlight > pre a:hover {
+    color: #616161;
+}

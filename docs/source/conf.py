@@ -27,6 +27,10 @@
 #
 # needs_sphinx = '1.0'
 
+def setup(app):
+    app.add_stylesheet('css/download_center.css')
+    app.add_javascript('js/toggable_prompt.js')
+
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
