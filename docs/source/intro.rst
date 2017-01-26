@@ -247,7 +247,7 @@ separate call datasets via
 :func:`DatasetLoader.concepts <anacode.agg.aggregation.DatasetLoader.concepts>`,
 :func:`DatasetLoader.sentiments <anacode.agg.aggregation.DatasetLoader.sentiments>` or
 :func:`DatasetLoader.absa <anacode.agg.aggregation.DatasetLoader.absa>`.
-The latter returns :class:`<anacode.agg.aggregation.ApiCallDataset>` instances
+The latter returns :class:`anacode.agg.aggregation.ApiCallDataset` instances
 and actions you can perform with it will be explained in the next chapter.
 
 .. _analysed-schema:
@@ -264,14 +264,14 @@ categories.csv will contain one row per supported category name per text. You
 can find out more about category classification in
 `it's documentation <https://api.anacode.de/api-docs/taxonomies.html>`_
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *category* - category name
 - *probability* - float from <0.0, 1.0> interval
 
 **concepts.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *concept* - concept identified by anacode nlp
 - *freq* - frequency of occurrences of this concept in the text
@@ -283,7 +283,7 @@ can find out more about category classification in
 concept_expressions.csv extends concepts.csv with expressions that were used
 in text that realize it’s concepts.
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *concept* - concept identified by anacode nlp
 - *expression* - expression found in original text that realizes this concept
@@ -294,7 +294,7 @@ multiple rows with it in this file.
 
 **sentiment.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *positive* - probability that this post has positive sentiment
 - *negative* - probability that this post has negative sentiment
 
@@ -302,7 +302,7 @@ Note that positive + negative = 1.
 
 **absa_entities.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier; API returns separate output for
   every text it gets and we called it with list of texts so this makes sure
   that different text outputs from one posts can be matched together
@@ -313,13 +313,13 @@ Note that positive + negative = 1.
 
 **absa_normalized_text.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *normalized_text* - text with normalized casing and whitespace
 
 **absa_relations.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *relation_id* - absa relation output can have multiple relations, this serves as foreign key to them
 - *opinion_holder* - optional; if this field is null, the default opinion holder is the author himself
@@ -334,7 +334,7 @@ Note that positive + negative = 1.
 This table is extending absa_relations.csv by providing list of entities
 connected to evaluations in it.
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *relation_id* - foreign key to absa_relations
 - *entity_type* -
@@ -342,7 +342,7 @@ connected to evaluations in it.
 
 **absa_evaluations.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *evaluation_id* - absa evaluations output can rate multiple entities, this
   serves as foreign key to them
@@ -352,7 +352,7 @@ connected to evaluations in it.
 
 **absa_evaluations_entities.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *evaluation_id* - foreign key to absa_evaluations
 - *entity_type* -
