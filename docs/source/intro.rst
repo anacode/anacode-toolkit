@@ -5,16 +5,15 @@ Anacode Toolkit
 ***************
 
 This library is a helper tool for users of the
-`Anacode Web&Text API <https://api.anacode.de>`_ which offers functionality for Chinese
+`Anacode Web&Text API <https://api.anacode.de>`_, a REST API for Chinese
 web data collection and Natural Language Processing. The following operations are possible
 with the library:
 
 1. Abstraction of HTTP protocol that is used by Anacode Web&Text API. Besides,
    concurrent Anacode API querying is made simple (only relevant for users with paid account).
 2. Conversion of JSON analysis results into flat table structures.
-3. Provide *out-of-the-box* solution for common aggregation and selectiong tasks that can be performed
-   on API analysis results, like finding the most discussed concept or ten best
-   rated entities
+3. Common aggregation and selection tasks that can be performed
+   on API analysis results, like finding the most discussed concepts or ten best-rated entities
 4. Convenient plotting functions for aggregation results, ready to use in print documents.
 
 The first two features are covered by the module :mod:`anacode.api`; 3. and 4. are covered by :mod:`anacode.agg`.
@@ -27,15 +26,14 @@ The first two features are covered by the module :mod:`anacode.api`; 3. and 4. a
 Installation
 ~~~~~~~~~~~~
 
-Library is published via PyPI and it's meant to work on python2.7 and
+The library is published via PyPI and works on python2.7 and
 python3.3+. To install from PyPI simply use pip:
 
 .. code-block:: shell
 
     pip install anacode
 
-You can also clone it's repository and install from the source using setup.py
-script:
+You can also clone its repository and install from source using the setup.py script:
 
 .. code-block:: shell
 
@@ -59,13 +57,13 @@ The class :class:`anacode.api.client.AnacodeClient` can be used to analyze Chine
     >>> # base_url is optional
     >>> api = client.AnacodeClient(
     >>>     'token', base_url='https://api.anacode.de/')
-    >>> # this will create an http request for you, sent it to appropriate
-    >>> # endpoint, parse result and returns python dict
+    >>> # this will create an http request for you, send it to appropriate
+    >>> # endpoint, parse the result and return it in a python dict
     >>> json_analysis = api.concepts(['储物空间少', '后备箱空间不小'])
 
-There is also :class:`anacode.api.client.Analyzer` that performs bulk querying
-potentially using multiple threads and saving results to either pandas's
-dataframes or csv files. However, it is however not intended for direct usage - instead, please
+There is also a class :class:`anacode.api.client.Analyzer` to perform bulk querying. It can used
+multiple threads and saves the results either to pandass
+dataframes or csv files. However, it is not intended for direct usage - instead, please
 use the interface to it that is covered in :ref:`using-analyzer`.
 
 
@@ -73,13 +71,13 @@ Storing results
 ---------------
 
 Since there is no analysis tool that can analyse arbitrary json schemas well,
-there is a simple way to convert list of json results from our API to a standard SQL-like
+the toolkit offers a simple way to convert lists of API json results to a standard SQL-like
 data structure. There are two possibilities: you can convert your output to a
 `pandas.DataFrames <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html>`_
 or store it to disk in csv files, making it ready to be input into various
-data processing programs such as Excel. The JSON -> CSV conversion code lives in
+data processing programs such as Excel. The JSON > CSV conversion code lives in
 :mod:`anacode.api.writers`. You are not expected to use it directly, but here is
-quick example how to load sentiment analysis results to memory as DataFrame.
+quick example how to load sentiment analysis results into memory as a dataframe.
 
 .. code-block:: python
 
@@ -108,8 +106,7 @@ quick example how to load sentiment analysis results to memory as DataFrame.
     1       0           1      0.2       0.8
     2       1           0      0.01      0.99
 
-Table "schema" for format that is used to store analysis result is described
-in more detail in :ref:`analysed-schema`.
+The schemas of the tables are described in :ref:`analysed-schema`.
 
 Both :class:`anacode.api.writers.DataFrameWriter` and
 :class:`anacode.api.writers.CSVWriter` have the same interface. They generate document ids
@@ -117,8 +114,8 @@ Both :class:`anacode.api.writers.DataFrameWriter` and
 you are expected to save exactly the same amount of call results from the calls
 that you choose to store in order for `doc_id` to properly connect results
 from different calls. It also means that it does not matter whether you first
-save 10 sentiment results and then 10 absa results or you save 10 times
-1 sentiment and 1 absa result.
+save 10 sentiment results and then 10 concepts results or you save 10 times
+1 sentiment and 1 concepts result.
 
 
 .. _using-analyzer:
@@ -126,13 +123,13 @@ save 10 sentiment results and then 10 absa results or you save 10 times
 Using the Analyzer
 ------------------
 
-If you have more than just a few texts you want to analyse and you wish to store
-the analysis results in csv file, you can use
+If you want to analyze a larger number of texts and store
+the analysis results to a csv file, you can use the
 :func:`anacode.api.client.analyzer` function. It provides an easy interface to
 bulk querying and storing results in a table-like data structure.
 
-The following code snippet would analyse categories and absa for all `documents`
-in single thread by bulks of size 100 and save the resulting CSV files to the folder
+The following code snippet analyses categories and sentiment for all `documents`
+in a single thread by bulks of size 100 and saves the resulting csv files to the folder
 'ling'.
 
 .. code-block:: python
@@ -145,11 +142,11 @@ in single thread by bulks of size 100 and save the resulting CSV files to the fo
     >>> with client.analyzer('token', 'ling') as api:
     >>>     for document in documents:
     >>>         api.categories(document)
-    >>>         api.absa(document)
+    >>>         api.sentiment(document)
 
 
-This code snippet would analyse concepts and general sentiment for all
-`documents` in two threads by bulks of size 200 and save the output as pandas
+By contrast, below code snippet analyses categories and sentiment for all
+`documents` in two threads by bulks of size 200 and saves the output as pandas
 DataFrames to provided dictionary.
 
 .. code-block:: python
@@ -162,7 +159,7 @@ DataFrames to provided dictionary.
     >>> output_dict = {}
     >>> with analyzer('token', output_dict, threads=2, bulk_size=200) as api:
     >>>     for document in documents:
-    >>>         api.concepts(document)
+    >>>         api.categories(document)
     >>>         api.sentiment(document)
     >>> print(output_dict.keys())
 
@@ -177,19 +174,15 @@ Aggregation framework (anacode.agg)
 Data loading
 ------------
 
-Anacode Toolkit provides the :class:`anacode.agg.aggregation.DatasetLoader` for
-loading analysed data. After performing analysis, there are multiple options for storing the data.
-Here is an exhaustive list of ways how and what
-formats can *DatasetLoader* use to load Anacode API analysis data. Every one
-of them results in properly initialized *DatasetLoader* instance.
+The Anacode Toolkit provides the :class:`anacode.agg.aggregation.DatasetLoader` for
+loading analysed data from different formats:
 
-#. Lists of json api output
+#. Lists of json outputs
 
-    If you stored raw json output of API into list of python dictionaries you
+    If you just stored the raw json output of the Web\&Text API into a list of python dictionaries, you
     can use
     :func:`DatasetLoader.from_lists <anacode.agg.aggregation.DatasetLoader.from_lists>`
-    to load them. This converts your lists into pandas DataFrames internally
-    using :class:`anacode.api.writers.DataFrameWriter`.
+    to load them. This converts your lists into pandas dataframes.
 
     .. code-block:: python
 
@@ -204,22 +197,22 @@ of them results in properly initialized *DatasetLoader* instance.
 
 #. Path to folder with csv files
 
-    When you stored analysis results in a csv files (using
-    :class:`anacode.api.writers.CSVWriter`) you can provide path to
+    If you stored the analysis results in csv files (using
+    :class:`anacode.api.writers.CSVWriter`), you can provide the path to
     their parent folder to
     :func:`DatasetLoader.from_path <anacode.agg.aggregation.DatasetLoader.from_path>`
-    to load all available analysis data.
+    to load all available results.
 
 
 #. From :class:`anacode.api.writers.Writer` instance
 
-    If you used instance of *Writer* (either *DataFrameWriter* or *CSVWriter*)
-    to store the analysis output you can pass reference to it to
+    If you used an instance of *Writer* (either *DataFrameWriter* or *CSVWriter*)
+    to store the analysis results, you can pass a reference to it to the
     :func:`DatasetLoader.from_writer <anacode.agg.aggregation.DatasetLoader.from_writer>`
     class method.
 
 
-#. Directly from pandas.DataFrames
+#. From pandas.DataFrames
 
     You can also use *DatasetLoader*'s
     :func:`DatasetLoader.__init__ <anacode.agg.aggregation.DatasetLoader.__init__>`
@@ -230,54 +223,54 @@ of them results in properly initialized *DatasetLoader* instance.
 Accessing analysis data
 -----------------------
 
-There are two possible ways to get to output of text analysis from
-:class:`DatasetLoader <anacode.agg.aggregation.DatasetLoader>`. You can either
-access *pandas.DataFrame* directly using
-:func:`DatasetLoader.__getitem__ <anacode.agg.aggregation.DatasetLoader.__getitem__>`
-like this: `absa_texts = dataset['absa_normalized_texts']`. Format of these
-data frames is described below. If you want higher level access you can access
-separate call datasets via
+There are two ways to access the analysis results from
+:class:`DatasetLoader <anacode.agg.aggregation.DatasetLoader>`. First, you can access
+*pandas.DataFrame* directly using
+:func:`DatasetLoader.__getitem__ <anacode.agg.aggregation.DatasetLoader.__getitem__>`, as
+follows: `absa_texts = dataset['absa_normalized_texts']`. The format of these
+data frames is described below. Second, you can get higher-level access to the separate datasets via
 :func:`DatasetLoader.categories <anacode.agg.aggregation.DatasetLoader.categories>`,
 :func:`DatasetLoader.concepts <anacode.agg.aggregation.DatasetLoader.concepts>`,
 :func:`DatasetLoader.sentiments <anacode.agg.aggregation.DatasetLoader.sentiments>` or
 :func:`DatasetLoader.absa <anacode.agg.aggregation.DatasetLoader.absa>`.
-The latter returns :class:`<anacode.agg.aggregation.ApiCallDataset>` instances
+The latter returns :class:`anacode.agg.aggregation.ApiCallDataset` instances
 and actions you can perform with it will be explained in the next chapter.
 
 .. _analysed-schema:
 
-Table schema
-''''''''''''
+Table schemas
+'''''''''''''
 
-Here are lists of columns for each analysis output table with short
-descriptions:
+In this section, we describe the table schema of the analysis results for each of the four calls.
 
 **categories.csv**
 
 categories.csv will contain one row per supported category name per text. You
 can find out more about category classification in
-`it's documentation <https://api.anacode.de/api-docs/taxonomies.html>`_
+`its documentation <https://api.anacode.de/api-docs/taxonomies.html>`_
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *category* - category name
-- *probability* - float from <0.0, 1.0> interval
+- *probability* - float in range <0.0, 1.0>
+
+The probabilities for all categories for a given text sum up to 1.
 
 **concepts.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
-- *concept* - concept identified by anacode nlp
+- *concept* - name of concept
 - *freq* - frequency of occurrences of this concept in the text
 - *relevance_score* - relative relevance of the concept in this text
-- *concept_type* -
+- *concept_type* - type of concept (cf. `here <https://api.anacode.de/api-docs/concept_types.html>`_ for list of available concept types)
 
 **concept_expressions.csv**
 
 concept_expressions.csv extends concepts.csv with expressions that were used
 in text that realize it’s concepts.
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *concept* - concept identified by anacode nlp
 - *expression* - expression found in original text that realizes this concept
@@ -288,38 +281,38 @@ multiple rows with it in this file.
 
 **sentiment.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *positive* - probability that this post has positive sentiment
 - *negative* - probability that this post has negative sentiment
 
-Note that positive + negative = 1.
+Positive and negative probabilities sum up to 1.
 
 **absa_entities.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier; API returns separate output for
   every text it gets and we called it with list of texts so this makes sure
   that different text outputs from one posts can be matched together
-- *entity_name* -
-- *entity_type* -
+- *entity_name* - name of the entity
+- *entity_type* - type of the entity
 - *surface_string* - expression found in original text that realizes this entity
 - *text_span* - string index in original text where surface_string can be found
 
 **absa_normalized_text.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *normalized_text* - text with normalized casing and whitespace
 
 **absa_relations.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
-- *relation_id* - absa relation output can have multiple relations, this serves as foreign key to them
+- *relation_id* - since the absa relation output can have multiple relations, we introduce relation_id as a foreign key
 - *opinion_holder* - optional; if this field is null, the default opinion holder is the author himself
 - *restriction* - optional; contextual restriction under which the evaluation applies
 - *sentiment* - polarity of evaluation
-- *is_external* - whether external data was defined for this relation
+- *is_external* - whether an external entity was defined for this relation
 - *surface_string* - original text that generated this relation
 - *text_span* - string index in original text where surface_string can be found
 
@@ -328,7 +321,7 @@ Note that positive + negative = 1.
 This table is extending absa_relations.csv by providing list of entities
 connected to evaluations in it.
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *relation_id* - foreign key to absa_relations
 - *entity_type* -
@@ -336,7 +329,7 @@ connected to evaluations in it.
 
 **absa_evaluations.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *evaluation_id* - absa evaluations output can rate multiple entities, this
   serves as foreign key to them
@@ -346,7 +339,7 @@ connected to evaluations in it.
 
 **absa_evaluations_entities.csv**
 
-- *doc_id* - id of review from reviews.csv
+- *doc_id* - document id generated incrementally
 - *text_order* - specific text identifier
 - *evaluation_id* - foreign key to absa_evaluations
 - *entity_type* -
@@ -356,22 +349,22 @@ connected to evaluations in it.
 Aggregations
 ------------
 
-Library provides set of functions to perform common aggregations over analysis
-data. These are accessible from four subclasses of
+The Anacode Toolkit provides set of common aggregations over the analysed
+data. These are accessible from the four subclasses of
 :class:`ApiCallDataset <anacode.agg.aggregation.ApiCallDataset>` -
 :class:`CategoriesDataset <anacode.agg.aggregation.CategoriesDataset>`,
 :class:`ConceptsDataset <anacode.agg.aggregation.ConceptsDataset>`,
 :class:`SentimentDataset <anacode.agg.aggregation.SentimentDataset>` and
-:class:`ABSADataset <anacode.agg.aggregation.ABSADataset>`. To get any of those
-you can use properties of :class:`DatasetLoader <anacode.agg.aggregation.DatasetLoader>`:
-:func:`categories <anacode.agg.aggregation.DatasetLoader.categories>`,
+:class:`ABSADataset <anacode.agg.aggregation.ABSADataset>`. You can get any of those using
+the corresponding properties of the class :class:`DatasetLoader <anacode.agg.aggregation.DatasetLoader>`
+(:func:`categories <anacode.agg.aggregation.DatasetLoader.categories>`,
 :func:`concepts <anacode.agg.aggregation.DatasetLoader.concepts>`,
 :func:`sentiments <anacode.agg.aggregation.DatasetLoader.sentiments>` and
-:func:`absa <anacode.agg.aggregation.DatasetLoader.absa>`.
+:func:`absa <anacode.agg.aggregation.DatasetLoader.absa>`).
 
 Here is an exhaustive list of aggregations (list also include some
 non-aggregation methods) with usage examples that can be performed for
-each api call dataset.
+each API call dataset.
 
 
 ConceptsDataset
@@ -412,7 +405,7 @@ ConceptsDataset
      AcceleratorPedal    39
      Name: Count, dtype: int64
 
-  Next two code samples demonstrate how percentages can change if concept_type
+  The next two code samples demonstrate how percentages can change if concept_type
   filter changes.
 
   .. code-block:: python
@@ -499,9 +492,8 @@ ConceptsDataset
 - :func:`make_idf_filter(threshold, concept_type='') <anacode.agg.aggregation.ConceptsDataset.make_idf_filter>`
 - :func:`make_time_series(concepts, date_info, delta, interval=None) <anacode.agg.aggregation.ConceptsDataset.make_time_series>`
 
-  You will have to provide date_info dictionary to this function to make it
-  work. How to construct this dictionary depends on your data format so this
-  library cannot help you with it, but here is how it should look:
+  You will have to provide date_info dictionary to this function. The keys of date_info correspond to
+  consecutive integers; the values correspond to :class:`datetime.date` objects:
 
   .. code-block:: python
 
@@ -556,9 +548,8 @@ ConceptsDataset
 
 - :func:`word_cloud(path, size=(600, 350), background='white', colormap_name='Accent', max_concepts=200, stopwords=None, concept_type='', concept_filter=None, font=None) <anacode.agg.aggregation.ConceptsDataset.word_cloud>`
 
-    You can use this to generate word cloud image to either file or to numpy
-    ndarray - check doc strings for more info. Here is simple example
-    of generating ndarray.
+  This function generates a concept cloud image and stores it either to a file file or to a numpy
+  ndarray. Here is simple example for generating an ndarray:
 
   .. code-block:: python
 
@@ -611,7 +602,7 @@ ABSADataset
      Name: Count, dtype: int64
 
   Also read about :ref:`concept_frequency <concept_frequency_agg>` to see how
-  entity_type and normalize can change output.
+  entity_type and normalize can change the output.
 
 - :func:`most_common_entities(n=15, entity_type='', normalize=False) <anacode.agg.aggregation.ABSADataset.most_common_entities>`
 
