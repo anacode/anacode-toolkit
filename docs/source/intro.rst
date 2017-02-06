@@ -4,24 +4,20 @@
 Anacode Toolkit
 ***************
 
-This library is a helper tool for users of
-`Anacode API <https://api.anacode.de>`_ which is chinese natural language
-processor. These are parts of working with Anacode API that this library
-tries to make easier.
+This library is a helper tool for users of the
+`Anacode Web&Text API <https://api.anacode.de>`_ which offers functionality for Chinese
+web data collection and Natural Language Processing. The following operations are possible
+with the library:
 
-#. Abstracting away from HTTP protocol that is used by Anacode API. Also
-   concurrent Anacode API querying is made simple. Concurrent querying is
-   relevant only to users with paid account.
-#. Give users easy way to convert analysis results in json format to flat
-   table like data structures.
-#. Provide *out-of-the-box* solution for common tasks that can be performed
-   on API analysis results like finding the most discussed concept or ten best
+1. Abstraction of HTTP protocol that is used by Anacode Web&Text API. Besides,
+   concurrent Anacode API querying is made simple (only relevant for users with paid account).
+2. Conversion of JSON analysis results into flat table structures.
+3. Provide *out-of-the-box* solution for common aggregation and selectiong tasks that can be performed
+   on API analysis results, like finding the most discussed concept or ten best
    rated entities
+4. Convenient plotting functions for aggregation results, ready to use in print documents.
 
-First two goals are related to performing chinese text analysis with Anacode API
-and :mod:`anacode.api` can help you with them. For performing tasks mentioned
-in the last goal you can use :mod:`anacode.agg` to help you conceptually
-simplify your code.
+The first two features are covered by the module :mod:`anacode.api`; 3. and 4. are covered by :mod:`anacode.agg`.
 
 
 .. contents::
@@ -48,15 +44,14 @@ script:
     python setup.py install
 
 
-Using Anacode API and storing results
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Using Anacode API and storing results (anacode.api)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Querying API
-------------
+Querying the API
+----------------
 
-For http communication with Anacode API this library provides :mod:`anacode.api`
-module. There is :class:`anacode.api.client.AnacodeClient` that can be used
-to analyze chinese texts.
+The :mod:`anacode.api` module provides functionality for http communication with the Anacode Web&Text API.
+The class :class:`anacode.api.client.AnacodeClient` can be used to analyze Chinese texts.
 
 .. code-block:: python
 
@@ -70,20 +65,19 @@ to analyze chinese texts.
 
 There is also :class:`anacode.api.client.Analyzer` that performs bulk querying
 potentially using multiple threads and saving results to either pandas's
-DataFrames or csv files. It's however not intended for direct usage and there is
-easy to use interface to it that's covered in :ref:`using-analyzer`.
+dataframes or csv files. However, it is however not intended for direct usage - instead, please
+use the interface to it that is covered in :ref:`using-analyzer`.
 
 
 Storing results
 ---------------
 
-Since there is no analysis tool that can analyse arbitrary json schema well
-there is a simple way to convert list of json results from our API to sql-like
-data structure. There are two possibilities: you can convert output to
+Since there is no analysis tool that can analyse arbitrary json schemas well,
+there is a simple way to convert list of json results from our API to a standard SQL-like
+data structure. There are two possibilities: you can convert your output to a
 `pandas.DataFrames <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html>`_
-or store it to disk in csv files. There is a lot of software that can work with
-csv files out of the box. One of the notable ones that are used for data
-analysis is Excel. JSON -> CSV conversion code lives in
+or store it to disk in csv files, making it ready to be input into various
+data processing programs such as Excel. The JSON -> CSV conversion code lives in
 :mod:`anacode.api.writers`. You are not expected to use it directly, but here is
 quick example how to load sentiment analysis results to memory as DataFrame.
 
@@ -118,8 +112,8 @@ Table "schema" for format that is used to store analysis result is described
 in more detail in :ref:`analysed-schema`.
 
 Both :class:`anacode.api.writers.DataFrameWriter` and
-:class:`anacode.api.writers.CSVWriter` have the same interface and they both
-generate doc_id incrementally and separately for each API call. That means that
+:class:`anacode.api.writers.CSVWriter` have the same interface. They generate document ids
+(doc_id) incrementally and separately for each API call. That means that
 you are expected to save exactly the same amount of call results from the calls
 that you choose to store in order for `doc_id` to properly connect results
 from different calls. It also means that it does not matter whether you first
@@ -129,16 +123,16 @@ save 10 sentiment results and then 10 absa results or you save 10 times
 
 .. _using-analyzer:
 
-Using analyzer
---------------
+Using the Analyzer
+------------------
 
 If you have more than just a few texts you want to analyse and you wish to store
-analysis results in csv file, you want to use
-:func:`anacode.api.client.analyzer` function. It provides easy interface to
-bulk querying and storing results in table like data structure.
+the analysis results in csv file, you can use
+:func:`anacode.api.client.analyzer` function. It provides an easy interface to
+bulk querying and storing results in a table-like data structure.
 
-Following code snippet would analyse categories and absa for all `documents`
-in single thread by bulks of size 100 and save resulting CSV files to folder
+The following code snippet would analyse categories and absa for all `documents`
+in single thread by bulks of size 100 and save the resulting CSV files to the folder
 'ling'.
 
 .. code-block:: python
@@ -155,7 +149,7 @@ in single thread by bulks of size 100 and save resulting CSV files to folder
 
 
 This code snippet would analyse concepts and general sentiment for all
-`documents` in two threads by bulks of size 200 and save output as pandas
+`documents` in two threads by bulks of size 200 and save the output as pandas
 DataFrames to provided dictionary.
 
 .. code-block:: python
@@ -177,15 +171,15 @@ DataFrames to provided dictionary.
     dict_keys(['concepts', 'concepts_expressions', 'sentiments'])
 
 
-Aggregation framework
-~~~~~~~~~~~~~~~~~~~~~
+Aggregation framework (anacode.agg)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Data loading
 ------------
 
-Library provides class :class:`anacode.agg.aggregation.DatasetLoader` for
-loading analysed data. After performing analysis there are more options how you
-can have your data stored. Here is an exhaustive list of ways how and what
+Anacode Toolkit provides the :class:`anacode.agg.aggregation.DatasetLoader` for
+loading analysed data. After performing analysis, there are multiple options for storing the data.
+Here is an exhaustive list of ways how and what
 formats can *DatasetLoader* use to load Anacode API analysis data. Every one
 of them results in properly initialized *DatasetLoader* instance.
 
