@@ -388,9 +388,8 @@ the corresponding properties of the class :class:`DatasetLoader <anacode.agg.agg
 :func:`sentiments <anacode.agg.aggregation.DatasetLoader.sentiments>` and
 :func:`absa <anacode.agg.aggregation.DatasetLoader.absa>`).
 
-Here is an exhaustive list of aggregations (list also include some
-non-aggregation methods) with usage examples that can be performed for
-each API call dataset.
+Here is a list of aggregations and some other convenience methods with
+descriptions and usage examples that can be performed for each api call dataset.
 
 
 ConceptsDataset
@@ -515,7 +514,16 @@ ConceptsDataset
   concept_type can change output.
 
 - :func:`nltk_textcollection(concept_type='') <anacode.agg.aggregation.ConceptsDataset.nltk_textcollection>`
+
+  Creates nltk.text.TextCollection containing concepts found by linguistic
+  analysis.
+
 - :func:`make_idf_filter(threshold, concept_type='') <anacode.agg.aggregation.ConceptsDataset.make_idf_filter>`
+
+  Creates IDF filter from concepts found by linguistic analysis. You can read
+  more about IDF filtering on many places, for your convenience we provide a link to
+  `stanford webpage <http://nlp.stanford.edu/IR-book/html/htmledition/inverse-document-frequency-1.html>`_.
+
 - :func:`make_time_series(concepts, date_info, delta, interval=None) <anacode.agg.aggregation.ConceptsDataset.make_time_series>`
 
   You will have to provide date_info dictionary to this function. The keys of date_info correspond to
@@ -585,11 +593,11 @@ ConceptsDataset
 CategoriesDataset
 -----------------
 
-- :func:`main_topic() <anacode.agg.aggregation.CategoriesDataset.main_topic>`
+- :func:`main_category() <anacode.agg.aggregation.CategoriesDataset.main_category>`
 
   .. code-block:: python
 
-     >>> categories.main_topic()
+     >>> categories.main_category()
 
   .. parsed-literal::
 
@@ -613,8 +621,6 @@ ABSADataset
 -----------
 
 - :func:`entity_frequency(entity, entity_type='', normalize=False) <anacode.agg.aggregation.ABSADataset.entity_frequency>`
-
-  See
 
   .. code-block:: python
 

@@ -24,8 +24,8 @@ def dataset(frame_categories):
 def test_empty_dataset_failure():
     dataset = agg.CategoriesDataset(None)
     with pytest.raises(agg.NoRelevantData):
-        dataset.main_topic()
+        dataset.main_category()
 
 
 def test_main_topic(dataset):
-    assert dataset.main_topic() == 'law'
+    assert dataset.main_category() == 'law'

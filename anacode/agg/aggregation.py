@@ -423,7 +423,7 @@ class CategoriesDataset(ApiCallDataset):
         """
         self._categories = categories
 
-    def main_topic(self):
+    def main_category(self):
         """Finds what topic is this dataset about. Does not support nested
         categories output.
 
