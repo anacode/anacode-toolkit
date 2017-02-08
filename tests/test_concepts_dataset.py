@@ -23,7 +23,7 @@ def frame_concepts():
         [0, 0, 'Lenovo', 'lenovo'],
         [0, 1, 'Samsung', 'samsung'],
     ], columns=exp_header)
-    return {'concepts': cons, 'expressions': exps}
+    return {'concepts': cons, 'surface_strings': exps}
 
 
 @pytest.fixture

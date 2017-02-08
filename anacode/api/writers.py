@@ -37,8 +37,8 @@ HEADERS = {
     'categories': [u'doc_id', u'text_order', u'category', u'probability'],
     'concepts': [u'doc_id', u'text_order', u'concept', u'freq',
                  u'relevance_score', u'concept_type'],
-    'concepts_expressions': [u'doc_id', u'text_order', u'concept',
-                             u'expression', u'text_span'],
+    'concepts_surface_strings': [u'doc_id', u'text_order', u'concept',
+                                 u'expression', u'text_span'],
     'sentiments': [u'doc_id', u'text_order', u'positive', u'negative'],
     'absa_entities': [u'doc_id', u'text_order', u'entity_name', u'entity_type',
                       u'surface_string', u'text_span'],
@@ -59,7 +59,7 @@ HEADERS = {
 # on ordering of files defined in values here
 CSV_FILES = {
     'categories': ['categories.csv'],
-    'concepts': ['concepts.csv', 'concepts_expressions.csv'],
+    'concepts': ['concepts.csv', 'concepts_surface_strings.csv'],
     'sentiments': ['sentiments.csv'],
     'absa': [
         'absa_entities.csv', 'absa_normalized_texts.csv',
@@ -94,8 +94,8 @@ def concepts_to_list(doc_id, analyzed):
     :param analyzed: Response json from anacode api for concepts call
     :type analyzed: list
     :return: dict -- Dictionary with two keys: 'concepts' pointing to flat list
-     of found concepts and their metadata and 'concepts_expressions' pointing to
-     flat list of expressions realizing found concepts
+     of found concepts and their metadata and 'concepts_surface_strings'
+     pointing to flat list of expressions realizing found concepts
     """
     con_list, exp_list = [], []
     for text_order, text_analyzed in enumerate(analyzed):
@@ -109,7 +109,7 @@ def concepts_to_list(doc_id, analyzed):
                 exp_list.append([doc_id, text_order,
                                  concept.get('concept'), surface_str,
                                  '-'.join(map(str, span))])
-    return {'concepts': con_list, 'concepts_expressions': exp_list}
+    return {'concepts': con_list, 'concepts_surface_strings': exp_list}
 
 
 def sentiments_to_list(doc_id, analyzed):
@@ -349,7 +349,7 @@ class DataFrameWriter(Writer):
         self._row_data = {
             'categories': [],
             'concepts': [],
-            'concepts_expressions': [],
+            'concepts_surface_strings': [],
             'sentiments': [],
             'absa_entities': [],
             'absa_normalized_texts': [],
@@ -406,7 +406,9 @@ class CSVWriter(Writer):
         self._files = {
             'categories': self._open_csv('categories.csv'),
             'concepts': self._open_csv('concepts.csv'),
-            'concepts_expressions': self._open_csv('concepts_expressions.csv'),
+            'concepts_surface_strings': self._open_csv(
+                'concepts_surface_strings.csv'
+            ),
             'sentiments': self._open_csv('sentiments.csv'),
             'absa_entities': self._open_csv('absa_entities.csv'),
             'absa_normalized_texts': self._open_csv(

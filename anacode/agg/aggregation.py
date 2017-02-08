@@ -35,16 +35,16 @@ class ConceptsDataset(ApiCallDataset):
     plotting capabilities.
 
     """
-    def __init__(self, concepts, expressions):
+    def __init__(self, concepts, surface_strings):
         """Initialize instance by providing two concept relevant data frames.
 
         :param concepts: List of found concepts with metadata
         :type concepts: pandas.DataFrame
-        :param expressions: List of expressions realizing found concepts
-        :type expressions: pandas.DataFrame
+        :param surface_strings: List of expressions realizing found concepts
+        :type surface_strings: pandas.DataFrame
         """
         self._concepts = concepts
-        self._expressions = expressions
+        self._surface_strings = surface_strings
         if self._concepts is not None and 'concept_type' in self._concepts:
             self._concept_filter = set(self._concepts.concept_type.unique())
         else:
@@ -782,7 +782,7 @@ class DatasetLoader(object):
     formats.
 
     """
-    def __init__(self, concepts=None, concepts_expressions=None,
+    def __init__(self, concepts=None, concepts_surface_strings=None,
                  categories=None, sentiments=None,
                  absa_entities=None, absa_normalized_texts=None,
                  absa_relations=None, absa_relations_entities=None,
@@ -795,8 +795,8 @@ class DatasetLoader(object):
 
         :param concepts: List of found concepts with metadata
         :type concepts: pandas.DataFrame
-        :param concepts_expressions: List of expressions realizing concepts
-        :type concepts_expressions: pandas.DataFrame
+        :param concepts_surface_strings: List of expressions realizing concepts
+        :type concepts_surface_strings: pandas.DataFrame
         :param categories: List of document topic probabilities
         :type categories: pandas.DateFrame
         :param sentiments: List of document sentiment inclinations
@@ -816,7 +816,7 @@ class DatasetLoader(object):
         """
         self.has_categories = categories is not None
         self.has_concepts = concepts is not None or \
-            concepts_expressions is not None
+            concepts_surface_strings is not None
         self.has_sentiments = sentiments is not None
         self.has_absa = absa_entities is not None or \
             absa_normalized_texts is not None or \
@@ -837,9 +837,9 @@ class DatasetLoader(object):
 
         if self.has_concepts:
             self._concepts = concepts
-            self._concepts_expressions = concepts_expressions
+            self._concepts_surface_strings = concepts_surface_strings
         else:
-            self._concepts = self._concepts_expressions = None
+            self._concepts = self._concepts_surface_strings = None
 
         if self.has_sentiments:
             self._sentiments = sentiments
@@ -864,16 +864,16 @@ class DatasetLoader(object):
         found. If item is not recognized throws KeyError.
 
         :param item: Needs to be one of the following: categories, concepts,
-         concepts_expressions, sentiments, absa_entities, absa_normalized_texts,
-         absa_relations, absa_relations_entities, absa_evaluations,
-         absa_evaluations_entities
+         concepts_surface_strings, sentiments, absa_entities,
+         absa_normalized_texts, absa_relations, absa_relations_entities,
+         absa_evaluations, absa_evaluations_entities
         :type item: str
         :return: pandas.DataFrame -- DataFrame with requested data or None
         """
         dataset_map = {
             'categories': self._categories,
             'concepts': self._concepts,
-            'concepts_expressions': self._concepts_expressions,
+            'concepts_surface_strings': self._concepts_surface_strings,
             'sentiments': self._sentiments,
             'absa_entities': self._absa_entities,
             'absa_normalized_texts': self._absa_normalized_texts,
@@ -893,11 +893,13 @@ class DatasetLoader(object):
         :type concepts: iterable
         """
         con = self._concepts
-        if con is None:
-            return
-
+        exp = self._concepts_surface_strings
         concepts = set(concepts)
-        self._concepts = con[con.concept.isin(concepts) == False]
+        if con is not None:
+            self._concepts = con[con.concept.isin(concepts) == False]
+        if exp is not None:
+            exp = exp[exp.concept.isin(concepts) == False]
+            self._concepts_surface_strings = exp
 
     @property
     def concepts(self):
@@ -906,7 +908,8 @@ class DatasetLoader(object):
         :return: :class:`anacode.agg.aggregations.ConceptsDataset` --
         """
         if self.has_concepts:
-            return ConceptsDataset(self._concepts, self._concepts_expressions)
+            return ConceptsDataset(self._concepts,
+                                   self._concepts_surface_strings)
         else:
             raise NoRelevantData('Concepts data not available!')
 
@@ -1062,7 +1065,7 @@ class DatasetLoader(object):
 
         return DatasetLoader(
             concepts=f(self._concepts),
-            concepts_expressions=f(self._concepts_expressions),
+            concepts_surface_strings=f(self._concepts_surface_strings),
             categories=f(self._categories), sentiments=f(self._sentiments),
             absa_entities=f(self._absa_entities),
             absa_normalized_texts=f(self._absa_normalized_texts),

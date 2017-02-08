@@ -165,7 +165,7 @@ DataFrames to provided dictionary.
 
 .. parsed-literal::
 
-    dict_keys(['concepts', 'concepts_expressions', 'sentiments'])
+    dict_keys(['concepts', 'concepts_surface_strings', 'sentiments'])
 
 
 Aggregation framework (anacode.agg)
@@ -284,10 +284,10 @@ Concepts
 - *relevance_score* - relative relevance of the concept in this text
 - *concept_type* - type of concept (cf. `here <https://api.anacode.de/api-docs/concept_types.html>`_ for list of available concept types)
 
-**concept_expressions.csv**
+**concept_surface_strings.csv**
 
-concept_expressions.csv extends concepts.csv with expressions that were used
-in text that realize it’s concepts.
+concept_surface_strings.csv extends concepts.csv with surface strings that were
+used in text that realize it’s concepts
 
 - *doc_id* - document id generated incrementally
 - *text_order* - index to original input text list

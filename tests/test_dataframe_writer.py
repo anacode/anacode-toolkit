@@ -20,8 +20,8 @@ class TestDataFrameWriterConcepts:
                           'relevance_score', 'concept_type']
 
     def test_concepts_exprs_file_have_headers(self, concept_frames):
-        assert 'concepts_expressions' in concept_frames
-        header = concept_frames['concepts_expressions'].columns.tolist()
+        assert 'concepts_surface_strings' in concept_frames
+        header = concept_frames['concepts_surface_strings'].columns.tolist()
         assert header == ['doc_id', 'text_order', 'concept', 'expression',
                           'text_span']
 
@@ -33,7 +33,7 @@ class TestDataFrameWriterConcepts:
         assert row2 == [0, 1, 'Samsung', 1, 1.0, 'brand']
 
     def test_write_exprs(self, concept_frames):
-        expressions = concept_frames['concepts_expressions']
+        expressions = concept_frames['concepts_surface_strings']
         assert expressions.shape == (2, 5)
         row1, row2 = expressions.iloc[0].tolist(), expressions.iloc[1].tolist()
         assert row1 == [0, 0, 'Lenovo', 'lenovo', '0-6']

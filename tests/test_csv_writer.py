@@ -60,8 +60,8 @@ class TestCsvWriterConcepts:
 
     def test_concepts_exprs_file_have_headers(self, target, csv_concepts):
         contents = [f.basename for f in target.listdir()]
-        assert 'concepts_expressions.csv' in contents
-        file_lines = target.join('concepts_expressions.csv').readlines()
+        assert 'concepts_surface_strings.csv' in contents
+        file_lines = target.join('concepts_surface_strings.csv').readlines()
         header = file_lines[0].strip().split(',')
         assert header == ['doc_id', 'text_order', 'concept', 'expression',
                           'text_span']
@@ -75,7 +75,7 @@ class TestCsvWriterConcepts:
         assert row2 == ['0', '1', 'Samsung', '1', '1.0', 'brand']
 
     def test_write_exprs(self, target, csv_concepts):
-        file_lines = target.join('concepts_expressions.csv').readlines()
+        file_lines = target.join('concepts_surface_strings.csv').readlines()
         assert len(file_lines) == 3
         row1 = file_lines[1].strip().split(',')
         row2 = file_lines[2].strip().split(',')
