@@ -236,6 +236,17 @@ data frames is described below. Second, you can get higher-level access to the s
 The latter returns :class:`anacode.agg.aggregation.ApiCallDataset` instances
 and actions you can perform with it will be explained in the next chapter.
 
+
+Text order field
+----------------
+
+In `all calls documentation <https://api.anacode.de/api-docs/calls.html>`_
+you can notice that they take not a single text for analysis but list of texts.
+Every call also returns list of analysis, one for each text given. *text-order*
+property in csv row defines index of analysis in this list that produced
+the row. That means that you can use text-order column to match analysis results
+to specific pieces of text that you sent to the API for analysis.
+
 .. _analysed-schema:
 
 Table schema
@@ -254,7 +265,7 @@ can find out more about category classification in
 `its documentation <https://api.anacode.de/api-docs/taxonomies.html>`_
 
 - *doc_id* - document id generated incrementally
-- *text_order* - specific text identifier
+- *text_order* - index to original input text list
 - *category* - category name
 - *probability* - float in range <0.0, 1.0>
 
@@ -267,7 +278,7 @@ Concepts
 **concepts.csv**
 
 - *doc_id* - document id generated incrementally
-- *text_order* - specific text identifier
+- *text_order* - index to original input text list
 - *concept* - name of concept
 - *freq* - frequency of occurrences of this concept in the text
 - *relevance_score* - relative relevance of the concept in this text
@@ -279,7 +290,7 @@ concept_expressions.csv extends concepts.csv with expressions that were used
 in text that realize it’s concepts.
 
 - *doc_id* - document id generated incrementally
-- *text_order* - specific text identifier
+- *text_order* - index to original input text list
 - *concept* - concept identified by anacode nlp
 - *expression* - expression found in original text that realizes this concept
 - *text_span* - string index to original text where you can find this concept
@@ -294,6 +305,7 @@ Sentiment
 **sentiment.csv**
 
 - *doc_id* - document id generated incrementally
+- *text-order* - index to original input text list
 - *positive* - probability that this post has positive sentiment
 - *negative* - probability that this post has negative sentiment
 
@@ -306,9 +318,7 @@ ABSA
 **absa_entities.csv**
 
 - *doc_id* - document id generated incrementally
-- *text_order* - specific text identifier; API returns separate output for
-  every text it gets and we called it with list of texts so this makes sure
-  that different text outputs from one posts can be matched together
+- *text_order* - index to original input text list
 - *entity_name* - name of the entity
 - *entity_type* - type of the entity
 - *surface_string* - expression found in original text that realizes this entity
@@ -317,13 +327,13 @@ ABSA
 **absa_normalized_text.csv**
 
 - *doc_id* - document id generated incrementally
-- *text_order* - specific text identifier
+- *text_order* - index to original input text list
 - *normalized_text* - text with normalized casing and whitespace
 
 **absa_relations.csv**
 
 - *doc_id* - document id generated incrementally
-- *text_order* - specific text identifier
+- *text_order* - index to original input text list
 - *relation_id* - since the absa relation output can have multiple relations, we introduce relation_id as a foreign key
 - *opinion_holder* - optional; if this field is null, the default opinion holder is the author himself
 - *restriction* - optional; contextual restriction under which the evaluation applies
@@ -338,7 +348,7 @@ This table is extending absa_relations.csv by providing list of entities
 connected to evaluations in it.
 
 - *doc_id* - document id generated incrementally
-- *text_order* - specific text identifier
+- *text_order* - index to original input text list
 - *relation_id* - foreign key to absa_relations
 - *entity_type* -
 - *entity_name* -
@@ -346,7 +356,7 @@ connected to evaluations in it.
 **absa_evaluations.csv**
 
 - *doc_id* - document id generated incrementally
-- *text_order* - specific text identifier
+- *text_order* - index to original input text list
 - *evaluation_id* - absa evaluations output can rate multiple entities, this
   serves as foreign key to them
 - *sentiment* - numeric value how positive/negative statement is
@@ -356,7 +366,7 @@ connected to evaluations in it.
 **absa_evaluations_entities.csv**
 
 - *doc_id* - document id generated incrementally
-- *text_order* - specific text identifier
+- *text_order* - index to original input text list
 - *evaluation_id* - foreign key to absa_evaluations
 - *entity_type* -
 - *entity_name* -
