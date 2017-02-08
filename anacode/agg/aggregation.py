@@ -40,7 +40,7 @@ class ConceptsDataset(ApiCallDataset):
 
         :param concepts: List of found concepts with metadata
         :type concepts: pandas.DataFrame
-        :param surface_strings: List of expressions realizing found concepts
+        :param surface_strings: List of strings realizing found concepts
         :type surface_strings: pandas.DataFrame
         """
         self._concepts = concepts
@@ -795,7 +795,7 @@ class DatasetLoader(object):
 
         :param concepts: List of found concepts with metadata
         :type concepts: pandas.DataFrame
-        :param concepts_surface_strings: List of expressions realizing concepts
+        :param concepts_surface_strings: List of strings realizing concepts
         :type concepts_surface_strings: pandas.DataFrame
         :param categories: List of document topic probabilities
         :type categories: pandas.DateFrame

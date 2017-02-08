@@ -292,10 +292,10 @@ used in text that realize it’s concepts
 - *doc_id* - document id generated incrementally
 - *text_order* - index to original input text list
 - *concept* - concept identified by anacode nlp
-- *expression* - expression found in original text that realizes this concept
+- *surface_string* - string found in original text that realizes this concept
 - *text_span* - string index to original text where you can find this concept
 
-Note that if expression is used multiple times in original text there will be
+Note that if concept is used multiple times in original text there will be
 multiple rows with it in this file.
 
 
@@ -321,7 +321,7 @@ ABSA
 - *text_order* - index to original input text list
 - *entity_name* - name of the entity
 - *entity_type* - type of the entity
-- *surface_string* - expression found in original text that realizes this entity
+- *surface_string* - string found in original text that realizes this entity
 - *text_span* - string index in original text where surface_string can be found
 
 **absa_normalized_text.csv**

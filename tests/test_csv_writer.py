@@ -63,7 +63,7 @@ class TestCsvWriterConcepts:
         assert 'concepts_surface_strings.csv' in contents
         file_lines = target.join('concepts_surface_strings.csv').readlines()
         header = file_lines[0].strip().split(',')
-        assert header == ['doc_id', 'text_order', 'concept', 'expression',
+        assert header == ['doc_id', 'text_order', 'concept', 'surface_string',
                           'text_span']
 
     def test_write_concepts(self, target, csv_concepts):

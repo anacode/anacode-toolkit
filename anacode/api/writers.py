@@ -38,7 +38,7 @@ HEADERS = {
     'concepts': [u'doc_id', u'text_order', u'concept', u'freq',
                  u'relevance_score', u'concept_type'],
     'concepts_surface_strings': [u'doc_id', u'text_order', u'concept',
-                                 u'expression', u'text_span'],
+                                 u'surface_string', u'text_span'],
     'sentiments': [u'doc_id', u'text_order', u'positive', u'negative'],
     'absa_entities': [u'doc_id', u'text_order', u'entity_name', u'entity_type',
                       u'surface_string', u'text_span'],
@@ -95,7 +95,7 @@ def concepts_to_list(doc_id, analyzed):
     :type analyzed: list
     :return: dict -- Dictionary with two keys: 'concepts' pointing to flat list
      of found concepts and their metadata and 'concepts_surface_strings'
-     pointing to flat list of expressions realizing found concepts
+     pointing to flat list of strings realizing found concepts
     """
     con_list, exp_list = [], []
     for text_order, text_analyzed in enumerate(analyzed):

@@ -12,7 +12,7 @@ from anacode.agg import aggregation as agg
 def frame_concepts():
     con_header = ['doc_id', 'text_order', 'concept', 'freq', 'relevance_score',
                   'concept_type']
-    exp_header = ['doc_id', 'text_order', 'concept', 'expression']
+    exp_header = ['doc_id', 'text_order', 'concept', 'surface_string']
     cons = pd.DataFrame([
         [0, 0, 'Lenovo', 1, 1.0, 'brand'],
         [0, 1, 'Samsung', 1, 1.0, 'brand'],
