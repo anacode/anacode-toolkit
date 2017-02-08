@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to anacode's documentation!
-===================================
+###################################
 
 Contents:
 
@@ -16,7 +16,7 @@ Contents:
 
 
 Indices and tables
-==================
+******************
 
 * :ref:`genindex`
 * :ref:`modindex`

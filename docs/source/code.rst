@@ -1,5 +1,5 @@
 Library Docstrings
-******************
+##################
 
 Anacode library consists of two parts. One is for using api and another is for
 working with api analysis.
@@ -8,12 +8,12 @@ working with api analysis.
     :local:
 
 anacode.api
-===========
+***********
 
 ..  automodule:: anacode.api
 
 Writers
--------
+=======
 
 ..  autoclass:: anacode.api.writers.Writer
     :members:
@@ -25,7 +25,7 @@ Writers
     :members: __init__
 
 Querying
---------
+========
 
 ..  autoclass:: anacode.api.client.AnacodeClient
     :members:
@@ -40,20 +40,20 @@ Querying
 
 
 anacode.agg
-===========
+***********
 
 ..  automodule:: anacode.agg
     :members:
 
 Dataset loader
---------------
+==============
 
 ..  autoclass:: anacode.agg.aggregation.DatasetLoader
     :members:
     :special-members: __init__, __getitem__
 
 API Datasets
-------------
+============
 
 ..  autoclass:: anacode.agg.aggregation.ApiCallDataset
 

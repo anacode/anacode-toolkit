@@ -2,7 +2,7 @@
 .. _intro:
 
 Anacode Toolkit
-***************
+###############
 
 This library is a helper tool for users of the
 `Anacode Web&Text API <https://api.anacode.de>`_, a REST API for Chinese
@@ -24,7 +24,7 @@ The first two features are covered by the module :mod:`anacode.api`; 3. and 4. a
 
 
 Installation
-~~~~~~~~~~~~
+************
 
 The library is published via PyPI and works on python2.7 and
 python3.3+. To install from PyPI simply use pip:
@@ -43,10 +43,10 @@ You can also clone its repository and install from source using the setup.py scr
 
 
 Using Anacode API and storing results (anacode.api)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+***************************************************
 
 Querying the API
-----------------
+================
 
 The :mod:`anacode.api` module provides functionality for http communication with the Anacode Web&Text API.
 The class :class:`anacode.api.client.AnacodeClient` can be used to analyze Chinese texts.
@@ -68,7 +68,7 @@ use the interface to it that is covered in :ref:`using-analyzer`.
 
 
 Storing results
----------------
+===============
 
 Since there is no analysis tool that can analyse arbitrary json schemas well,
 the toolkit offers a simple way to convert lists of API json results to a standard SQL-like
@@ -120,8 +120,8 @@ save 10 sentiment results and then 10 concepts results or you save 10 times
 
 .. _using-analyzer:
 
-Using the Analyzer
-------------------
+Using analyzer
+==============
 
 If you want to analyze a larger number of texts and store
 the analysis results to a csv file, you can use the
@@ -169,10 +169,10 @@ DataFrames to provided dictionary.
 
 
 Aggregation framework (anacode.agg)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+***********************************
 
 Data loading
-------------
+============
 
 The Anacode Toolkit provides the :class:`anacode.agg.aggregation.DatasetLoader` for
 loading analysed data from different formats:
@@ -221,7 +221,7 @@ loading analysed data from different formats:
 
 
 Accessing analysis data
------------------------
+=======================
 
 There are two ways to access the analysis results from
 :class:`DatasetLoader <anacode.agg.aggregation.DatasetLoader>`. First, you can access
@@ -238,10 +238,14 @@ and actions you can perform with it will be explained in the next chapter.
 
 .. _analysed-schema:
 
-Table schemas
-'''''''''''''
+Table schema
+------------
 
 In this section, we describe the table schema of the analysis results for each of the four calls.
+
+
+Categories
+""""""""""
 
 **categories.csv**
 
@@ -255,6 +259,10 @@ can find out more about category classification in
 - *probability* - float in range <0.0, 1.0>
 
 The probabilities for all categories for a given text sum up to 1.
+
+
+Concepts
+""""""""
 
 **concepts.csv**
 
@@ -279,6 +287,10 @@ in text that realize it’s concepts.
 Note that if expression is used multiple times in original text there will be
 multiple rows with it in this file.
 
+
+Sentiment
+"""""""""
+
 **sentiment.csv**
 
 - *doc_id* - document id generated incrementally
@@ -286,6 +298,10 @@ multiple rows with it in this file.
 - *negative* - probability that this post has negative sentiment
 
 Positive and negative probabilities sum up to 1.
+
+
+ABSA
+""""
 
 **absa_entities.csv**
 
@@ -347,7 +363,7 @@ connected to evaluations in it.
 
 
 Aggregations
-------------
+============
 
 The Anacode Toolkit provides set of common aggregations over the analysed
 data. These are accessible from the four subclasses of
@@ -368,7 +384,7 @@ each API call dataset.
 
 
 ConceptsDataset
-'''''''''''''''
+---------------
 
 .. _concept_frequency_agg:
 
@@ -557,7 +573,7 @@ ConceptsDataset
 
 
 CategoriesDataset
-'''''''''''''''''
+-----------------
 
 - :func:`main_topic() <anacode.agg.aggregation.CategoriesDataset.main_topic>`
 
@@ -570,7 +586,7 @@ CategoriesDataset
      'auto'
 
 SentimentsDataset
-'''''''''''''''''
+-----------------
 
 - :func:`average_sentiment() <anacode.agg.aggregation.SentimentDataset.average_sentiment>`
 
@@ -584,7 +600,7 @@ SentimentsDataset
 
 
 ABSADataset
-'''''''''''
+-----------
 
 - :func:`entity_frequency(entity, entity_type='', normalize=False) <anacode.agg.aggregation.ABSADataset.entity_frequency>`
 
