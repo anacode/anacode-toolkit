@@ -26,14 +26,14 @@ def generate_color_func(colormap_name):
     return color_func
 
 
-def word_cloud(frequencies, path, size=(600, 400), background='white',
-               colormap_name='Accent', max_concepts=200, stopwords=None,
-               font=None):
-    """Generates word cloud image from *frequencies* and stores it to *path*.
+def concept_cloud(frequencies, path, size=(600, 400), background='white',
+                  colormap_name='Accent', max_concepts=200, stopwords=None,
+                  font=None):
+    """Generates concept cloud image from *frequencies* and stores it to *path*.
     If *path* is None, returns image as np.ndarray instead. One way to view
     resulting image is to use matplotlib's imshow method.
 
-    :param frequencies: List of (word: str, frequency: int) pairs to plot
+    :param frequencies: List of (concept: str, frequency: int) pairs to plot
     :type frequencies: list
     :param path: Save plot to this file. Set to None if you want raw image
      np.ndarray of this plot as a return value

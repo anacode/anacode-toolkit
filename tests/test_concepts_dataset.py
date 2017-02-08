@@ -151,15 +151,15 @@ def test_co_occurring_concepts(dataset, args, concepts):
     assert result.index.tolist() == concepts
 
 
-def test_pil_image_word_cloud_throws_no_error(dataset):
-    word_cloud_image = dataset.word_cloud(None)
-    assert isinstance(word_cloud_image, np.ndarray)
+def test_pil_image_concept_cloud_throws_no_error(dataset):
+    concept_cloud_image = dataset.concept_cloud(None)
+    assert isinstance(concept_cloud_image, np.ndarray)
 
 
-def test_word_cloud_save_throws_no_error(dataset, tmpdir):
+def test_concept_cloud_save_throws_no_error(dataset, tmpdir):
     target = tmpdir.mkdir('target')
     cloud_path = os.path.join(str(target), 'test.png')
-    dataset.word_cloud(cloud_path)
+    dataset.concept_cloud(cloud_path)
     assert os.path.isfile(cloud_path)
 
 

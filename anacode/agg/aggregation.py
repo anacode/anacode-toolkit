@@ -257,15 +257,16 @@ class ConceptsDataset(ApiCallDataset):
 
     def make_idf_filter(self, threshold, concept_type=''):
         """Generates concept filter based on idf value of concept in represented
-        documents. This filter can be directly used as parameter for word_cloud
-        call.
+        documents. This filter can be directly used as parameter for
+        concept_cloud call.
 
         :param threshold: Minimum IDF of concept that will pass the filter
         :type threshold: float
         :param concept_type: Limit co-occurring concept counts only to this type
          of concepts.
         :type concept_type: str
-        :return: callable -- Function that can be used as idf_func in word_cloud
+        :return: callable -- Function that can be used as idf_func in
+         concept_cloud
         """
         corpus = self.nltk_textcollection(concept_type)
 
@@ -347,10 +348,10 @@ class ConceptsDataset(ApiCallDataset):
         retval.drop('index', axis=1, inplace=True)
         return retval
 
-    def word_cloud(self, path, size=(600, 350), background='white',
-                   colormap_name='Accent', max_concepts=200, stopwords=None,
-                   concept_type='', concept_filter=None, font=None):
-        """Saves word cloud image to *path*. If *path* is not None returns
+    def concept_cloud(self, path, size=(600, 350), background='white',
+                      colormap_name='Accent', max_concepts=200, stopwords=None,
+                      concept_type='', concept_filter=None, font=None):
+        """Saves concept cloud image to *path*. If *path* is not None returns
         image as np.ndarray. One way to view np.ndarray resulting image is to
         use matplotlib's imshow method.
 
@@ -381,7 +382,7 @@ class ConceptsDataset(ApiCallDataset):
         :param concept_filter: If not None given callable needs to accept one
          string parameter that is concept name and evaluate it if it should pass
          the filter - callable returns True - or not - callable returns False.
-         Only concepts that pass can be seen on resulting word cloud image
+         Only concepts that pass can be seen on resulting concept cloud image
         :type concept_filter: callable
         :param font: Path to font that will be used
         :type font: str
@@ -406,8 +407,9 @@ class ConceptsDataset(ApiCallDataset):
         data = data.sort_values().tail(max_concepts).reset_index()
         frequencies = [tuple(row.tolist()) for _, row in data.iterrows()]
 
-        return plotting.word_cloud(frequencies, path, size, background,
-                                   colormap_name, max_concepts, stopwords, font)
+        return plotting.concept_cloud(frequencies, path, size, background,
+                                      colormap_name, max_concepts, stopwords,
+                                      font)
 
 
 class CategoriesDataset(ApiCallDataset):

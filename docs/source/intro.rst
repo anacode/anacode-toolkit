@@ -580,14 +580,14 @@ ConceptsDataset
      0   3      Body     2016-01-01   2016-01-05
      1   2      Body     2016-01-05   2016-01-09
 
-- :func:`word_cloud(path, size=(600, 350), background='white', colormap_name='Accent', max_concepts=200, stopwords=None, concept_type='', concept_filter=None, font=None) <anacode.agg.aggregation.ConceptsDataset.word_cloud>`
+- :func:`concept_cloud(path, size=(600, 350), background='white', colormap_name='Accent', max_concepts=200, stopwords=None, concept_type='', concept_filter=None, font=None) <anacode.agg.aggregation.ConceptsDataset.concept_cloud>`
 
   This function generates a concept cloud image and stores it either to a file file or to a numpy
   ndarray. Here is simple example for generating an ndarray:
 
   .. code-block:: python
 
-     >>> word_cloud_img = concepts.word_cloud(path=None)
+     >>> concept_cloud_img = concepts.concept_cloud(path=None)
 
 
 CategoriesDataset
