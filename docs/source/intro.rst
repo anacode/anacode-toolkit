@@ -544,10 +544,23 @@ ConceptsDataset
       ...
      }
 
-  When you have your date_info generating time series is simple. Keep in mind
-  that Stop time counts are not included in the total tick counts reported
-  in the column, that is concepts counts that are included are
-  `Start <= concept time < Stop`.
+  When you are using scraped data from Anacode in json format you can build
+  the dictionary by looping over documents with date field, parsing it and storing
+  it in dictionary under index of the document like this:
+
+  .. code-block:: python
+
+     >>> from datetime import datetime
+     >>> date_info = {}
+     >>> for index, doc in enumerate(scraped_json_data):
+     >>>     if not doc['date']:
+     >>>         continue
+     >>>     date_info[index] = datetime.strptime(d['date'], '%Y-%m-%d')
+
+  When you have date_info dictionary generating time series is simple. Keep in mind
+  that resulting time series ticks include it's starting date and exclude ending date.
+  So a tick who starts at *Start* and ends at *Stop* will include these:
+  `Start <= concept's document time < Stop`.
 
   .. code-block:: python
 
