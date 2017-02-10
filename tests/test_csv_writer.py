@@ -174,7 +174,7 @@ class TestCsvWriterAbsa:
         file_lines = target.join('absa_relations.csv').readlines()
         header = file_lines[0].strip().split(',')
         assert header == ['doc_id', 'text_order', 'relation_id',
-                          'opinion_holder', 'restriction', 'sentiment',
+                          'opinion_holder', 'restriction', 'sentiment_value',
                           'is_external', 'surface_string', 'text_span']
 
     def test_absa_rel_entities_headers(self, target, csv_absa):
@@ -191,7 +191,7 @@ class TestCsvWriterAbsa:
         file_lines = target.join('absa_evaluations.csv').readlines()
         header = file_lines[0].strip().split(',')
         assert header == ['doc_id', 'text_order', 'evaluation_id',
-                          'sentiment', 'surface_string', 'text_span']
+                          'sentiment_value', 'surface_string', 'text_span']
 
     def test_absa_eval_entities_headers(self, target, csv_absa):
         contents = [f.basename for f in target.listdir()]

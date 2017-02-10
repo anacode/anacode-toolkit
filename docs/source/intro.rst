@@ -337,7 +337,7 @@ ABSA
 - *relation_id* - since the absa relation output can have multiple relations, we introduce relation_id as a foreign key
 - *opinion_holder* - optional; if this field is null, the default opinion holder is the author himself
 - *restriction* - optional; contextual restriction under which the evaluation applies
-- *sentiment* - polarity of evaluation
+- *sentiment_value* - polarity of evaluation
 - *is_external* - whether an external entity was defined for this relation
 - *surface_string* - original text that generated this relation
 - *text_span* - string index in original text where surface_string can be found
@@ -359,7 +359,7 @@ connected to evaluations in it.
 - *text_order* - index to original input text list
 - *evaluation_id* - absa evaluations output can rate multiple entities, this
   serves as foreign key to them
-- *sentiment* - numeric value how positive/negative statement is
+- *sentiment_value* - numeric value how positive/negative statement is
 - *surface_string* - original text that was used to get this evaluation
 - *text_span* - string index in original text where surface_string can be found
 

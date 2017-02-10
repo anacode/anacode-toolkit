@@ -656,11 +656,12 @@ class ABSADataset(ApiCallDataset):
 
         idx = ['doc_id', 'text_order', 'relation_id']
         rels, ents = self._relations, self._relations_entities
-        rels = rels[rels.sentiment.abs() < 100]
+        rels = rels[rels.sentiment_value.abs() < 100]
         ent_evals = rels.set_index(idx).join(ents.set_index(idx)).reset_index()
         ent_evals = ent_evals[ent_evals.entity_type.str.startswith(entity_type)]
-        mean_evals = ent_evals.groupby('entity_name').agg({'sentiment': 'mean'})
-        mean_evals = mean_evals.sentiment.rename('Sentiment')
+        agg = {'sentiment_value': 'mean'}
+        mean_evals = ent_evals.groupby('entity_name').agg(agg)
+        mean_evals = mean_evals.sentiment_value.rename('Sentiment')
         result = mean_evals.sort_values(ascending=False)[:n]
         result._plot_id = codes.BEST_RATED_ENTITIES
         result.index.name = _capitalize(entity_type) or 'Entity'
@@ -682,11 +683,12 @@ class ABSADataset(ApiCallDataset):
 
         idx = ['doc_id', 'text_order', 'relation_id']
         rels, ents = self._relations, self._relations_entities
-        rels = rels[rels.sentiment.abs() < 100]
+        rels = rels[rels.sentiment_value.abs() < 100]
         ent_evals = rels.set_index(idx).join(ents.set_index(idx)).reset_index()
         ent_evals = ent_evals[ent_evals.entity_type.str.startswith(entity_type)]
-        mean_evals = ent_evals.groupby('entity_name').agg({'sentiment': 'mean'})
-        mean_evals = mean_evals.sentiment.rename('Sentiment')
+        agg = {'sentiment_value': 'mean'}
+        mean_evals = ent_evals.groupby('entity_name').agg(agg)
+        mean_evals = mean_evals.sentiment_value.rename('Sentiment')
         result = mean_evals.sort_values()[:n]
         result._plot_id = codes.WORST_RATED_ENTITIES
         result.index.name = _capitalize(entity_type) or 'Entity'
@@ -763,7 +765,7 @@ class ABSADataset(ApiCallDataset):
 
         idx = ['doc_id', 'text_order', 'relation_id']
         rels, ents = self._relations, self._relations_entities
-        rels = rels[rels.sentiment.abs() < 100]
+        rels = rels[rels.sentiment_value.abs() < 100]
         all_ent_evals = pd.merge(rels, ents, on=idx)
 
         if not isinstance(entity, (tuple, list, set)):
@@ -772,7 +774,7 @@ class ABSADataset(ApiCallDataset):
         entity_filter = all_ent_evals.entity_name.isin(set(entity))
         entity_evals = all_ent_evals[entity_filter]
 
-        means = entity_evals.groupby('entity_name')['sentiment'].mean()
+        means = entity_evals.groupby('entity_name')['sentiment_value'].mean()
         means.index.name = 'Entity'
         return means[list(entity)].rename('Sentiment')
 

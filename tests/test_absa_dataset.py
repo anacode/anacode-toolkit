@@ -23,8 +23,8 @@ def frame_absa():
         [0, 1, '安全性能很好，很帅气。'],
     ], columns=texts_header)
     rel_header = ['doc_id', 'text_order', 'relation_id', 'opinion_holder',
-                  'restriction', 'sentiment', 'is_external', 'surface_string',
-                  'text_span']
+                  'restriction', 'sentiment_value', 'is_external',
+                  'surface_string', 'text_span']
     rels = pd.DataFrame([
         [0, 0, 0, '', '', 2.0, False, '安全', '0-2'],
         [0, 0, 1, '', '', 3.5, False, '很帅气', '7-10'],
@@ -40,7 +40,7 @@ def frame_absa():
         [0, 1, 0, 'feature_quantitative', 'Safety'],
         [0, 1, 1, 'feature_subjective', 'VisualAppearance'],
     ], columns=rel_ent_header)
-    eval_header = ['doc_id', 'text_order', 'evaluation_id', 'sentiment',
+    eval_header = ['doc_id', 'text_order', 'evaluation_id', 'sentiment_value',
                    'surface_string', 'text_span']
     evals = pd.DataFrame([
         [0, 0, 0, 2.0, '安全', '0-2'],
@@ -227,7 +227,7 @@ def test_entity_surface_strings(dataset, entity, texts):
     assert result == texts
 
 
-@pytest.mark.parametrize('entity,sentiment', [
+@pytest.mark.parametrize('entity,sentiment_value', [
     ('Safety', [1.5]),
     ('VisualAppearance', [3.0]),
     ('Hardiness', [2.0]),
@@ -235,9 +235,9 @@ def test_entity_surface_strings(dataset, entity, texts):
     (['Hardiness', 'NotHere'], [2.0, np.nan]),
     (['Safety', 'VisualAppearance'], [1.5, 3.0]),
 ])
-def test_entity_sentiment(dataset, entity, sentiment):
+def test_entity_sentiment(dataset, entity, sentiment_value):
     result = dataset.entity_sentiment(entity)
-    np.testing.assert_equal(result.values, sentiment)
+    np.testing.assert_equal(result.values, sentiment_value)
 
 
 @pytest.mark.parametrize('agg,args,name', [

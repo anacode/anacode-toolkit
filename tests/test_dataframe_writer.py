@@ -123,7 +123,7 @@ class TestDataFrameWriterAbsa:
         assert 'absa_relations' in absa_frames
         header = absa_frames['absa_relations'].columns.tolist()
         assert header == ['doc_id', 'text_order', 'relation_id',
-                          'opinion_holder', 'restriction', 'sentiment',
+                          'opinion_holder', 'restriction', 'sentiment_value',
                           'is_external', 'surface_string', 'text_span']
 
     def test_absa_rel_entities_headers(self, absa_frames):
@@ -136,7 +136,7 @@ class TestDataFrameWriterAbsa:
         assert 'absa_evaluations' in absa_frames
         header = absa_frames['absa_evaluations'].columns.tolist()
         assert header == ['doc_id', 'text_order', 'evaluation_id',
-                          'sentiment', 'surface_string', 'text_span']
+                          'sentiment_value', 'surface_string', 'text_span']
 
     def test_absa_eval_entities_headers(self, absa_frames):
         assert 'absa_evaluations_entities' in absa_frames
