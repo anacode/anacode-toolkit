@@ -50,17 +50,20 @@ def csv_concepts(target, concepts):
 
 
 class TestCsvWriterConcepts:
-    def test_concepts_file_have_headers(self, target, csv_concepts):
+    def test_no_other_csvs(self, target, csv_concepts):
         contents = [f.basename for f in target.listdir()]
+        assert len(contents) == 2
         assert 'concepts.csv' in contents
+        assert 'concepts_surface_strings.csv' in contents
+
+
+    def test_concepts_file_have_headers(self, target, csv_concepts):
         file_lines = target.join('concepts.csv').readlines()
         header = file_lines[0].strip().split(',')
         assert header == ['doc_id', 'text_order', 'concept', 'freq',
                           'relevance_score', 'concept_type']
 
     def test_concepts_exprs_file_have_headers(self, target, csv_concepts):
-        contents = [f.basename for f in target.listdir()]
-        assert 'concepts_surface_strings.csv' in contents
         file_lines = target.join('concepts_surface_strings.csv').readlines()
         header = file_lines[0].strip().split(',')
         assert header == ['doc_id', 'text_order', 'concept', 'surface_string',
@@ -84,14 +87,22 @@ class TestCsvWriterConcepts:
 
 
 class TestCsvWriterSentiment:
-    def test_write_sentiment_headers(self, tmpdir, sentiments):
+    def test_no_other_csvs(self, tmpdir, sentiments):
         target = tmpdir.mkdir('target')
         csv_writer = writers.CSVWriter(str(target))
         csv_writer.init()
         csv_writer.write_sentiment(sentiments)
         csv_writer.close()
         contents = [f.basename for f in target.listdir()]
+        assert len(contents) == 1
         assert 'sentiments.csv' in contents
+
+    def test_write_sentiment_headers(self, tmpdir, sentiments):
+        target = tmpdir.mkdir('target')
+        csv_writer = writers.CSVWriter(str(target))
+        csv_writer.init()
+        csv_writer.write_sentiment(sentiments)
+        csv_writer.close()
         header = target.join('sentiments.csv').readlines()[0].strip()
         assert 'doc_id' in header
         assert 'text_order' in header
@@ -128,9 +139,12 @@ def csv_categories(target, categories):
 
 
 class TestCsvWriterCategories:
-    def test_write_categories_headers(self, target, csv_categories):
+    def test_no_other_csvs(self, target, csv_categories):
         contents = [f.basename for f in target.listdir()]
+        assert len(contents) == 1
         assert 'categories.csv' in contents
+
+    def test_write_categories_headers(self, target, csv_categories):
         file_lines = target.join('categories.csv').readlines()
         header = file_lines[0].strip().split(',')
         assert header == ['doc_id', 'text_order', 'category', 'probability']
@@ -153,6 +167,16 @@ def csv_absa(target, absa):
 
 
 class TestCsvWriterAbsa:
+    def test_no_other_csvs(self, target, csv_absa):
+        contents = [f.basename for f in target.listdir()]
+        assert len(contents) == 6
+        assert 'absa_entities.csv' in contents
+        assert 'absa_normalized_texts.csv' in contents
+        assert 'absa_relations.csv' in contents
+        assert 'absa_relations_entities.csv' in contents
+        assert 'absa_evaluations.csv' in contents
+        assert 'absa_evaluations_entities.csv' in contents
+
     def test_absa_entities_headers(self, target, csv_absa):
         contents = [f.basename for f in target.listdir()]
         assert 'absa_entities.csv' in contents

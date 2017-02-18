@@ -433,7 +433,7 @@ class CSVWriter(Writer):
 
         with open(csv_path) as fp:
             for line_count, line in enumerate(fp):
-                if line_count == 1:
+                if line_count == 1 and len(line.strip()) != '':
                     return True
         return False
 
