@@ -7,11 +7,11 @@ You can call our rest api one by one using anacode.api.AnacodeClient class.
     >>> concepts_result = client.analyze(texts=['Samsung'],
     >>>                                  analysis=['concepts'])
     >>> print(concepts_result)
-    Output of concepts call
+    {"concepts": Output of concepts call}
     >>> absa_result = client.analyze(texts=['Lenovo'],
     >>>                              analysis=['absa'])
     >>> print(absa_result)
-    Output of absa call
+    {"absa": Output of absa call}
     >>> aggregated_result = client.analyze(texts=['Lenovo'],
     >>>                                    analysis=['concepts', 'absa'])
     >>> print(aggregated_result)
