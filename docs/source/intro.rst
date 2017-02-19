@@ -59,7 +59,7 @@ The class :class:`anacode.api.client.AnacodeClient` can be used to analyze Chine
     >>>     'token', base_url='https://api.anacode.de/')
     >>> # this will create an http request for you, send it to appropriate
     >>> # endpoint, parse the result and return it in a python dict
-    >>> json_analysis = api.concepts(['储物空间少', '后备箱空间不小'])
+    >>> json_analysis = api.analyze(['储物空间少', '后备箱空间不小'], ['concepts'])
 
 There is also a class :class:`anacode.api.client.Analyzer` to perform bulk querying. It can used
 multiple threads and saves the results either to pandass
@@ -109,13 +109,10 @@ quick example how to load sentiment analysis results into memory as a dataframe.
 The schemas of the tables are described in :ref:`analysed-schema`.
 
 Both :class:`anacode.api.writers.DataFrameWriter` and
-:class:`anacode.api.writers.CSVWriter` have the same interface. They generate document ids
-(doc_id) incrementally and separately for each API call. That means that
-you are expected to save exactly the same amount of call results from the calls
-that you choose to store in order for `doc_id` to properly connect results
-from different calls. It also means that it does not matter whether you first
-save 10 sentiment results and then 10 concepts results or you save 10 times
-1 sentiment and 1 concepts result.
+:class:`anacode.api.writers.CSVWriter` have the same interface. They
+generate document ids (doc_id) incrementally and separately for analyze
+and scrape. That means that document id gets incremented each time you
+successfully receive an analysis/scrape result from API.
 
 
 .. _using-analyzer:
@@ -141,8 +138,7 @@ in a single thread by bulks of size 100 and saves the resulting csv files to the
     >>> ]
     >>> with client.analyzer('token', 'ling') as api:
     >>>     for document in documents:
-    >>>         api.categories(document)
-    >>>         api.sentiment(document)
+    >>>         api.analyze(document, ['categories', 'sentiment'])
 
 
 By contrast, below code snippet analyses categories and sentiment for all
@@ -159,8 +155,7 @@ DataFrames to provided dictionary.
     >>> output_dict = {}
     >>> with analyzer('token', output_dict, threads=2, bulk_size=200) as api:
     >>>     for document in documents:
-    >>>         api.categories(document)
-    >>>         api.sentiment(document)
+    >>>         api.analyze(document, ['categories', 'sentiment'])
     >>> print(output_dict.keys())
 
 .. parsed-literal::

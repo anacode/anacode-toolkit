@@ -60,68 +60,68 @@ def test_scrape_call(api, auth_header, mocker):
 @mock.patch('requests.post', empty_response)
 def test_categories_call(api, auth_header, mocker, kwargs):
     mocker.spy(requests, 'post')
-    api.categories(['安全性能很好，很帅气。'], **kwargs)
+    api.analyze(['安全性能很好，很帅气。'], ['categories'], **kwargs)
     assert requests.post.call_count == 1
-    json_data = {'texts': ['安全性能很好，很帅气。']}
-    json_data.update(kwargs)
+    json_data = {'texts': ['安全性能很好，很帅气。'], 'analysis': ['categories']}
+    if kwargs:
+        json_data['categories'] = kwargs
     requests.post.assert_called_once_with(
-        urljoin(client.ANACODE_API_URL, 'categories/'),
+        urljoin(client.ANACODE_API_URL, 'analyze/'),
         headers=auth_header, json=json_data)
 
 
 @mock.patch('requests.post', empty_response)
 def test_sentiment_call(api, auth_header, mocker):
     mocker.spy(requests, 'post')
-    api.sentiment(['安全性能很好，很帅气。'])
+    api.analyze(['安全性能很好，很帅气。'], ['sentiment'])
     assert requests.post.call_count == 1
     requests.post.assert_called_once_with(
-        urljoin(client.ANACODE_API_URL, 'sentiment/'),
-        headers=auth_header, json={'texts': ['安全性能很好，很帅气。']})
+        urljoin(client.ANACODE_API_URL, 'analyze/'),
+        headers=auth_header, json={'texts': ['安全性能很好，很帅气。'],
+                                   'analysis': ['sentiment']})
 
 
 @mock.patch('requests.post', empty_response)
 def test_concepts_call(api, auth_header, mocker):
     mocker.spy(requests, 'post')
-    api.concepts(['安全性能很好，很帅气。'])
+    api.analyze(['安全性能很好，很帅气。'], ['concepts'])
     assert requests.post.call_count == 1
     requests.post.assert_called_once_with(
-        urljoin(client.ANACODE_API_URL, 'concepts/'),
-        headers=auth_header, json={'texts': ['安全性能很好，很帅气。']})
+        urljoin(client.ANACODE_API_URL, 'analyze/'),
+        headers=auth_header, json={'texts': ['安全性能很好，很帅气。'],
+                                   'analysis': ['concepts']})
 
 
 @mock.patch('requests.post', empty_response)
 def test_absa_call(api, auth_header, mocker):
     mocker.spy(requests, 'post')
-    api.absa(['安全性能很好，很帅气。'])
+    api.analyze(['安全性能很好，很帅气。'], ['absa'])
     assert requests.post.call_count == 1
     requests.post.assert_called_once_with(
-        urljoin(client.ANACODE_API_URL, 'absa/'),
-        headers=auth_header, json={'texts': ['安全性能很好，很帅气。']})
+        urljoin(client.ANACODE_API_URL, 'analyze/'),
+        headers=auth_header, json={'texts': ['安全性能很好，很帅气。'],
+                                   'analysis': ['absa']})
 
 
-@pytest.mark.parametrize('code, call', [
-    (codes.SCRAPE, 'scrape'),
-    (codes.CATEGORIES, 'categories'),
-    (codes.SENTIMENT, 'sentiment'),
-    (codes.CONCEPTS, 'concepts'),
-    (codes.ABSA, 'absa'),
+@pytest.mark.parametrize('code,call,args', [
+    (codes.SCRAPE, 'scrape', ['http://www.google.com/']),
+    (codes.ANALYZE, 'analyze', ['安全性能很好，很帅气。', ['categories']]),
 ])
-def test_proper_method_call(api, code, call, mocker):
-    text = ['安全性能很好，很帅气。']
+def test_proper_method_call(api, code, call, args, mocker):
     mock.patch('anacode.api.client.AnacodeClient.' + call, empty_json)
     mocker.spy(api, call)
-    api.call((code, text))
-    getattr(api, call).assert_called_once_with(text)
+    api.call((code, *args))
+    getattr(api, call).assert_called_once_with(*args)
 
 
-@pytest.mark.parametrize('call', [
-    'categories', 'sentiment', 'scrape', 'absa', 'concepts',
+@pytest.mark.parametrize('call,args', [
+    ('scrape', ['http://www.google.com/']),
+    ('analyze', [['安全性能很好，很帅气。'], ['categories', 'concepts']]),
 ])
 @pytest.mark.parametrize('count,call_count', [
     (0, 0), (5, 0), (9, 0), (10, 1), (11, 1), (19, 1), (20, 2),
 ])
-def test_should_start_analysis(api, mocker, call, count, call_count):
-    text = ['安全性能很好，很帅气。']
+def test_should_start_analysis(api, mocker, call, args, count, call_count):
     writer = writers.DataFrameWriter()
     writer.init()
 
@@ -132,17 +132,17 @@ def test_should_start_analysis(api, mocker, call, count, call_count):
     mocker.spy(analyzer, 'execute_tasks_and_store_output')
 
     for _ in range(count):
-        analyzer.categories(text)
+        getattr(analyzer, call)(*args)
 
     assert analyzer.execute_tasks_and_store_output.call_count == call_count
 
 
 @pytest.mark.parametrize('call, args', [
-    ('categories', ([], )),
-    ('sentiment', ([], )),
     ('scrape', ([], )),
-    ('absa', ([], )),
-    ('concepts', ([], )),
+    ('analyze', ([], ['categories'])),
+    ('analyze', ([], ['concepts'])),
+    ('analyze', ([], ['sentiment'])),
+    ('analyze', ([], ['absa'])),
 ])
 def test_analysis_execution(api, mocker, call, args):
     text = ['安全性能很好，很帅气。']
@@ -166,19 +166,19 @@ def time_consuming(*args, **kwargs):
     return {}
 
 
-@mock.patch('anacode.api.client.AnacodeClient.categories', time_consuming)
+@mock.patch('anacode.api.client.AnacodeClient.analyze', time_consuming)
 def test_parallel_queries(api, mocker):
     text = ['安全性能很好，很帅气。']
     writer = writers.DataFrameWriter()
     writer.init()
 
-    mocker.spy(api, 'categories')
+    mocker.spy(api, 'analyze')
     analyzer = client.Analyzer(api, writer, threads=4, bulk_size=4)
 
     start = time.time()
     with analyzer:
         for _ in range(4):
-            analyzer.categories(text)
+            analyzer.analyze(text, ['categories'])
     stop = time.time()
     duration = stop - start
     assert abs(duration - 0.1) < 0.1

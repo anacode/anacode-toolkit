@@ -228,13 +228,7 @@ class Writer(object):
 
     """
     def __init__(self):
-        self.ids = {'scrape': 0, 'category': 0, 'concept': 0,
-                    'sentiment': 0, 'absa': 0}
-
-    def _new_doc_id(self, call):
-        current_id = self.ids[call]
-        self.ids[call] += 1
-        return current_id
+        self.ids = {'scrape': 0, 'analyze': 0}
 
     def write_row(self, call_type, call_result):
         """Decides what kind of data it got and calls appropriate write method.
@@ -246,14 +240,10 @@ class Writer(object):
         """
         if call_type == codes.SCRAPE:
             self.write_scrape(call_result)
-        if call_type == codes.CATEGORIES:
-            self.write_categories(call_result)
-        if call_type == codes.CONCEPTS:
-            self.write_concepts(call_result)
-        if call_type == codes.SENTIMENT:
-            self.write_sentiment(call_result)
-        if call_type == codes.ABSA:
-            self.write_absa(call_result)
+            self.ids['scrape'] += 1
+        if call_type == codes.ANALYZE:
+            self.write_analysis(call_result)
+            self.ids['analyze'] += 1
 
     def _add_new_data_from_dict(self, new_data):
         """Not implemented here!
@@ -269,6 +259,22 @@ class Writer(object):
     def write_scrape(self, scraped):
         pass
 
+    def write_analysis(self, analyzed):
+        """Inspects analysis result for performed analysis and delegates
+        persisting of results to appropriate write methods.
+
+        :param analyzed: JSON object analysis response
+        :type: dict
+        """
+        if 'categories' in analyzed:
+            self.write_categories(analyzed['categories'])
+        if 'concepts' in analyzed:
+            self.write_concepts(analyzed['concepts'])
+        if 'sentiment' in analyzed:
+            self.write_sentiment(analyzed['sentiment'])
+        if 'absa' in analyzed:
+            self.write_absa(analyzed['absa'])
+
     def write_categories(self, analyzed):
         """Converts categories call response to flat lists and stores them using
         add_new_data_from_dict.
@@ -276,7 +282,7 @@ class Writer(object):
         :param analyzed: JSON categories response
         :type analyzed: list
         """
-        doc_id = self._new_doc_id('category')
+        doc_id = self.ids['analyze']
         new_data = categories_to_list(doc_id, analyzed)
         self._add_new_data_from_dict(new_data)
 
@@ -287,7 +293,7 @@ class Writer(object):
         :param analyzed: JSON concepts response
         :type analyzed: list
         """
-        doc_id = self._new_doc_id('concept')
+        doc_id = self.ids['analyze']
         new_data = concepts_to_list(doc_id, analyzed)
         self._add_new_data_from_dict(new_data)
 
@@ -298,7 +304,7 @@ class Writer(object):
         :param analyzed: JSON sentiment response
         :type analyzed: list
         """
-        doc_id = self._new_doc_id('sentiment')
+        doc_id = self.ids['analyze']
         new_data = sentiments_to_list(doc_id, analyzed)
         self._add_new_data_from_dict(new_data)
 
@@ -309,7 +315,7 @@ class Writer(object):
         :param analyzed: JSON absa response
         :type analyzed: list
         """
-        doc_id = self._new_doc_id('absa')
+        doc_id = self.ids['analyze']
         new_data = absa_to_list(doc_id, analyzed)
         self._add_new_data_from_dict(new_data)
 

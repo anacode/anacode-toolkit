@@ -62,65 +62,35 @@ class AnacodeClient(object):
         res = _analysis(url, self.auth, url=link)
         return res.json()
 
-    def categories(self, texts, taxonomy=None, depth=None):
-        """Use Anacode API to find out topic probabilities for given texts. You
-        can optionally specify what taxonomy to use - defaults to anacode - and
-        maximum number of nested results you want where 1 means flat list.
+    def analyze(self, texts, analysis, taxonomy=None, depth=None,
+                external_entity_data=None):
+        """Use Anacode API to perform specified linguistic analysis on texts.
+        Please consult https://api.anacode.de/api-docs/calls.html for more
+        details and better understanding of parameters.
 
-        :param texts: List of texts to categorize
-        :type texts: list
-        :param taxonomy: Choose from anacode and iab
-        :type taxonomy: str
-        :param depth: Maximum number of nested subtopics
-        :type depth: int
+        :param texts: List of texts to analyze
+        :param analysis: List of analysis to perform. Can contain 'categories',
+         'concepts', 'sentiment' and 'absa'
+        :param taxonomy: Taxonomy to use for categories analysis. Can be only
+         'anacode' or 'iab' and is only relevant if 'categories' is present
+         in analysis list. *API defaults to 'anacode'*
+        :param depth: Level of required sub-classification depth. This option is
+         relevant only if 'categories' is present in analysis list.
+         *API defaults to 1*
+        :param external_entity_data: Provide additional entities to relate to
+         sentiment evaluation.
         :return: dict --
         """
-        data = {'texts': texts}
+        url = urljoin(self.base_url, '/analyze/')
+        data = {'texts': texts, 'analysis': analysis}
         if taxonomy is not None:
-            data['taxonomy'] = taxonomy
+            data['categories'] = {'taxonomy': taxonomy}
         if depth is not None:
-            data['depth'] = depth
-        url = urljoin(self.base_url, '/categories/')
-        res = _analysis(url, self.auth, **data)
-        return res.json()
-
-    def concepts(self, texts):
-        """Use Anacode API to find concepts in list of texts
-
-        :param texts: List of texts to find concepts in
-        :type texts: list
-        :return: dict --
-        """
-        url = urljoin(self.base_url, '/concepts/')
-        res = _analysis(url, self.auth, texts=texts)
-        return res.json()
-
-    def sentiment(self, texts):
-        """Use Anacode API to analyze sentiment for texts in list
-
-        :param texts: List of texts for sentiment analysis
-        :type texts: list
-        :return: dict --
-        """
-        url = urljoin(self.base_url, '/sentiment/')
-        res = _analysis(url, self.auth, texts=texts)
-        return res.json()
-
-    def absa(self, texts, external_entity_data=None):
-        """Use Anacode API to perform Aspect Based Sentiment Analysis for given
-        list of texts.
-
-        :param texts: List of texts to perform fine grained sentiment analysis
-        :type texts: list
-        :param external_entity_data: Ensure that found evaluations will have
-         relations with entities specified here
-        :type external_entity_data: dict
-        :return: dict --
-        """
-        url = urljoin(self.base_url, '/absa/')
-        data = {'texts': texts}
+            config = data.get('categories', {})
+            config['depth'] = depth
+            data['categories'] = config
         if external_entity_data is not None:
-            data['external_entity_data'] = external_entity_data
+            data['absa'] = {'external_entity_data': external_entity_data}
         res = _analysis(url, self.auth, **data)
         return res.json()
 
@@ -137,14 +107,8 @@ class AnacodeClient(object):
 
         if call == codes.SCRAPE:
             return self.scrape(*args)
-        if call == codes.CATEGORIES:
-            return self.categories(*args)
-        if call == codes.CONCEPTS:
-            return self.concepts(*args)
-        if call == codes.SENTIMENT:
-            return self.sentiment(*args)
-        if call == codes.ABSA:
-            return self.absa(*args)
+        if call == codes.ANALYZE:
+            return self.analyze(*args)
 
 
 class Analyzer(object):
@@ -223,35 +187,12 @@ class Analyzer(object):
         if self.should_start_analysis():
             self.execute_tasks_and_store_output()
 
-    def categories(self, texts, taxonomy=None, depth=None):
+    def analyze(self, texts, analysis, taxonomy=None, depth=None,
+                external_entity_data=None):
         """Dummy clone for
-        :meth:`anacode.api.client.AnacodeClient.categories`
-        """
-        self.task_queue.append((codes.CATEGORIES, texts, taxonomy, depth))
-        if self.should_start_analysis():
-            self.execute_tasks_and_store_output()
-
-    def concepts(self, texts):
-        """Dummy clone for
-        :meth:`anacode.api.client.AnacodeClient.concepts`
-        """
-        self.task_queue.append((codes.CONCEPTS, texts))
-        if self.should_start_analysis():
-            self.execute_tasks_and_store_output()
-
-    def sentiment(self, texts):
-        """Dummy clone for
-        :meth:`anacode.api.client.AnacodeClient.sentiment`
-        """
-        self.task_queue.append((codes.SENTIMENT, texts))
-        if self.should_start_analysis():
-            self.execute_tasks_and_store_output()
-
-    def absa(self, texts, external_entity_data=None):
-        """Dummy clone for
-        :meth:`anacode.api.client.AnacodeClient.absa`
-        """
-        self.task_queue.append((codes.ABSA, texts, external_entity_data))
+        :meth:`anacode.api.client.AnacodeClient.analyze`"""
+        self.task_queue.append((codes.ANALYZE, texts, analysis, taxonomy,
+                                depth, external_entity_data))
         if self.should_start_analysis():
             self.execute_tasks_and_store_output()
 

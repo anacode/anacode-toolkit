@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 SCRAPE = 1
-CATEGORIES = 2
-CONCEPTS = 3
-SENTIMENT = 4
-ABSA = 5
+ANALYZE = 2
 
 MOST_COMMON_CONCEPTS = 'Most Common Concepts'
 LEAST_COMMON_CONCEPTS = 'Least Common Concepts'
