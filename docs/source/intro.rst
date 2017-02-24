@@ -601,6 +601,23 @@ ConceptsDataset
 CategoriesDataset
 -----------------
 
+- :func:`categories() <anacode.agg.aggregation.CategoriesDataset.categories>`
+
+  You can check list of categories on
+  `api.anacode.de webpage <https://api.anacode.de/api-docs/taxonomies.html>`_.
+  Each category will be present in output.
+
+  .. code-block:: python
+
+     >>> categories.categories()
+
+  .. parsed-literal::
+
+           Probability
+     auto  0.3155102
+     hr    0.02371
+           ...
+
 - :func:`main_category() <anacode.agg.aggregation.CategoriesDataset.main_category>`
 
   .. code-block:: python

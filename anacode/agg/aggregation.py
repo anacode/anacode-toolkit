@@ -414,7 +414,7 @@ class ConceptsDataset(ApiCallDataset):
 
 class CategoriesDataset(ApiCallDataset):
     """Categories data set container that will provides easy aggregation
-    capabilities.
+    capabilities. **Does not support nested categories**.
 
     """
     def __init__(self, categories):
@@ -424,6 +424,22 @@ class CategoriesDataset(ApiCallDataset):
         :type categories: pandas.DateFrame
         """
         self._categories = categories
+
+    def categories(self):
+        """Finds out what are the topics for the whole dataset.
+
+        :return: pandas.Series --
+        """
+        if self._categories is None:
+            raise NoRelevantData('Relevant category data is not available!')
+
+        cat = self._categories
+        all_cats = cat.groupby('category')['probability'].mean()
+        all_cats.sort_values(ascending=False, inplace=True)
+        all_cats.rename('Probability', inplace=True)
+        all_cats._plot_id = codes.AGGREGATED_CATEGORIES
+        all_cats.index.name = 'Category'
+        return all_cats
 
     def main_category(self):
         """Finds what topic is this dataset about. Does not support nested

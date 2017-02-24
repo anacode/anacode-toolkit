@@ -7,6 +7,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.font_manager
 
+from anacode import codes
+
 from wordcloud import WordCloud, STOPWORDS
 
 
@@ -79,6 +81,59 @@ def concept_cloud(frequencies, path, size=(600, 400), background='white',
         return np.asarray(word_cloud.to_image())
 
 
+def piechart(aggregation, colors=None, category_count=6,
+             edgesize=0, edgecolor='#333333'):
+    """Plots piechart with categories.
+
+    :param aggregation: Aggregation library result
+    :type aggregation: pd.Series
+    :param colors: This will be passed to matplotlib.pyplot.piechart as colors
+    :param category_count: How many categories to include in piecharm
+    :type category_count: int
+    :param edgesize: Pie's edge size, set to 0 for no edge
+    :type edgesize: int
+    :param edgecolor: Color of pie's edge, format needs to be supported by
+     matplotlib
+    :return: matplotlib.axes._subplots.AxesSubplot -- Axes for generated plot
+    """
+    if not hasattr(aggregation, '_plot_id'):
+        raise ValueError('Aggregation needs to be pd.Series result from '
+                         'aggregation library!')
+    if aggregation._plot_id != codes.AGGREGATED_CATEGORIES:
+        raise ValueError('piechart method plots only piechart for categories')
+
+    if colors is None:
+        colors = sns.hls_palette(8, l=.3, s=.8)
+
+    probabilities = aggregation.tolist()[:category_count]
+    probabilities.append(sum(aggregation.tolist()[category_count:]))
+    data_labels = aggregation.index.tolist()[:category_count]
+    data_labels.append('Other')
+    data_labels = list(map(lambda s: s.capitalize(), data_labels))
+    data_labels = list(map(lambda s: {
+        'Auto': 'Automotive', 'Hr': 'HR'
+    }.get(s, s), data_labels))
+    probabilities = list(reversed(probabilities))
+    data_labels = list(reversed(data_labels))
+
+
+    fig, ax = plt.subplots()
+    probs = aggregation.tolist()
+    wedges, texts, junk = plt.pie(probabilities, labels=data_labels,
+                                  explode=[0.02] * len(probabilities),
+                                  autopct='%1.0f%%', colors=colors,
+                                  startangle=90, labeldistance=1.25)
+    for w in wedges:
+        w.set_linewidth(edgesize)
+        w.set_edgecolor(edgecolor)
+    for t in texts:
+        t.set_size(13)
+        t.set_horizontalalignment('center')
+
+    plt.axis('equal')
+    return ax
+
+
 def plot(aggregation, color='dull green'):
     """Plots result from some of the aggregation results in form of horizontal
     bar chart.
@@ -92,6 +147,9 @@ def plot(aggregation, color='dull green'):
     if not hasattr(aggregation, '_plot_id'):
         raise ValueError('Aggregation needs to be pd.Series result from '
                          'aggregation library!')
+
+    if aggregation._plot_id == codes.AGGREGATED_CATEGORIES:
+        return piechart(aggregation)
 
     cat_name = aggregation.index.name
     val_name = aggregation.name
