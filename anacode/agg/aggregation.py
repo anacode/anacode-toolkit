@@ -969,7 +969,7 @@ class DatasetLoader(object):
             raise NoRelevantData('ABSA data is not available!')
 
     @classmethod
-    def from_path(cls, path):
+    def from_path(cls, path, backup_suffix=''):
         """Initializes DatasetLoader from AnacodeAPI csv files present in given
         path. You could have obtained these by using
         :class:`anacode.api.writers.CSVWriter` to write your request results
@@ -978,6 +978,9 @@ class DatasetLoader(object):
         :param path: Path to folder where AnacodeAPI analysis is stored in csv
          files
         :type path: str
+        :param backup_suffix: If you want to load older dataset from file that
+         has been backed up by toolkit, use this to specify suffix of file names
+        :type backup_suffix: str
         :return: :class:`anacode.agg.DatasetLoader` -- DatasetLoader with found
          csv files loaded into data frames
         """
@@ -992,6 +995,8 @@ class DatasetLoader(object):
         for call, files in CSV_FILES.items():
             for file_name in files:
                 name = file_name[:-4]
+                if backup_suffix:
+                    file_name = '%s_%s' % (file_name, backup_suffix)
                 file_path = join(path, file_name)
                 if os.path.isfile(file_path):
                     kwargs[name] = pd.read_csv(file_path)

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import pytest
 import pandas as pd
 from anacode.api import writers
@@ -101,6 +102,34 @@ def data_folder(csv_writer):
 ])
 def test_data_load_from_path(data_folder, dataset_name, shape):
     dataset_loader = agg.DatasetLoader.from_path(data_folder)
+    dataset = getattr(dataset_loader, dataset_name)
+    assert dataset is not None
+    assert dataset.shape == shape
+
+
+@pytest.fixture
+def backup_folder(csv_writer):
+    folder = csv_writer.target_dir
+    for fname in os.listdir(folder):
+        file_path = os.path.join(folder, fname)
+        os.rename(file_path, file_path + '_backup')
+    return folder
+
+
+@pytest.mark.parametrize('dataset_name,shape', [
+    ('_categories', (60, 4)),
+    ('_sentiments', (2, 4)),
+    ('_concepts', (2, 6)),
+    ('_concepts_surface_strings', (2, 5)),
+    ('_absa_entities', (1, 6)),
+    ('_absa_normalized_texts', (1, 3)),
+    ('_absa_relations', (1, 9)),
+    ('_absa_relations_entities', (2, 5)),
+    ('_absa_evaluations', (2, 6)),
+    ('_absa_evaluations_entities', (2, 5))
+])
+def test_data_backup_load_from_path(backup_folder, dataset_name, shape):
+    dataset_loader = agg.DatasetLoader.from_path(backup_folder, 'backup')
     dataset = getattr(dataset_loader, dataset_name)
     assert dataset is not None
     assert dataset.shape == shape

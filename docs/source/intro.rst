@@ -196,7 +196,9 @@ loading analysed data from different formats:
     :class:`anacode.api.writers.CSVWriter`), you can provide the path to
     their parent folder to
     :func:`DatasetLoader.from_path <anacode.agg.aggregation.DatasetLoader.from_path>`
-    to load all available results.
+    to load all available results. If you want to load older - backed up - csv
+    files, you can use *backup_suffix* argument of the method to specify
+    suffix of files to load.
 
 
 #. From :class:`anacode.api.writers.Writer` instance
