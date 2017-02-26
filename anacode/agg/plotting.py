@@ -81,8 +81,8 @@ def concept_cloud(frequencies, path, size=(600, 400), background='white',
         return np.asarray(word_cloud.to_image())
 
 
-def piechart(aggregation, colors=None, category_count=6,
-             edgesize=0, edgecolor='#333333'):
+def piechart(aggregation, colors=None, category_count=6, explode=0,
+             edgesize=0, edgecolor='#333333', perc_color='black'):
     """Plots piechart with categories.
 
     :param aggregation: Aggregation library result
@@ -90,10 +90,14 @@ def piechart(aggregation, colors=None, category_count=6,
     :param colors: This will be passed to matplotlib.pyplot.piechart as colors
     :param category_count: How many categories to include in piecharm
     :type category_count: int
+    :param explode: Size of whitespace between pies
+    :type explode: float
     :param edgesize: Pie's edge size, set to 0 for no edge
     :type edgesize: int
-    :param edgecolor: Color of pie's edge, format needs to be supported by
-     matplotlib
+    :param edgecolor: Color of pie's edge
+    :type edgecolor: matplotlib supported color
+    :param perc_color: Controlls color of percentages drawn inside piechart
+    :type perc_color: matplotlib supported color
     :return: matplotlib.axes._subplots.AxesSubplot -- Axes for generated plot
     """
     if not hasattr(aggregation, '_plot_id'):
@@ -101,9 +105,6 @@ def piechart(aggregation, colors=None, category_count=6,
                          'aggregation library!')
     if aggregation._plot_id != codes.AGGREGATED_CATEGORIES:
         raise ValueError('piechart method plots only piechart for categories')
-
-    if colors is None:
-        colors = sns.hls_palette(8, l=.3, s=.8)
 
     probabilities = aggregation.tolist()[:category_count]
     probabilities.append(sum(aggregation.tolist()[category_count:]))
@@ -116,19 +117,21 @@ def piechart(aggregation, colors=None, category_count=6,
     probabilities = list(reversed(probabilities))
     data_labels = list(reversed(data_labels))
 
+    if colors is None:
+        colors = sns.hls_palette(len(probabilities), l=.7, s=.8)[::-1]
 
     fig, ax = plt.subplots()
-    probs = aggregation.tolist()
-    wedges, texts, junk = plt.pie(probabilities, labels=data_labels,
-                                  explode=[0.02] * len(probabilities),
-                                  autopct='%1.0f%%', colors=colors,
-                                  startangle=90, labeldistance=1.25)
+    wedges, labels, percents = plt.pie(probabilities, labels=data_labels,
+                                       explode=[explode] * len(probabilities),
+                                       autopct='%1.0f%%', colors=colors,
+                                       startangle=90, labeldistance=1.15)
     for w in wedges:
         w.set_linewidth(edgesize)
         w.set_edgecolor(edgecolor)
-    for t in texts:
-        t.set_size(13)
-        t.set_horizontalalignment('center')
+    for l in labels:
+        l.set_size(13)
+    for t in percents:
+        t.set_color(perc_color)
 
     plt.axis('equal')
     return ax
