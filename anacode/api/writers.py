@@ -39,7 +39,7 @@ HEADERS = {
                  u'relevance_score', u'concept_type'],
     'concepts_surface_strings': [u'doc_id', u'text_order', u'concept',
                                  u'surface_string', u'text_span'],
-    'sentiments': [u'doc_id', u'text_order', u'positive', u'negative'],
+    'sentiments': [u'doc_id', u'text_order', u'sentiment_value'],
     'absa_entities': [u'doc_id', u'text_order', u'entity_name', u'entity_type',
                       u'surface_string', u'text_span'],
     'absa_normalized_texts': [u'doc_id', u'text_order', u'normalized_text'],
@@ -123,12 +123,7 @@ def sentiments_to_list(doc_id, analyzed):
     """
     sen_list = []
     for text_order, sentiment in enumerate(analyzed):
-        sentiment_map = {
-            sentiment[0]['label']: sentiment[0]['probability'],
-            sentiment[1]['label']: sentiment[1]['probability'],
-        }
-        row = [doc_id, text_order, sentiment_map['positive'],
-               sentiment_map['negative']]
+        row = [doc_id, text_order, sentiment['sentiment_value']]
         sen_list.append(row)
     return {'sentiments': sen_list}
 
@@ -155,7 +150,8 @@ def _absa_relations_to_list(doc_id, order, relations):
         rel_row = [doc_id, order, rel_index,
                    rel['semantics']['opinion_holder'],
                    rel['semantics']['restriction'],
-                   rel['semantics']['value'], rel['external_entity'],
+                   rel['semantics']['sentiment_value'],
+                   rel['external_entity'],
                    rel['surface']['surface_string'],
                    '-'.join(map(str, rel['surface']['span']))]
         rel_list.append(rel_row)
@@ -169,7 +165,7 @@ def _absa_evaluations_to_list(doc_id, order, evaluations):
     eval_list, ent_list = [], []
     for eval_index, evaluation in enumerate(evaluations):
         eval_row = [doc_id, order, eval_index,
-                    evaluation['semantics']['value'],
+                    evaluation['semantics']['sentiment_value'],
                     evaluation['surface']['surface_string'],
                     '-'.join(map(str, evaluation['surface']['span']))]
         eval_list.append(eval_row)

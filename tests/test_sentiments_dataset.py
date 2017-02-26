@@ -6,15 +6,16 @@ from anacode.agg import aggregation as agg
 
 @pytest.fixture
 def frame_sentiments():
-    header = ['doc_id', 'text_order', 'positive', 'negative']
+    header = ['doc_id', 'text_order', 'sentiment_value']
     sentiments = pd.DataFrame([
-        [0, 0, 0.5, 0.5],
-        [0, 1, 0.25, 0.75],
-        [0, 2, 0.75, 0.25],
-        [1, 0, 0.0, 1.0],
-        [2, 0, 1.0, 0.0],
-        [2, 1, 0.75, 0.25],
-        [2, 2, 0.25, 0.75],
+        [0, 0, 0.5],
+        [0, 1, -0.5],
+        [0, 2, 0.5],
+        [1, 0, -1.0],
+        [2, 0, 1.0],
+        [2, 1, 0.5],
+        [2, 2, -0.5],
+        [2, 3, -0.5],
     ], columns=header)
     return {'sentiments': sentiments}
 
@@ -31,4 +32,4 @@ def test_empty_dataset_failure():
 
 
 def test_average_sentiment(dataset):
-    assert dataset.average_sentiment() == 0.5
+    assert dataset.average_sentiment() == 0.0

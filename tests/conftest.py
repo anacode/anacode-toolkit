@@ -33,14 +33,8 @@ def concepts():
 @pytest.fixture
 def sentiments():
     return [
-        [
-            {'label': 'negative', 'probability': 0.7299562892999195},
-            {'label': 'positive', 'probability': 0.2700437107000805}
-        ],
-        [
-            {'label': 'negative', 'probability': 0.6668725094407698},
-            {'label': 'positive', 'probability': 0.3331274905592302}
-        ]
+        {'sentiment_value': 0.7299562892999195},
+        {'sentiment_value': 0.6668725094407698},
     ]
 
 
@@ -131,7 +125,7 @@ def absa():
                     'entity': [
                         {'type': 'feature_quantitative', 'value': 'Safety'}
                     ],
-                    'value': 2.0
+                    'sentiment_value': 2.0
                 },
                 'surface': {'span': [0, 2], 'surface_string': '安全'}
             },
@@ -140,7 +134,7 @@ def absa():
                     'entity': [
                         {'type': 'feature_subjective', 'value': 'VisualAppearance'}
                     ],
-                    'value': 3.5
+                    'sentiment_value': 3.5
                 },
                 'surface': {'span': [7, 10], 'surface_string': '很帅气'}
             }
@@ -156,7 +150,7 @@ def absa():
                     ],
                     'opinion_holder': None,
                     'restriction': None,
-                    'value': 2.0
+                    'sentiment_value': 2.0
                 },
                 'surface': {'span': [0, 4], 'surface_string': '安全性能'}
             }

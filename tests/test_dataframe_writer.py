@@ -54,14 +54,14 @@ class TestDataFrameWriterSentiment:
     def test_write_sentiment_headers(self, sentiment_frames):
         assert 'sentiments' in sentiment_frames
         header = sentiment_frames['sentiments'].columns.tolist()
-        assert header == ['doc_id', 'text_order', 'positive', 'negative']
+        assert header == ['doc_id', 'text_order', 'sentiment_value']
 
     def test_write_sentiment_values(self, sentiment_frames):
         sentiments = sentiment_frames['sentiments']
-        assert sentiments.shape == (2, 4)
+        assert sentiments.shape == (2, 3)
         row1, row2 = sentiments.iloc[0].tolist(), sentiments.iloc[1].tolist()
-        assert row1 == [0, 0, 0.27004371070008049, 0.72995628929991951]
-        assert row2 == [0, 1, 0.33312749055923019, 0.66687250944076981]
+        assert row1 == [0, 0, 0.72995628929991951]
+        assert row2 == [0, 1, 0.66687250944076981]
 
 
 @pytest.fixture

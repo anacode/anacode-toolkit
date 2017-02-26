@@ -106,8 +106,7 @@ class TestCsvWriterSentiment:
         header = target.join('sentiments.csv').readlines()[0].strip()
         assert 'doc_id' in header
         assert 'text_order' in header
-        assert 'positive' in header
-        assert 'negative' in header
+        assert 'sentiment_value' in header
 
     def test_write_sentiment_values(self, tmpdir, sentiments):
         target = tmpdir.mkdir('target')
@@ -120,13 +119,11 @@ class TestCsvWriterSentiment:
         row1 = file_lines[1].strip().split(',')
         assert row1[0] == '0'
         assert row1[1] == '0'
-        assert row1[2].startswith('0.27')
-        assert row1[3].startswith('0.72')
+        assert row1[2].startswith('0.72')
         row2 = file_lines[2].strip().split(',')
         assert row2[0] == '0'
         assert row2[1] == '1'
-        assert row2[2].startswith('0.33')
-        assert row2[3].startswith('0.66')
+        assert row2[2].startswith('0.66')
 
 
 @pytest.fixture

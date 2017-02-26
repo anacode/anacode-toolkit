@@ -470,7 +470,7 @@ class SentimentDataset(ApiCallDataset):
 
     def average_sentiment(self):
         """Computes and returns average document sentiment. Result is a number
-        from [0,1], where higher number means more positive sentiment.
+        from [-1,1], where higher number means more positive sentiment.
 
         :return: float -- Average document sentiment
         """
@@ -478,7 +478,7 @@ class SentimentDataset(ApiCallDataset):
             raise NoRelevantData('Relevant sentiment data is not available!')
 
         sen = self._sentiments
-        return sen.positive.mean()
+        return sen.sentiment_value.mean()
 
 
 class ABSADataset(ApiCallDataset):

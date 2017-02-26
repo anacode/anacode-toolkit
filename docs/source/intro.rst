@@ -303,10 +303,7 @@ Sentiment
 
 - *doc_id* - document id generated incrementally
 - *text-order* - index to original input text list
-- *positive* - probability that this post has positive sentiment
-- *negative* - probability that this post has negative sentiment
-
-Positive and negative probabilities sum up to 1.
+- *sentiment_value* - evaluation of document sentiment; values are from [-1,1]
 
 
 ABSA
@@ -334,7 +331,7 @@ ABSA
 - *relation_id* - since the absa relation output can have multiple relations, we introduce relation_id as a foreign key
 - *opinion_holder* - optional; if this field is null, the default opinion holder is the author himself
 - *restriction* - optional; contextual restriction under which the evaluation applies
-- *sentiment_value* - polarity of evaluation
+- *sentiment_value* - polarity of evaluation, has values from [-1, 1]
 - *is_external* - whether an external entity was defined for this relation
 - *surface_string* - original text that generated this relation
 - *text_span* - string index in original text where surface_string can be found
@@ -356,7 +353,7 @@ connected to evaluations in it.
 - *text_order* - index to original input text list
 - *evaluation_id* - absa evaluations output can rate multiple entities, this
   serves as foreign key to them
-- *sentiment_value* - numeric value how positive/negative statement is
+- *sentiment_value* - numeric value how positive/negative statement is; from [-1, 1]
 - *surface_string* - original text that was used to get this evaluation
 - *text_span* - string index in original text where surface_string can be found
 
@@ -725,7 +722,7 @@ ABSADataset
   .. parsed-literal::
 
      Entity
-     X5    9.0
+     X5    1.0
      Name: Sentiment, dtype: float64
 
   Also read about :ref:`concept_frequency <concept_frequency_agg>` to see how
@@ -740,8 +737,8 @@ ABSADataset
   .. parsed-literal::
 
      Entity
-     Compartment   -4.0
-     Black         -3.5
+     Compartment   -1.0
+     Black         -0.81
      Name: Sentiment, dtype: float64
 
   Also read about :ref:`concept_frequency <concept_frequency_agg>` to see how
@@ -779,7 +776,7 @@ ABSADataset
   .. parsed-literal::
 
      Entity
-     Oil      2.500000
-     Room     2.000000
-     Seats    2.469298
+     Oil      0.750002
+     Room     0.201
+     Seats    0.55238
      Name: Sentiment, dtype: float64

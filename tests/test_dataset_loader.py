@@ -90,7 +90,7 @@ def data_folder(csv_writer):
 
 @pytest.mark.parametrize('dataset_name,shape', [
     ('_categories', (60, 4)),
-    ('_sentiments', (2, 4)),
+    ('_sentiments', (2, 3)),
     ('_concepts', (2, 6)),
     ('_concepts_surface_strings', (2, 5)),
     ('_absa_entities', (1, 6)),
@@ -118,7 +118,7 @@ def backup_folder(csv_writer):
 
 @pytest.mark.parametrize('dataset_name,shape', [
     ('_categories', (60, 4)),
-    ('_sentiments', (2, 4)),
+    ('_sentiments', (2, 3)),
     ('_concepts', (2, 6)),
     ('_concepts_surface_strings', (2, 5)),
     ('_absa_entities', (1, 6)),
@@ -137,7 +137,7 @@ def test_data_backup_load_from_path(backup_folder, dataset_name, shape):
 
 @pytest.mark.parametrize('dataset_name,shape', [
     ('categories', (60, 4)),
-    ('sentiments', (2, 4)),
+    ('sentiments', (2, 3)),
     ('concepts', (2, 6)),
     ('concepts_surface_strings', (2, 5)),
     ('absa_entities', (1, 6)),
@@ -169,7 +169,7 @@ def frame_writer(concepts, sentiments, categories, absa):
 
 @pytest.mark.parametrize('dataset_name,shape', [
     ('_categories', (60, 4)),
-    ('_sentiments', (2, 4)),
+    ('_sentiments', (2, 3)),
     ('_concepts', (2, 6)),
     ('_concepts_surface_strings', (2, 5)),
     ('_absa_entities', (1, 6)),
@@ -191,7 +191,7 @@ def test_data_load_from_lists(concepts, sentiments, categories, absa,
 
 @pytest.mark.parametrize('dataset_name,shape', [
     ('_categories', (60, 4)),
-    ('_sentiments', (2, 4)),
+    ('_sentiments', (2, 3)),
     ('_concepts', (2, 6)),
     ('_concepts_surface_strings', (2, 5)),
     ('_absa_entities', (1, 6)),
@@ -210,7 +210,7 @@ def test_data_load_from_csv_writer(csv_writer, dataset_name, shape):
 
 @pytest.mark.parametrize('dataset_name,shape', [
     ('_categories', (60, 4)),
-    ('_sentiments', (2, 4)),
+    ('_sentiments', (2, 3)),
     ('_concepts', (2, 6)),
     ('_concepts_surface_strings', (2, 5)),
     ('_absa_entities', (1, 6)),
