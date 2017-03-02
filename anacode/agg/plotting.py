@@ -28,7 +28,7 @@ def generate_color_func(colormap_name):
     return color_func
 
 
-def concept_cloud(frequencies, path, size=(600, 400), background='white',
+def concept_cloud(aggregation, path=None, size=(600, 400), background='white',
                   colormap_name='Accent', max_concepts=200, stopwords=None,
                   font=None):
     """Generates concept cloud image from *frequencies* and stores it to *path*.
@@ -54,10 +54,19 @@ def concept_cloud(frequencies, path, size=(600, 400), background='white',
     :param font: Path to font that will be used
     :type font: str
     """
+    if not hasattr(aggregation, '_plot_id'):
+        raise ValueError('Aggregation needs to be pd.Series result from '
+                         'aggregation library!')
+    allowed_results = {codes.CONCEPT_CLOUD}
+    if aggregation._plot_id not in allowed_results:
+        raise ValueError('concept cloud not available for this '
+                         'aggregation result')
+
     if stopwords is None:
         stopwords = STOPWORDS
     stopwords = set(w.lower() for w in stopwords)
 
+    frequencies = [tuple(row.tolist()) for _, row in aggregation.iterrows()]
     frequencies = [(word, freq) for word, freq in frequencies
                    if word.lower() not in stopwords]
 
@@ -72,21 +81,30 @@ def concept_cloud(frequencies, path, size=(600, 400), background='white',
         color_func=generate_color_func(colormap_name), max_words=max_concepts,
     ).fit_words(frequencies)
 
-    if path is not None:
-        try:
-            word_cloud.to_file(path)
-        except KeyError:
-            raise ValueError('Unsupported image file type: {}'.format(path))
-    else:
-        return np.asarray(word_cloud.to_image())
+    if path is None:
+        nparray = np.asarray(word_cloud.to_image())
+        fig, ax = plt.subplots()
+        plt.imshow(nparray)
+        plt.axis('off')
+        return ax
+
+    try:
+        word_cloud.to_file(path)
+    except KeyError:
+        raise ValueError('Unsupported image file type: {}'.format(path))
+    return
 
 
-def piechart(aggregation, colors=None, category_count=6, explode=0,
-             edgesize=0, edgecolor='#333333', perc_color='black'):
+def piechart(aggregation, path=None, colors=None, category_count=6, explode=0,
+             edgesize=0, edgecolor='#333333', perc_color='black',
+             labeldistance=1.1):
     """Plots piechart with categories.
 
     :param aggregation: Aggregation library result
     :type aggregation: pd.Series
+    :param path: If specified graph will be saved to this file instead of
+     returning it as a result
+    :type path: str
     :param colors: This will be passed to matplotlib.pyplot.piechart as colors
     :param category_count: How many categories to include in piecharm
     :type category_count: int
@@ -103,8 +121,9 @@ def piechart(aggregation, colors=None, category_count=6, explode=0,
     if not hasattr(aggregation, '_plot_id'):
         raise ValueError('Aggregation needs to be pd.Series result from '
                          'aggregation library!')
-    if aggregation._plot_id != codes.AGGREGATED_CATEGORIES:
-        raise ValueError('piechart method plots only piechart for categories')
+    allowed_results = {codes.AGGREGATED_CATEGORIES}
+    if aggregation._plot_id not in allowed_results:
+        raise ValueError('piechart not available for this aggregation result')
 
     probabilities = aggregation.tolist()[:category_count]
     probabilities.append(sum(aggregation.tolist()[category_count:]))
@@ -118,13 +137,17 @@ def piechart(aggregation, colors=None, category_count=6, explode=0,
     data_labels = list(reversed(data_labels))
 
     if colors is None:
-        colors = sns.hls_palette(len(probabilities), l=.7, s=.8)[::-1]
+        colors = sns.color_palette('hls', 7)[::-1]
+        colors[0] = (0.7, 0.7, 0.7)
 
     fig, ax = plt.subplots()
-    wedges, labels, percents = plt.pie(probabilities, labels=data_labels,
-                                       explode=[explode] * len(probabilities),
-                                       autopct='%1.0f%%', colors=colors,
-                                       startangle=90, labeldistance=1.15)
+    wedges, labels, percents = plt.pie(
+        probabilities, labels=data_labels, autopct='%1.0f%%', colors=colors,
+        explode=[explode] * len(probabilities), startangle=90,
+       labeldistance=labeldistance,
+    )
+    plt.title(codes.AGGREGATED_CATEGORIES + '\n\n', fontsize=14)
+
     for w in wedges:
         w.set_linewidth(edgesize)
         w.set_edgecolor(edgecolor)
@@ -134,15 +157,20 @@ def piechart(aggregation, colors=None, category_count=6, explode=0,
         t.set_color(perc_color)
 
     plt.axis('equal')
-    return ax
+    if path is None:
+        return ax
+    plt.savefig(path)
 
 
-def plot(aggregation, color='dull green'):
+def barhchart(aggregation, path=None, color='dull green'):
     """Plots result from some of the aggregation results in form of horizontal
     bar chart.
 
     :param aggregation: Aggregation library result
     :type aggregation: pd.Series
+    :param path: If specified graph will be saved to this file instead of
+     returning it as a result
+    :type path: str
     :param color: Seaborn named color for bars
     :type color: str
     :return: matplotlib.axes._subplots.AxesSubplot -- Axes for generated plot
@@ -150,9 +178,6 @@ def plot(aggregation, color='dull green'):
     if not hasattr(aggregation, '_plot_id'):
         raise ValueError('Aggregation needs to be pd.Series result from '
                          'aggregation library!')
-
-    if aggregation._plot_id == codes.AGGREGATED_CATEGORIES:
-        return piechart(aggregation)
 
     cat_name = aggregation.index.name
     val_name = aggregation.name
@@ -170,4 +195,24 @@ def plot(aggregation, color='dull green'):
         plot.set_title(plot_id, fontsize=14)
     if val_name == 'Sentiment':
         plot.set_xticks(list(range(-5, 6, 1)))
-    return plot
+
+    if path is None:
+        return plot
+    plt.savefig(path)
+
+
+def plot(aggregation, path=None):
+    if not hasattr(aggregation, '_plot_id'):
+        raise ValueError('Aggregation needs to be pd.Series result from '
+                         'aggregation library!')
+    chart_type = {
+        codes.AGGREGATED_CATEGORIES: 'piechart',
+        codes.CONCEPT_CLOUD: 'concept_cloud',
+    }.get(aggregation._plot_id, 'barhchart')
+
+    if chart_type == 'piechart':
+        return piechart(aggregation, path=path)
+    if chart_type == 'concept_cloud':
+        return concept_cloud(aggregation, path=path)
+    if chart_type == 'barhchart':
+        return barhchart(aggregation, path=path)

@@ -105,6 +105,7 @@ class ConceptsDataset(ApiCallDataset):
             result = result.astype(float) / size
         else:
             result = result.astype(int)
+        result._plot_id = codes.CONCEPT_FREQUENCY
         return result
 
     def most_common_concepts(self, n=15, concept_type='', normalize=False):
@@ -172,8 +173,7 @@ class ConceptsDataset(ApiCallDataset):
         if concept_type:
             con = con[con.concept_type == concept_type]
         con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
-        new_name = _capitalize(concept_type) or 'Concept'
-        result = con_counts.rename(new_name).sort_values()[:n]
+        result = con_counts.rename('Count').sort_values()[:n]
         result.index.name = _capitalize(concept_type) or 'Concept'
         result._plot_id = codes.LEAST_COMMON_CONCEPTS
         if normalize:
@@ -348,9 +348,8 @@ class ConceptsDataset(ApiCallDataset):
         retval.drop('index', axis=1, inplace=True)
         return retval
 
-    def concept_cloud(self, path, size=(600, 350), background='white',
-                      colormap_name='Accent', max_concepts=200, stopwords=None,
-                      concept_type='', concept_filter=None, font=None):
+    def concept_frequencies(self, max_concepts=200, concept_type='',
+                            concept_filter=None):
         """Saves concept cloud image to *path*. If *path* is not None returns
         image as np.ndarray. One way to view np.ndarray resulting image is to
         use matplotlib's imshow method.
@@ -362,20 +361,8 @@ class ConceptsDataset(ApiCallDataset):
         You can set both at the same time. *concept_filter* is applied first,
         *stopwords* second.
 
-        :param path: Save plot to this file. Set to None if you want raw image
-         np.ndarray of this plot as a return value
-        :type path: str
-        :param size: Size of plot in pixels
-        :type size: tuple - pair - of ints
-        :param background: Name of background color
-        :type background: str
-        :param colormap_name: Name of matplotlib colormap that will be used to
-         sample random colors for concepts in plot
-        :type colormap_name: str
         :param max_concepts: Maximum number of concepts that will be plotted
         :type max_concepts: int
-        :param stopwords: Optionally set stopwords to use for the plot
-        :type stopwords: iter
         :param concept_type: Limit concepts only to concepts whose type starts
          with this string
         :type concept_type: str
@@ -384,10 +371,7 @@ class ConceptsDataset(ApiCallDataset):
          the filter - callable returns True - or not - callable returns False.
          Only concepts that pass can be seen on resulting concept cloud image
         :type concept_filter: callable
-        :param font: Path to font that will be used
-        :type font: str
-        :return: numpy.ndarray or None -- Returns numpy.ndarray if no path to
-         save was provided otherwise returns None.
+        :return: list -- List of tuples of form (concept, frequency)
         """
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
@@ -404,12 +388,9 @@ class ConceptsDataset(ApiCallDataset):
             con = con[list(map(concept_filter, con.concept))]
 
         data = con.groupby('concept')['freq'].sum()
-        data = data.sort_values().tail(max_concepts).reset_index()
-        frequencies = [tuple(row.tolist()) for _, row in data.iterrows()]
-
-        return plotting.concept_cloud(frequencies, path, size, background,
-                                      colormap_name, max_concepts, stopwords,
-                                      font)
+        frequencies = data.sort_values().tail(max_concepts).reset_index()
+        frequencies._plot_id = codes.CONCEPT_CLOUD
+        return frequencies
 
 
 class CategoriesDataset(ApiCallDataset):
@@ -554,6 +535,7 @@ class ABSADataset(ApiCallDataset):
         result.index.name = _capitalize(entity_type) or 'Entity'
         if not normalize:
             result = result.astype(int)
+        result._plot_id = codes.ENTITY_FREQUENCY
         return result
 
     def most_common_entities(self, n=15, entity_type='', normalize=False):
@@ -580,9 +562,10 @@ class ABSADataset(ApiCallDataset):
         ent = self._entities
         ent = ent[ent.entity_type.str.startswith(entity_type)]
         result = ent['entity_name'].value_counts(normalize=normalize)[:n]
+        result = result.rename('Count')
         result._plot_id = codes.MOST_COMMON_ENTITIES
         result.index.name = _capitalize(entity_type) or 'Entity'
-        return result.rename('Count')
+        return result
 
     def least_common_entities(self, n=15, entity_type='', normalize=False):
         """Counts entities and returns n least occurring ones sorted by their
@@ -792,7 +775,9 @@ class ABSADataset(ApiCallDataset):
 
         means = entity_evals.groupby('entity_name')['sentiment_value'].mean()
         means.index.name = 'Entity'
-        return means[list(entity)].rename('Sentiment')
+        result = means[list(entity)].rename('Sentiment')
+        result._plot_id = codes.ENTITY_SENTIMENT
+        return result
 
 
 class DatasetLoader(object):

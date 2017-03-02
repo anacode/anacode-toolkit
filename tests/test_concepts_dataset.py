@@ -151,18 +151,6 @@ def test_co_occurring_concepts(dataset, args, concepts):
     assert result.index.tolist() == concepts
 
 
-def test_pil_image_concept_cloud_throws_no_error(dataset):
-    concept_cloud_image = dataset.concept_cloud(None)
-    assert isinstance(concept_cloud_image, np.ndarray)
-
-
-def test_concept_cloud_save_throws_no_error(dataset, tmpdir):
-    target = tmpdir.mkdir('target')
-    cloud_path = os.path.join(str(target), 'test.png')
-    dataset.concept_cloud(cloud_path)
-    assert os.path.isfile(cloud_path)
-
-
 @pytest.fixture
 def idf_dataset():
     con_header = ['doc_id', 'text_order', 'concept', 'freq', 'relevance_score',
