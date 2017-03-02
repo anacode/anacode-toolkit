@@ -53,6 +53,8 @@ def concept_cloud(aggregation, path=None, size=(600, 400), background='white',
     :type stopwords: iter
     :param font: Path to font that will be used
     :type font: str
+    :return: matplotlib.axes._subplots.AxesSubplot -- Axes for generated plot or
+     None if graph was saved to file
     """
     if not hasattr(aggregation, '_plot_id'):
         raise ValueError('Aggregation needs to be pd.Series result from '
@@ -116,7 +118,8 @@ def piechart(aggregation, path=None, colors=None, category_count=6, explode=0,
     :type edgecolor: matplotlib supported color
     :param perc_color: Controlls color of percentages drawn inside piechart
     :type perc_color: matplotlib supported color
-    :return: matplotlib.axes._subplots.AxesSubplot -- Axes for generated plot
+    :return: matplotlib.axes._subplots.AxesSubplot -- Axes for generated plot or
+     None if graph was saved to file
     """
     if not hasattr(aggregation, '_plot_id'):
         raise ValueError('Aggregation needs to be pd.Series result from '
@@ -173,7 +176,8 @@ def barhchart(aggregation, path=None, color='dull green'):
     :type path: str
     :param color: Seaborn named color for bars
     :type color: str
-    :return: matplotlib.axes._subplots.AxesSubplot -- Axes for generated plot
+    :return: matplotlib.axes._subplots.AxesSubplot -- Axes for generated plot or
+     None if craph was saved to file
     """
     if not hasattr(aggregation, '_plot_id'):
         raise ValueError('Aggregation needs to be pd.Series result from '
@@ -201,7 +205,18 @@ def barhchart(aggregation, path=None, color='dull green'):
     plt.savefig(path)
 
 
-def plot(aggregation, path=None):
+def plot(aggregation, path=None, **kwargs):
+    """Plots aggregation result. This is convenience method that will choose
+    chart type based on result type.
+
+    :param aggregation: Aggregation library result
+    :type aggregation: pd.Series
+    :param path: If specified graph will be saved to this file instead of
+     returning it as a result
+    :type path: str
+    :return: matplotlib.axes._subplots.AxesSubplot -- Axes for generated plot or
+     None if graph was saved to file
+    """
     if not hasattr(aggregation, '_plot_id'):
         raise ValueError('Aggregation needs to be pd.Series result from '
                          'aggregation library!')
@@ -211,8 +226,8 @@ def plot(aggregation, path=None):
     }.get(aggregation._plot_id, 'barhchart')
 
     if chart_type == 'piechart':
-        return piechart(aggregation, path=path)
+        return piechart(aggregation, path=path, **kwargs)
     if chart_type == 'concept_cloud':
-        return concept_cloud(aggregation, path=path)
+        return concept_cloud(aggregation, path=path, **kwargs)
     if chart_type == 'barhchart':
-        return barhchart(aggregation, path=path)
+        return barhchart(aggregation, path=path, **kwargs)

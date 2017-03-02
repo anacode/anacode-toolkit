@@ -72,3 +72,10 @@ API Datasets
 ..  autoclass:: anacode.agg.aggregation.ABSADataset
     :members:
     :special-members: __init__
+
+
+anacode.agg.plotting
+********************
+
+..  automodule:: anacode.agg.plotting
+    :members: barhchart, piechart, concept_cloud

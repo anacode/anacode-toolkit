@@ -780,3 +780,49 @@ ABSADataset
      Room     0.201
      Seats    0.55238
      Name: Sentiment, dtype: float64
+
+
+Plotting
+========
+
+Most of the aggregation results from previous section can be rendered as a graph
+using :mod:`anacode.agg.plotting`. The module knows how to plot three types
+of graphs - :func:`horizontal barchart <anacode.agg.plotting.barhchart>`,
+:func:`piechart <anacode.agg.plotting.piechart>` and
+:func:`word cloud <anacode.agg.plotting.concept_cloud>`.
+
+Generally all results that have a meaningful graph representation can be plotted
+using :func:`anacode.agg.plotting.barhchart`. Aggregation that do not have
+graph representation currently are
+:func:`nltk_textcollection <anacode.agg.aggregation.ConceptsDataset.nltk_textcollection>`,
+:func:`make_idf_filter <anacode.agg.aggregation.ConceptsDataset.make_idf_filter>`,
+:func:`make_time_series <anacode.agg.aggregation.ConceptsDataset.make_time_series>`,
+:func:`main_category <anacode.agg.aggregation.CategoriesDataset.main_category>`,
+:func:`average_sentiment <anacode.agg.aggregation.SentimentDataset.average_sentiment>`,
+:func:`surface_strings <anacode.agg.aggregation.ABSADataset.surface_strings>` and
+:func:`entity_texts <anacode.agg.aggregation.ABSADataset.entity_texts>` - all other aggregation
+method results can be plotted as horizontal bar chart with
+:func:`barhchart <anacode.agg.plotting.barhchart>`. Only
+:func:`CategoriesDataset.categories <anacode.agg.aggregation.CategoriesDataset.categories>` aggregation method is
+viable to be rendered as piechart and
+:func:`ConceptsDataset.concept_frequencies <anacode.agg.aggregation.ConceptsDataset.concept_frequencies>` is the only
+aggregation method viable to be rendered as concept could.
+
+..  code-block:: python
+
+    >>> import matplotlib.pyplot as plt
+    >>> from anacode.agg import plotting
+    >>> concept_frequencies = concepts.concept_frequencies()
+    >>> plotting.concept_cloud(concept_frequencies)
+    >>> plt.show()
+
+..  figure:: _static/images/word_cloud.png
+
+
+..  code-block:: python
+
+    >>> from anacode.agg import plotting
+    >>> co_occuring = absa.co_occurring_entities('Seats')
+    >>> plotting.barhchart(co_occuring)
+
+..  figure:: _static/images/co_occuring.png
