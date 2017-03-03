@@ -149,7 +149,7 @@ def piechart(aggregation, path=None, colors=None, category_count=6, explode=0,
         explode=[explode] * len(probabilities), startangle=90,
        labeldistance=labeldistance,
     )
-    plt.title(codes.AGGREGATED_CATEGORIES + '\n\n', fontsize=14)
+    plt.title(aggregation._plot_id + '\n\n', fontsize=14)
 
     for w in wedges:
         w.set_linewidth(edgesize)
@@ -165,7 +165,7 @@ def piechart(aggregation, path=None, colors=None, category_count=6, explode=0,
     plt.savefig(path)
 
 
-def barhchart(aggregation, path=None, color='dull green'):
+def barhchart(aggregation, path=None, color='dull green', title=None):
     """Plots result from some of the aggregation results in form of horizontal
     bar chart.
 
@@ -176,6 +176,9 @@ def barhchart(aggregation, path=None, color='dull green'):
     :type path: str
     :param color: Seaborn named color for bars
     :type color: str
+    :param title: Title of chart, None means automatic title and empty string
+     means no title
+    :type title: str
     :return: matplotlib.axes._subplots.AxesSubplot -- Axes for generated plot or
      None if craph was saved to file
     """
@@ -193,10 +196,14 @@ def barhchart(aggregation, path=None, color='dull green'):
 
     plot = sns.barplot(x=val_name, y=cat_name, data=agg, color=color)
     plot.set_xlabel(val_name)
-    if name is not None:
-        plot.set_title('{} - {}'.format(plot_id, name), fontsize=14)
-    else:
-        plot.set_title(plot_id, fontsize=14)
+    if title != '':
+        if title is not None:
+            plot.set_title(title, fontsize=14)
+        elif name is not None:
+            plot.set_title('{} - {}'.format(plot_id, name), fontsize=14)
+        else:
+            plot.set_title(plot_id, fontsize=14)
+
     if val_name == 'Sentiment':
         plot.set_xticks(list(range(-5, 6, 1)))
 
