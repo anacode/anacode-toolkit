@@ -83,14 +83,11 @@ quick example how to load sentiment analysis results into memory as a dataframe.
 
     >>> from anacode.api import writers
     >>> sentiment_json_output_0 = [
-    >>>     [{"label": "negative", "probability": 0.7},
-    >>>      {"label": "positive", "probability": 0.3}],
-    >>>     [{"label": "negative", "probability": 0.8},
-    >>>      {"label": "positive", "probability": 0.2}],
+    >>>     {"sentiment_value": 0.7},
+    >>>     {"sentiment_value": -0.1},
     >>> ]
     >>> sentiment_json_output_1 = [
-    >>>     [{"label": "negative", "probability": 0.99},
-    >>>      {"label": "positive", "probability": 0.01}]
+    >>>     {"sentiment_value": 0.34},
     >>> ]
     >>> df_writer = writers.DataFrameWriter()
     >>> df_writer.init()
@@ -101,10 +98,10 @@ quick example how to load sentiment analysis results into memory as a dataframe.
 
 .. parsed-literal::
 
-       doc_id  text_order  positive  negative
-    0       0           0      0.3       0.7
-    1       0           1      0.2       0.8
-    2       1           0      0.01      0.99
+       doc_id  text_order  sentiment_value
+    0       0           0             0.7
+    1       0           1            -0.1
+    2       1           0             0.34
 
 The schemas of the tables are described in :ref:`analysed-schema`.
 
