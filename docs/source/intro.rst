@@ -10,11 +10,11 @@ web data collection and Natural Language Processing. The following operations ar
 with the library:
 
 1. Abstraction of HTTP protocol that is used by Anacode Web&Text API. Besides,
-   concurrent Anacode API querying is made simple (only relevant for users with paid account).
+   concurrent API querying is made simple.
 2. Conversion of JSON analysis results into flat table structures.
 3. Common aggregation and selection tasks that can be performed
    on API analysis results, like finding the most discussed concepts or ten best-rated entities
-4. Convenient plotting functions for aggregation results, ready to use in print documents.
+4. Convenient plotting functions for aggregated results, ready to use in print documents.
 
 The first two features are covered by the module :mod:`anacode.api`; 3. and 4. are covered by :mod:`anacode.agg`.
 
@@ -33,7 +33,7 @@ python3.3+. To install from PyPI simply use pip:
 
     pip install anacode
 
-You can also clone its repository and install from source using the setup.py script:
+You can also clone its repository and install from source using the ``setup.py`` script:
 
 .. code-block:: shell
 
@@ -42,8 +42,8 @@ You can also clone its repository and install from source using the setup.py scr
     python setup.py install
 
 
-Using Anacode API and storing results (anacode.api)
-***************************************************
+Using Anacode API and saving results (anacode.api)
+**************************************************
 
 Querying the API
 ================
@@ -67,11 +67,11 @@ dataframes or csv files. However, it is not intended for direct usage - instead,
 use the interface to it that is covered in :ref:`using-analyzer`.
 
 
-Storing results
-===============
+Saving results
+==============
 
 Since there is no analysis tool that can analyse arbitrary json schemas well,
-the toolkit offers a simple way to convert lists of API json results to a standard SQL-like
+the toolkit offers a simple way to convert lists of API JSON results to a standard SQL-like
 data structure. There are two possibilities: you can convert your output to a
 `pandas.DataFrames <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html>`_
 or store it to disk in csv files, making it ready to be input into various
@@ -110,8 +110,8 @@ The schemas of the tables are described in :ref:`analysed-schema`.
 
 Both :class:`anacode.api.writers.DataFrameWriter` and
 :class:`anacode.api.writers.CSVWriter` have the same interface. They
-generate document ids (doc_id) incrementally and separately for analyze
-and scrape. That means that document id gets incremented each time you
+generate document ids (doc_id) incrementally and separately for ``analyze``
+and ``scrape``. That means that document id gets incremented each time you
 successfully receive an analysis/scrape result from API.
 
 
@@ -127,7 +127,7 @@ bulk querying and storing results in a table-like data structure.
 
 The following code snippet analyses categories and sentiment for all `documents`
 in a single thread by bulks of size 100 and saves the resulting csv files to the folder
-'ling'.
+``ling/``.
 
 .. code-block:: python
 
@@ -172,9 +172,9 @@ Data loading
 The Anacode Toolkit provides the :class:`anacode.agg.aggregation.DatasetLoader` for
 loading analysed data from different formats:
 
-#. Lists of json outputs
+#. Lists of JSON outputs
 
-    If you just stored the raw json output of the Web\&Text API into a list of python dictionaries, you
+    If you just stored the raw JSON output of the Web\&Text API into a list of python dictionaries, you
     can use
     :func:`DatasetLoader.from_lists <anacode.agg.aggregation.DatasetLoader.from_lists>`
     to load them. This converts your lists into pandas dataframes.
@@ -196,7 +196,7 @@ loading analysed data from different formats:
     :class:`anacode.api.writers.CSVWriter`), you can provide the path to
     their parent folder to
     :func:`DatasetLoader.from_path <anacode.agg.aggregation.DatasetLoader.from_path>`
-    to load all available results. If you want to load older - backed up - csv
+    to load all available results. If you want to load older backed-up csv
     files, you can use *backup_suffix* argument of the method to specify
     suffix of files to load.
 
@@ -209,12 +209,11 @@ loading analysed data from different formats:
     class method.
 
 
-#. From pandas.DataFrames
+#. From ``pandas`` dataframes
 
     You can also use *DatasetLoader*'s
     :func:`DatasetLoader.__init__ <anacode.agg.aggregation.DatasetLoader.__init__>`
-    which simply takes *pandas.DataFrames* of analyzed data. See it's
-    docstrings for more info on parameter names.
+    which simply takes an iterable of *pandas.DataFrame* objects with analyzed data.
 
 
 Accessing analysis data
