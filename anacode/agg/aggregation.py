@@ -1018,37 +1018,21 @@ class DatasetLoader(object):
             raise ValueError('{} class not supported'.format(type(writer)))
 
     @classmethod
-    def from_lists(cls, concepts=None, categories=None, sentiments=None,
-                   absa=None):
-        """Initializes DatasetLoader from list of json-s that anacode api calls
-        return.
+    def from_api_result(cls, result):
+        """Initializes DatasetLoader from API json output. Works with both
+        single analysis result and with list of analyses results.
 
-        :param concepts: List of concept analysis json-s
-        :type concepts: list
-        :param categories: List of categories analysis json-s
-        :type categories: list
-        :param sentiments: List of sentiment analysis json-s
-        :type sentiments: list
-        :param absa: List of ABSA analysis json-s
-        :type absa: list
+        :param result: Either single API json analysis dict or list of them
         :return: :class:`anacode.agg.DatasetLoader` -- DatasetLoader with
          available analysis data loaded
         """
-        concepts = concepts or []
-        categories = categories or []
-        sentiments = sentiments or []
-        absa = absa or []
-
         frame_writer = writers.DataFrameWriter()
         frame_writer.init()
-        for analyzed in concepts:
-            frame_writer.write_concepts(analyzed)
-        for analyzed in categories:
-            frame_writer.write_categories(analyzed)
-        for analyzed in sentiments:
-            frame_writer.write_sentiment(analyzed)
-        for analyzed in absa:
-            frame_writer.write_absa(analyzed)
+        if isinstance(result, list):
+            for analysis in result:
+                frame_writer.write_analysis(analysis)
+        else:
+            frame_writer.write_analysis(result)
         frame_writer.close()
 
         return cls(**frame_writer.frames)

@@ -156,3 +156,11 @@ def absa():
             }
         ]
     }]
+
+
+@pytest.fixture
+def analysis(concepts, categories, sentiments, absa):
+    return {
+        'concepts': concepts, 'categories': categories,
+        'sentiment': sentiments, 'absa': absa,
+    }

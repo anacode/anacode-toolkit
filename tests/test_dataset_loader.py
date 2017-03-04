@@ -179,14 +179,30 @@ def frame_writer(concepts, sentiments, categories, absa):
     ('_absa_evaluations', (2, 6)),
     ('_absa_evaluations_entities', (2, 5))
 ])
-def test_data_load_from_lists(concepts, sentiments, categories, absa,
-                              dataset_name, shape):
-    dataset_loader = agg.DatasetLoader.from_lists(
-        [concepts], [categories], [sentiments], [absa]
-    )
+def test_data_load_from_api_result(analysis, dataset_name, shape):
+    dataset_loader = agg.DatasetLoader.from_api_result(analysis)
     dataset = getattr(dataset_loader, dataset_name)
     assert dataset is not None
     assert dataset.shape == shape
+
+
+@pytest.mark.parametrize('dataset_name,shape', [
+    ('_categories', (60, 4)),
+    ('_sentiments', (2, 3)),
+    ('_concepts', (2, 6)),
+    ('_concepts_surface_strings', (2, 5)),
+    ('_absa_entities', (1, 6)),
+    ('_absa_normalized_texts', (1, 3)),
+    ('_absa_relations', (1, 9)),
+    ('_absa_relations_entities', (2, 5)),
+    ('_absa_evaluations', (2, 6)),
+    ('_absa_evaluations_entities', (2, 5))
+])
+def test_data_load_from_api_result_list(analysis, dataset_name, shape):
+    dataset_loader = agg.DatasetLoader.from_api_result([analysis, analysis])
+    dataset = getattr(dataset_loader, dataset_name)
+    assert dataset is not None
+    assert dataset.shape == (shape[0] * 2, shape[1])
 
 
 @pytest.mark.parametrize('dataset_name,shape', [
