@@ -387,6 +387,7 @@ class ConceptsDataset(ApiCallDataset):
         data = con.groupby('concept')['freq'].sum()
         frequencies = data.sort_values().tail(max_concepts).reset_index()
         frequencies._plot_id = codes.CONCEPT_CLOUD
+        frequencies.index.name = _capitalize(concept_type) or 'Concept'
         return frequencies
 
 

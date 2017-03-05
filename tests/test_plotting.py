@@ -185,3 +185,14 @@ def test_absa_cloud_save_throws_no_error(absa_dataset, aggregation, args,
     agg_result = getattr(absa_dataset, aggregation)(*args)
     getattr(plotting, plotmethod)(agg_result, path=plot_path)
     assert os.path.isfile(plot_path)
+
+
+@pytest.mark.parametrize('plot_name,series,expected', [
+    ('Most Common Concepts', 'Person', 'Most Common Persons'),
+    ('Concept Frequencies', 'Brand', 'Brand Frequencies'),
+    ('Entities Sentiment', 'Product', 'Products Sentiment'),
+    ('Least Common Entities', 'Feature', 'Least Common Features'),
+])
+def test_correct_title_change(plot_name, series, expected):
+    result = plotting.chart_title(plot_name, series)
+    assert result == expected

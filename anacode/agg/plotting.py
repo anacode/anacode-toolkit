@@ -28,6 +28,31 @@ def generate_color_func(colormap_name):
     return color_func
 
 
+def chart_title(plot_id, series_index):
+    """Replaces generic Concept or Entity strings from chart titles with more
+    specific name if it was specified.
+
+    :param plot_id: Automatic title for chart
+    :param series_index: Aggregation's index column name
+    :return: str -- New chart title
+    """
+    if series_index in {'Concept', 'Entity'}:
+        return plot_id
+
+    if 'Concept' in plot_id:
+        if 'Concepts' in plot_id:
+            return plot_id.replace('Concepts', series_index + 's')
+        else:
+            return plot_id.replace('Concept', series_index)
+
+    if 'Entities' in plot_id:
+        return plot_id.replace('Entities', series_index + 's')
+
+    # For non concept and non absa aggregations
+    return plot_id
+
+
+
 def concept_cloud(aggregation, path=None, size=(600, 400), background='white',
                   colormap_name='Accent', max_concepts=200, stopwords=None,
                   font=None):
@@ -149,7 +174,9 @@ def piechart(aggregation, path=None, colors=None, category_count=6, explode=0,
         explode=[explode] * len(probabilities), startangle=90,
        labeldistance=labeldistance,
     )
-    plt.title(aggregation._plot_id + '\n\n', fontsize=14)
+    automatic_chart_title = chart_title(aggregation._plot_id,
+                                        aggregation.index.name)
+    plt.title(automatic_chart_title + '\n\n', fontsize=14)
 
     for w in wedges:
         w.set_linewidth(edgesize)
@@ -199,9 +226,14 @@ def barhchart(aggregation, path=None, color='dull green', title=None):
         if title is not None:
             plot.set_title(title, fontsize=14)
         elif name is not None:
-            plot.set_title('{} - {}'.format(plot_id, name), fontsize=14)
+            automatic_chart_title = chart_title(aggregation._plot_id,
+                                                aggregation.index.name)
+            plot.set_title('{} - {}'.format(automatic_chart_title, name),
+                           fontsize=14)
         else:
-            plot.set_title(plot_id, fontsize=14)
+            automatic_chart_title = chart_title(aggregation._plot_id,
+                                                aggregation.index.name)
+            plot.set_title(automatic_chart_title, fontsize=14)
 
     if val_name == 'Sentiment':
         plot.set_xticks(list(range(-5, 6, 1)))
