@@ -110,13 +110,13 @@ def piechart(aggregation, path=None, colors=None, category_count=6, explode=0,
     :param colors: This will be passed to matplotlib.pyplot.piechart as colors
     :param category_count: How many categories to include in piecharm
     :type category_count: int
-    :param explode: Size of whitespace between pies
+    :param explode: Size of whitespace between pie pieces
     :type explode: float
     :param edgesize: Pie's edge size, set to 0 for no edge
     :type edgesize: int
     :param edgecolor: Color of pie's edge
     :type edgecolor: matplotlib supported color
-    :param perc_color: Controlls color of percentages drawn inside piechart
+    :param perc_color: Controls color of percentages drawn inside piechart
     :type perc_color: matplotlib supported color
     :return: matplotlib.axes._subplots.AxesSubplot -- Axes for generated plot or
      None if graph was saved to file
@@ -169,18 +169,17 @@ def barhchart(aggregation, path=None, color='dull green', title=None):
     """Plots result from some of the aggregation results in form of horizontal
     bar chart.
 
-    :param aggregation: Aggregation library result
+    :param aggregation: anacode.agg aggregation result
     :type aggregation: pd.Series
     :param path: If specified graph will be saved to this file instead of
      returning it as a result
     :type path: str
-    :param color: Seaborn named color for bars
+    :param color: seaborn named color for bars
     :type color: str
-    :param title: Title of chart, None means automatic title and empty string
-     means no title
+    :param title: Title of chart; set to None for automatic title, empty string for no title
     :type title: str
     :return: matplotlib.axes._subplots.AxesSubplot -- Axes for generated plot or
-     None if craph was saved to file
+     None if graph was saved to file
     """
     if not hasattr(aggregation, '_plot_id'):
         raise ValueError('Aggregation needs to be pd.Series result from '

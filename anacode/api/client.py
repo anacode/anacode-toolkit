@@ -32,16 +32,16 @@ def _analysis(call_endpoint, auth, max_retries=3, **kwargs):
 
 
 class AnacodeClient(object):
-    """Makes posting data to server for analysis simpler by keeping user's auth,
-    url to Anacode API server and also knows paths for analysis calls.
+    """Makes posting data to server for analysis simpler by storing user's auth,
+    the URL of the Anacode API server and paths for analysis calls.
 
-    To find out more about specific api calls and their output format refer to
+    To find out more about specific API calls and analyses and their output format, please refer to
     https://api.anacode.de/api-docs/calls.html.
 
     """
     def __init__(self, auth, base_url=ANACODE_API_URL):
         """Default value for base_url is taken from environment variable
-        ANACODE_API_URL if set otherwise 'https://api.anacode.de/' is used.
+        ANACODE_API_URL if set; otherwise, 'https://api.anacode.de/' is used.
 
         :param auth: User's token
         :type auth: str
@@ -52,7 +52,7 @@ class AnacodeClient(object):
         self.base_url = base_url
 
     def scrape(self, link):
-        """Use Anacode API to scrape link web page and return result.
+        """Use Anacode API's scrape call to scrape page from Web URL and return result.
 
         :param link: URL that should be scraped
         :type link: str
@@ -62,14 +62,14 @@ class AnacodeClient(object):
         res = _analysis(url, self.auth, url=link)
         return res.json()
 
-    def analyze(self, texts, analysis, taxonomy=None, depth=None,
+    def analyze(self, texts, analyses, taxonomy=None, depth=None,
                 external_entity_data=None):
         """Use Anacode API to perform specified linguistic analysis on texts.
         Please consult https://api.anacode.de/api-docs/calls.html for more
         details and better understanding of parameters.
 
         :param texts: List of texts to analyze
-        :param analysis: List of analysis to perform. Can contain 'categories',
+        :param analyses: List of analysss to perform. Can contain 'categories',
          'concepts', 'sentiment' and 'absa'
         :param taxonomy: Taxonomy to use for categories analysis. Can be only
          'anacode' or 'iab' and is only relevant if 'categories' is present
@@ -82,7 +82,7 @@ class AnacodeClient(object):
         :return: dict --
         """
         url = urljoin(self.base_url, '/analyze/')
-        data = {'texts': texts, 'analysis': analysis}
+        data = {'texts': texts, 'analysis': analyses}
         if taxonomy is not None:
             data['categories'] = {'taxonomy': taxonomy}
         if depth is not None:
@@ -203,7 +203,7 @@ def analyzer(auth, writer, threads=1, bulk_size=100, base_url=ANACODE_API_URL):
 
     :param auth: User's token string
     :type auth: str
-    :param threads: Number of threads to use for http communication with server
+    :param threads: Number of threads to use for https communication with server
     :type threads: int
     :param writer: Writer instance that will store analysis results or path to
      folder where csv-s should be saved or dictionary where data frames should

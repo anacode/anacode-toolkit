@@ -1,8 +1,8 @@
 Library Docstrings
 ##################
 
-Anacode library consists of two parts. One is for using api and another is for
-working with api analysis.
+The Anacode Toolkit library consists of the two modules ``anacode.api`` and ``anacode.agg``. ``anacode.api`` simplifies the use of the API, whereas ``anacode.agg`` provides functionality for further analysis, aggregation and visualization of the results.
+
 
 .. contents::
     :local:

@@ -217,10 +217,10 @@ def absa_to_list(doc_id, analyzed):
 
 
 class Writer(object):
-    """Base "abstract" class containing common methods that are expected to be
+    """Base "abstract" class containing common methods that are
     needed by all implementations of Writer interface.
 
-    Writer interface consists of init, close and write_bulk methods.
+    The writer interface consists of init, close and write_bulk methods.
 
     """
     def __init__(self):
@@ -231,7 +231,7 @@ class Writer(object):
 
         :param call_type: Library's ID of anacode call
         :type call_type: int
-        :param call_result: JSON response from anacode api
+        :param call_result: JSON response from Anacode API
         :type call_result: list
         """
         if call_type == codes.SCRAPE:
@@ -244,9 +244,9 @@ class Writer(object):
     def _add_new_data_from_dict(self, new_data):
         """Not implemented here!
 
-        Write methods use this to submit new anacode data for storage.
+        Used by write methods to submit new Anacode API response data for storage.
 
-        :param new_data: Dictionary, keys are data sets names and values are
+        :param new_data: dict; keys are data sets names and values are
          flat lists of rows
         :type new_data: dict
         """
@@ -272,10 +272,10 @@ class Writer(object):
             self.write_absa(analyzed['absa'])
 
     def write_categories(self, analyzed):
-        """Converts categories call response to flat lists and stores them using
+        """Converts categories analysis result to flat lists and stores them using
         add_new_data_from_dict.
 
-        :param analyzed: JSON categories response
+        :param analyzed: JSON categories analysis result
         :type analyzed: list
         """
         doc_id = self.ids['analyze']
@@ -283,10 +283,10 @@ class Writer(object):
         self._add_new_data_from_dict(new_data)
 
     def write_concepts(self, analyzed):
-        """Converts concepts call response to flat lists and stores them using
+        """Converts concepts analysis result to flat lists and stores them using
         add_new_data_from_dict.
 
-        :param analyzed: JSON concepts response
+        :param analyzed: JSON concepts analysis result
         :type analyzed: list
         """
         doc_id = self.ids['analyze']
@@ -294,10 +294,10 @@ class Writer(object):
         self._add_new_data_from_dict(new_data)
 
     def write_sentiment(self, analyzed):
-        """Converts sentiment call response to flat lists and stores them using
+        """Converts sentiment analysis result to flat lists and stores them using
         add_new_data_from_dict.
 
-        :param analyzed: JSON sentiment response
+        :param analyzed: JSON sentiment analysis result
         :type analyzed: list
         """
         doc_id = self.ids['analyze']
@@ -305,10 +305,10 @@ class Writer(object):
         self._add_new_data_from_dict(new_data)
 
     def write_absa(self, analyzed):
-        """Converts absa call response to flat lists and stores them using
+        """Converts absa analysis result to flat lists and stores them using
         add_new_data_from_dict.
 
-        :param analyzed: JSON absa response
+        :param analyzed: JSON absa analysis result
         :type analyzed: list
         """
         doc_id = self.ids['analyze']
@@ -334,7 +334,7 @@ class Writer(object):
 
 
 class DataFrameWriter(Writer):
-    """Capable of writing anacode api output into pandas.DataFrame instances."""
+    """Writes Anacode API output into pandas.DataFrame instances."""
     def __init__(self, frames=None):
         """Initializes dictionary of result frames. Alternatively uses given
         frames dict for storage.
@@ -382,10 +382,10 @@ class DataFrameWriter(Writer):
 
 class CSVWriter(Writer):
     def __init__(self, target_dir='.'):
-        """Initializes Writer to store anancode api analysis in target_dir in
+        """Initializes Writer to store Anacode API analysis results in target_dir in
         csv files.
 
-        :param target_dir: Path to file where to store csv-s
+        :param target_dir: Path to directory where to store csv files
         :type target_dir: str
         """
         super(CSVWriter, self).__init__()
@@ -401,7 +401,7 @@ class CSVWriter(Writer):
             return open(path(csv_name), 'wb')
 
     def init(self):
-        """Opens all csv files for writing and write headers to them."""
+        """Opens all csv files for writing and writes headers to them."""
         self.close()
         backup(self.target_dir, chain.from_iterable(CSV_FILES.values()))
 

@@ -31,12 +31,10 @@ class NoRelevantData(Exception):
 
 
 class ConceptsDataset(ApiCallDataset):
-    """Concept data sets container that provides easy aggregation and
-    plotting capabilities.
-
+    """Concept dataset container with easy aggregation capabilities.
     """
     def __init__(self, concepts, surface_strings):
-        """Initialize instance by providing two concept relevant data frames.
+        """Initialize instance by providing the two dataframes required for concepts representation.
 
         :param concepts: List of found concepts with metadata
         :type concepts: pandas.DataFrame
@@ -145,14 +143,14 @@ class ConceptsDataset(ApiCallDataset):
         return result
 
     def least_common_concepts(self, n=15, concept_type='', normalize=False):
-        """Counts concepts and returns n least occurring ones sorted by their
+        """Counts concepts and returns n least frequent ones sorted by their
         count ascending. Counted concepts can be filtered by their type using
         *concept_type* and returned counts can be normalized with *normalize*.
 
-        If both *concept_type* and *normalize* are specified concept ratios
+        If both *concept_type* and *normalize* are specified, concept ratios
         will be computed only from concept counts within given *concept_type*.
 
-        :param n: Maximum number of least common concepts to return
+        :param n: Maximum number of concepts to return
         :type n: int
         :param concept_type: Limit concept counts only to concepts whose type
          starts with this string
@@ -182,18 +180,18 @@ class ConceptsDataset(ApiCallDataset):
 
     def co_occurring_concepts(self, concept, n=15, concept_type=''):
         """Find *n* concepts co-occurring frequently in texts of this dataset
-        with given *concept*, sorted descending. Co-occurring concepts can be
+        with given *concept*, sorted by descending frequency. Co-occurring concepts can be
         filtered by their type.
 
         :param concept: Concept to inspect for co-occurring concepts
         :type concept: str
-        :param n: Maximum count of returned concepts
+        :param n: Maximum number of returned co-occurring concepts
         :type n: int
         :param concept_type: Limit co-occurring concept counts only to this type
          of concepts.
         :type concept_type: str
         :return: pandas.Series -- Co-occurring concept names as index and their
-         counts as values sorted descending
+         frequencies sorted by descending frequency
         """
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')
@@ -256,7 +254,7 @@ class ConceptsDataset(ApiCallDataset):
         return TextCollection(texts)
 
     def make_idf_filter(self, threshold, concept_type=''):
-        """Generates concept filter based on idf value of concept in represented
+        """Generates concept filter based on idf values of concepts in represented
         documents. This filter can be directly used as parameter for
         concept_cloud call.
 
@@ -270,16 +268,15 @@ class ConceptsDataset(ApiCallDataset):
         """
         corpus = self.nltk_textcollection(concept_type)
 
-        def idf_filter(word):
-            """Computes idf of word in corpus and decides if word is important
-            or not.
+        def idf_filter(concept):
+            """Computes IDF of concept in corpus and decides if the concept is relevant wrt the provided threshold.
 
-            :param word: Concept name to decide if bears significant meaning
-            :type word: str
-            :return: bool -- True if concept has meaning in text, False
+            :param concept: Concept name for which to retrieve IDF
+            :type concept: str
+            :return: bool -- True if concept is relevant, else False
              otherwise
             """
-            return corpus.idf(word) >= threshold
+            return corpus.idf(concept) >= threshold
 
         return idf_filter
 
@@ -394,20 +391,19 @@ class ConceptsDataset(ApiCallDataset):
 
 
 class CategoriesDataset(ApiCallDataset):
-    """Categories data set container that will provides easy aggregation
-    capabilities. **Does not support nested categories**.
-
+    """Categories dataset container with easy aggregation
+    capabilities.
     """
     def __init__(self, categories):
         """Initialize instance by providing categories data set.
 
-        :param categories: List of document topic probabilities
+        :param categories: List of document category probabilities
         :type categories: pandas.DateFrame
         """
         self._categories = categories
 
     def categories(self):
-        """Finds out what are the topics for the whole dataset.
+        """Aggregates categories across the whole dataset.
 
         :return: pandas.Series --
         """
@@ -423,10 +419,9 @@ class CategoriesDataset(ApiCallDataset):
         return all_cats
 
     def main_category(self):
-        """Finds what topic is this dataset about. Does not support nested
-        categories output.
+        """Finds the main category of a dataset.
 
-        :return: str -- Name of main topic of all texts.
+        :return: str -- Name of main category.
         """
         if self._categories is None:
             raise NoRelevantData('Relevant category data is not available!')
@@ -437,7 +432,7 @@ class CategoriesDataset(ApiCallDataset):
 
 
 class SentimentDataset(ApiCallDataset):
-    """Sentiments data set container that will provides easy aggregation
+    """Sentiment dataset container with easy aggregation
     capabilities.
 
     """
@@ -463,7 +458,7 @@ class SentimentDataset(ApiCallDataset):
 
 
 class ABSADataset(ApiCallDataset):
-    """ABSA data set container that will provides easy aggregation and plotting
+    """ABSA data set container that will provides easy aggregation
     capabilities.
 
     """
@@ -568,14 +563,14 @@ class ABSADataset(ApiCallDataset):
         return result
 
     def least_common_entities(self, n=15, entity_type='', normalize=False):
-        """Counts entities and returns n least occurring ones sorted by their
+        """Counts entities and returns n least frequent ones sorted by their
         count ascending. Counted entities can be filtered by their type using
         *entity_type* and returned counts can be normalized with *normalize*.
 
         If both *entity_type* and *normalize* are specified entity ratios
         will be computed only from entity counts within given *entity_type*.
 
-        :param n: Maximum number of least common entities to return
+        :param n: Maximum number of least frequent entities to return
         :type n: int
         :param entity_type: Limit entities counts only to entities whose type
          starts with this string
@@ -781,9 +776,7 @@ class ABSADataset(ApiCallDataset):
 
 
 class DatasetLoader(object):
-    """Meant for loading analysed data obtained via AnacodeAPI from various
-    formats.
-
+    """Loads analysed data obtained via Anacode API from various formats.
     """
     def __init__(self, concepts=None, concepts_surface_strings=None,
                  categories=None, sentiments=None,
@@ -791,7 +784,7 @@ class DatasetLoader(object):
                  absa_relations=None, absa_relations_entities=None,
                  absa_evaluations=None, absa_evaluations_entities=None):
         """Will construct DatasetLoader instance that is aware of what data is
-        available to it. Raises ValueError if no data was given.
+        available to it. Raises ValueError if no data was provided.
 
         Data frames are expected to have format that corresponds to format that
         :class:`anacode.api.writers.Writer` would write.
@@ -800,21 +793,21 @@ class DatasetLoader(object):
         :type concepts: pandas.DataFrame
         :param concepts_surface_strings: List of strings realizing concepts
         :type concepts_surface_strings: pandas.DataFrame
-        :param categories: List of document topic probabilities
+        :param categories: List of document category probabilities
         :type categories: pandas.DateFrame
-        :param sentiments: List of document sentiment inclinations
+        :param sentiments: List of document sentiment polarities
         :type sentiments: pandas.DateFrame
-        :param absa_entities: List of entities used in texts
+        :param absa_entities: List of absa entities used in texts
         :type absa_entities: pandas.DataFrame
-        :param absa_normalized_texts: List of chinese normalized texts
+        :param absa_normalized_texts: List of Chinese normalized strings identified and analyzed by absa
         :type absa_normalized_texts: pandas.DataFrame
-        :param absa_relations: List of relations with metadata
+        :param absa_relations: List of absa relations with metadata
         :type absa_relations: pandas.DataFrame
-        :param absa_relations_entities: List of entities used in relations
+        :param absa_relations_entities: List of absa entities used in relations
         :type absa_relations_entities: pandas.DataFrame
-        :param absa_evaluations: List of entity evaluations
+        :param absa_evaluations: List of absa evaluations
         :type absa_evaluations: pandas.DataFrame
-        :param absa_evaluations_entities: List of entities used in evaluations
+        :param absa_evaluations_entities: List of absa entities used in evaluations
         :type absa_evaluations_entities: pandas.DataFrame
         """
         self.has_categories = categories is not None
@@ -862,16 +855,16 @@ class DatasetLoader(object):
             self._absa_evaluations = self._absa_evaluations_entities = None
 
     def __getitem__(self, item):
-        """If requested item is name of linguistic dataset that DatasetLoader
-        recognizes it will return this dataset - it may be None if it was not
-        found. If item is not recognized throws KeyError.
+        """If item is the name of linguistic dataset known to DatasetLoader,
+        it will return the corresponding dataset. If the dataset is not found,
+        None is returned. If item is not recognized, a KeyError is thrown.
 
-        :param item: Needs to be one of the following: categories, concepts,
+        :param item: possible values: categories, concepts,
          concepts_surface_strings, sentiments, absa_entities,
          absa_normalized_texts, absa_relations, absa_relations_entities,
          absa_evaluations, absa_evaluations_entities
         :type item: str
-        :return: pandas.DataFrame -- DataFrame with requested data or None
+        :return: pandas.DataFrame -- DataFrame with requested data if found, else None
         """
         dataset_map = {
             'categories': self._categories,
@@ -1019,10 +1012,10 @@ class DatasetLoader(object):
 
     @classmethod
     def from_api_result(cls, result):
-        """Initializes DatasetLoader from API json output. Works with both
+        """Initializes DatasetLoader from API JSON output. Works with both
         single analysis result and with list of analyses results.
 
-        :param result: Either single API json analysis dict or list of them
+        :param result: Either single API JSON analysis dict or list of them
         :return: :class:`anacode.agg.DatasetLoader` -- DatasetLoader with
          available analysis data loaded
         """
