@@ -272,8 +272,7 @@ class Writer(object):
             self.write_absa(analyzed['absa'])
 
     def write_categories(self, analyzed):
-        """Converts categories analysis result to flat lists and stores them using
-        add_new_data_from_dict.
+        """Converts categories analysis result to flat lists and stores them.
 
         :param analyzed: JSON categories analysis result
         :type analyzed: list
@@ -283,8 +282,7 @@ class Writer(object):
         self._add_new_data_from_dict(new_data)
 
     def write_concepts(self, analyzed):
-        """Converts concepts analysis result to flat lists and stores them using
-        add_new_data_from_dict.
+        """Converts concepts analysis result to flat lists and stores them.
 
         :param analyzed: JSON concepts analysis result
         :type analyzed: list
@@ -294,8 +292,7 @@ class Writer(object):
         self._add_new_data_from_dict(new_data)
 
     def write_sentiment(self, analyzed):
-        """Converts sentiment analysis result to flat lists and stores them using
-        add_new_data_from_dict.
+        """Converts sentiment analysis result to flat lists and stores them.
 
         :param analyzed: JSON sentiment analysis result
         :type analyzed: list
@@ -305,8 +302,7 @@ class Writer(object):
         self._add_new_data_from_dict(new_data)
 
     def write_absa(self, analyzed):
-        """Converts absa analysis result to flat lists and stores them using
-        add_new_data_from_dict.
+        """Converts absa analysis result to flat lists and stores them.
 
         :param analyzed: JSON absa analysis result
         :type analyzed: list
@@ -316,7 +312,9 @@ class Writer(object):
         self._add_new_data_from_dict(new_data)
 
     def write_bulk(self, results):
-        """Stores multiple anacode api's JSON responses marked with call IDs.
+        """Stores multiple anacode api's JSON responses marked with call IDs as
+        tuples (call_id, call_result). Both scrape and analyze call IDs
+        are defined in anacode.codes module.
 
         :param results: List of anacode responses with IDs of calls used
         :type results: list
