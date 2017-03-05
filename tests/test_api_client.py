@@ -51,20 +51,12 @@ def test_scrape_call(api, auth_header, mocker):
         headers=auth_header, json={'url': 'http://chinese.portal.com.ch'})
 
 
-@pytest.mark.parametrize('kwargs', [
-    {},
-    {'depth': 0},
-    {'taxonomy': 'iab'},
-    {'depth': 2, 'taxonomy': 'anacode'},
-])
 @mock.patch('requests.post', empty_response)
-def test_categories_call(api, auth_header, mocker, kwargs):
+def test_categories_call(api, auth_header, mocker):
     mocker.spy(requests, 'post')
-    api.analyze(['安全性能很好，很帅气。'], ['categories'], **kwargs)
+    api.analyze(['安全性能很好，很帅气。'], ['categories'])
     assert requests.post.call_count == 1
     json_data = {'texts': ['安全性能很好，很帅气。'], 'analysis': ['categories']}
-    if kwargs:
-        json_data['categories'] = kwargs
     requests.post.assert_called_once_with(
         urljoin(client.ANACODE_API_URL, 'analyze/'),
         headers=auth_header, json=json_data)

@@ -62,8 +62,7 @@ class AnacodeClient(object):
         res = _analysis(url, self.auth, url=link)
         return res.json()
 
-    def analyze(self, texts, analyses, taxonomy=None, depth=None,
-                external_entity_data=None):
+    def analyze(self, texts, analyses, external_entity_data=None):
         """Use Anacode API to perform specified linguistic analysis on texts.
         Please consult https://api.anacode.de/api-docs/calls.html for more
         details and better understanding of parameters.
@@ -71,24 +70,12 @@ class AnacodeClient(object):
         :param texts: List of texts to analyze
         :param analyses: List of analysss to perform. Can contain 'categories',
          'concepts', 'sentiment' and 'absa'
-        :param taxonomy: Taxonomy to use for categories analysis. Can be only
-         'anacode' or 'iab' and is only relevant if 'categories' is present
-         in analysis list. *API defaults to 'anacode'*
-        :param depth: Level of required sub-classification depth. This option is
-         relevant only if 'categories' is present in analysis list.
-         *API defaults to 1*
         :param external_entity_data: Provide additional entities to relate to
          sentiment evaluation.
         :return: dict --
         """
         url = urljoin(self.base_url, '/analyze/')
         data = {'texts': texts, 'analysis': analyses}
-        if taxonomy is not None:
-            data['categories'] = {'taxonomy': taxonomy}
-        if depth is not None:
-            config = data.get('categories', {})
-            config['depth'] = depth
-            data['categories'] = config
         if external_entity_data is not None:
             data['absa'] = {'external_entity_data': external_entity_data}
         res = _analysis(url, self.auth, **data)
@@ -187,12 +174,11 @@ class Analyzer(object):
         if self.should_start_analysis():
             self.execute_tasks_and_store_output()
 
-    def analyze(self, texts, analysis, taxonomy=None, depth=None,
-                external_entity_data=None):
+    def analyze(self, texts, analysis, external_entity_data=None):
         """Dummy clone for
         :meth:`anacode.api.client.AnacodeClient.analyze`"""
-        self.task_queue.append((codes.ANALYZE, texts, analysis, taxonomy,
-                                depth, external_entity_data))
+        self.task_queue.append((codes.ANALYZE, texts, analysis,
+                                external_entity_data))
         if self.should_start_analysis():
             self.execute_tasks_and_store_output()
 
