@@ -347,16 +347,15 @@ class ConceptsDataset(ApiCallDataset):
 
     def concept_frequencies(self, max_concepts=200, concept_type='',
                             concept_filter=None):
-        """Saves concept cloud image to *path*. If *path* is not None returns
-        image as np.ndarray. One way to view np.ndarray resulting image is to
-        use matplotlib's imshow method.
+        """Returns pandas series with counts for all concepts from the dataset.
 
-        To filter words that will be showed in the cloud you can use *stopwords*
-        and *concept_filter*. The former is simple iterable of words that will
-        be excluded and the latter is callable that takes concept name and
-        returns bool to indicate whether given concept should pass the filter.
-        You can set both at the same time. *concept_filter* is applied first,
-        *stopwords* second.
+        To filter words that will be showed in the cloud you can use
+        *concept_type* and *concept_filter*. The former is specific type of
+        concepts that you only want to have present in the result and
+        the latter is callable that takes concept name and returns bool
+        to indicate whether given concept should pass the filter. You can set
+        both at the same time. *concept_type* is applied first,
+        *concept_filter* second.
 
         :param max_concepts: Maximum number of concepts that will be plotted
         :type max_concepts: int
@@ -368,7 +367,8 @@ class ConceptsDataset(ApiCallDataset):
          the filter - callable returns True - or not - callable returns False.
          Only concepts that pass can be seen on resulting concept cloud image
         :type concept_filter: callable
-        :return: list -- List of tuples of form (concept, frequency)
+        :return: pandas.Series -- Concept names as index and their counts as
+         values
         """
         if self._concepts is None:
             raise NoRelevantData('Relevant concept data is not available!')

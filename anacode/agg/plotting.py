@@ -68,7 +68,7 @@ def concept_cloud(aggregation, path=None, size=(600, 400), background='white',
     :param size: Size of plot in pixels as tuple (width: int, height: int)
     :type size: tuple
     :param background: Name of background color
-    :type background: str
+    :type background: matplotlib color definition
     :param colormap_name: Name of matplotlib colormap that will be used to
      sample random colors for concepts in plot
     :type colormap_name: str
@@ -193,8 +193,7 @@ def piechart(aggregation, path=None, colors=None, category_count=6, explode=0,
 
 
 def barhchart(aggregation, path=None, color='dull green', title=None):
-    """Plots result from some of the aggregation results in form of horizontal
-    bar chart.
+    """Plots result from aggregation output in form of horizontal bar chart.
 
     :param aggregation: anacode.agg aggregation result
     :type aggregation: pd.Series
