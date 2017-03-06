@@ -30,7 +30,7 @@ class TestDataFrameWriterConcepts:
         assert concepts.shape == (2, 6)
         row1, row2 = concepts.iloc[0].tolist(), concepts.iloc[1].tolist()
         assert row1 == [0, 0, 'Lenovo', 1, 1.0, 'brand']
-        assert row2 == [0, 1, 'Samsung', 1, 1.0, 'brand']
+        assert row2 == [1, 0, 'Samsung', 1, 1.0, 'brand']
 
     def test_write_exprs(self, concept_frames):
         surface_strings = concept_frames['concepts_surface_strings']
@@ -38,7 +38,7 @@ class TestDataFrameWriterConcepts:
         row1 = surface_strings.iloc[0].tolist()
         row2 = surface_strings.iloc[1].tolist()
         assert row1 == [0, 0, 'Lenovo', 'lenovo', '0-6']
-        assert row2 == [0, 1, 'Samsung', 'samsung', '0-7']
+        assert row2 == [1, 0, 'Samsung', 'samsung', '0-7']
 
 
 @pytest.fixture
@@ -61,7 +61,7 @@ class TestDataFrameWriterSentiment:
         assert sentiments.shape == (2, 3)
         row1, row2 = sentiments.iloc[0].tolist(), sentiments.iloc[1].tolist()
         assert row1 == [0, 0, 0.72995628929991951]
-        assert row2 == [0, 1, 0.66687250944076981]
+        assert row2 == [1, 0, 0.66687250944076981]
 
 
 @pytest.fixture
@@ -93,7 +93,7 @@ class TestDataFrameWriterCategories:
         mus_filter = (docs == 0) & (text == 0) & (cats == 'music')
         music_prob = categories[mus_filter].probability.iloc[0]
         assert music_prob == 0.0027084020379582676
-        law_filter = (docs == 0) & (text == 1) & (cats == 'law')
+        law_filter = (docs == 1) & (text == 0) & (cats == 'law')
         law_prob = categories[law_filter].probability.iloc[0]
         assert law_prob == 0.043237510768916632
 
@@ -146,16 +146,21 @@ class TestDataFrameWriterAbsa:
 
     def test_write_absa_entities(self, absa_frames):
         entities = absa_frames['absa_entities']
-        assert entities.shape == (1, 6)
-        entity = entities.iloc[0].tolist()
-        assert entity == [0, 0, 'OperationQuality', 'feature_subjective',
-                          '性能', '2-4']
+        assert entities.shape == (2, 6)
+        entity0 = entities.iloc[0].tolist()
+        entity1 = entities.iloc[1].tolist()
+        assert entity0 == [0, 0, 'OperationQuality', 'feature_subjective',
+                           '性能', '2-4']
+        assert entity1 == [1, 0, 'OperationQuality', 'feature_subjective',
+                           '性能', '0-2']
 
     def test_write_absa_normalized_texts(self, absa_frames):
         texts = absa_frames['absa_normalized_texts']
-        assert texts.shape == (1, 3)
-        entity = texts.iloc[0].tolist()
-        assert entity == [0, 0, '安全性能很好，很帅气。']
+        assert texts.shape == (2, 3)
+        entity0 = texts.iloc[0].tolist()
+        entity1 = texts.iloc[1].tolist()
+        assert entity0 == [0, 0, '安全性能很好，很帅气。']
+        assert entity1 == [1, 0, '性能']
 
     def test_write_absa_relations(self, absa_frames):
         relations = absa_frames['absa_relations']

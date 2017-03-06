@@ -69,61 +69,79 @@ CSV_FILES = {
 }
 
 
-def categories_to_list(doc_id, analyzed):
+def categories_to_list(doc_id, analyzed, single_document=False):
     """Converts categories response to flat list with doc_id included.
 
     :param doc_id: Will be inserted to each row as first element
     :param analyzed: Response json from anacode api for categories call
     :type analyzed: list
+    :param single_document: Is analysis describing just one document
+    :type single_document: bool
     :return: dict -- Dictionary with one key 'categories' pointing to flat list
      of categories
     """
     cat_list = []
-    for text_order, text_analyzed in enumerate(analyzed):
+    for order, text_analyzed in enumerate(analyzed):
         for result_dict in text_analyzed:
-            row = [doc_id, text_order, result_dict.get('label'),
+            row = [doc_id, 0, result_dict.get('label'),
                    result_dict.get('probability')]
+            if single_document:
+                row[1] += order
+            else:
+                row[0] += order
             cat_list.append(row)
     return {'categories': cat_list}
 
 
-def concepts_to_list(doc_id, analyzed):
+def concepts_to_list(doc_id, analyzed, single_document=False):
     """Converts concepts response to flat lists with doc_id included
 
     :param doc_id: Will be inserted to each row as first element
     :param analyzed: Response json from anacode api for concepts call
     :type analyzed: list
+    :param single_document: Is analysis describing just one document
+    :type single_document: bool
     :return: dict -- Dictionary with two keys: 'concepts' pointing to flat list
      of found concepts and their metadata and 'concepts_surface_strings'
      pointing to flat list of strings realizing found concepts
     """
     con_list, exp_list = [], []
-    for text_order, text_analyzed in enumerate(analyzed):
+    for order, text_analyzed in enumerate(analyzed):
         for concept in text_analyzed:
-            row = [doc_id, text_order, concept.get('concept'),
+            row = [doc_id, 0, concept.get('concept'),
                    concept.get('freq'), concept.get('relevance_score'),
                    concept.get('type')]
+            if single_document:
+                row[1] += order
+            else:
+                row[0] += order
             con_list.append(row)
             for string in concept.get('surface', []):
                 surface_str, span = string['surface_string'], string['span']
-                exp_list.append([doc_id, text_order,
-                                 concept.get('concept'), surface_str,
-                                 '-'.join(map(str, span))])
+                exp_list.append([row[0], row[1], concept.get('concept'),
+                                 surface_str, '-'.join(map(str, span))])
     return {'concepts': con_list, 'concepts_surface_strings': exp_list}
 
 
-def sentiments_to_list(doc_id, analyzed):
+def sentiments_to_list(doc_id, analyzed, single_document=False):
     """Converts sentiments response to flat lists with doc_id included
 
     :param doc_id: Will be inserted to each row as first element
     :param analyzed: Response json from anacode api for sentiment call
     :type analyzed: list
+    :param single_document: Is analysis describing just one document
+    :type single_document: bool
     :return: dict -- Dictionary with one key 'sentiments' pointing to flat list
      of sentiment probabilities
     """
     sen_list = []
-    for text_order, sentiment in enumerate(analyzed):
-        row = [doc_id, text_order, sentiment['sentiment_value']]
+    for order, sentiment in enumerate(analyzed):
+        row = [doc_id, 0, sentiment['sentiment_value']]
+        if single_document:
+            # this should not happen
+            row[1] += order
+        else:
+            row[0] += order
         sen_list.append(row)
     return {'sentiments': sen_list}
 
@@ -175,12 +193,14 @@ def _absa_evaluations_to_list(doc_id, order, evaluations):
     return eval_list, ent_list
 
 
-def absa_to_list(doc_id, analyzed):
+def absa_to_list(doc_id, analyzed, single_document=False):
     """Converts ABSA response to flat lists with doc_id included
 
     :param doc_id: Will be inserted to each row as first element
     :param analyzed: Response json from anacode api for ABSA call
     :type analyzed: list
+    :param single_document: Is analysis describing just one document
+    :type single_document: bool
     :return: dict -- Dictionary with six keys: 'absa_entities' pointing to flat
      list of found entities with metadata, 'absa_normalized_texts' pointing to
      flat list of normalized chinese texts, 'absa_relations' pointing to found
@@ -197,15 +217,23 @@ def absa_to_list(doc_id, analyzed):
         'absa_evaluations': [],
         'absa_evaluations_entities': []
     }
-    for text_order, text_analyzed in enumerate(analyzed):
+    for order, text_analyzed in enumerate(analyzed):
+        if single_document:
+            current_id = doc_id
+            text_order = order
+        else:
+            current_id = doc_id + order
+            text_order = 0
+
         entities = text_analyzed['entities']
-        ents = _absa_entities_to_list(doc_id, text_order, entities)
+        ents = _absa_entities_to_list(current_id, text_order, entities)
         text = text_analyzed['normalized_text']
-        texts = _absa_normalized_text_to_list(doc_id, text_order, text)
+        texts = _absa_normalized_text_to_list(current_id, text_order, text)
         relations = text_analyzed['relations']
-        rels, rel_ents = _absa_relations_to_list(doc_id, text_order, relations)
+        rels, rel_ents = _absa_relations_to_list(current_id, text_order,
+                                                 relations)
         evaluations = text_analyzed['evaluations']
-        evals, eval_ents = _absa_evaluations_to_list(doc_id, text_order,
+        evals, eval_ents = _absa_evaluations_to_list(current_id, text_order,
                                                      evaluations)
         absa['absa_entities'].extend(ents)
         absa['absa_normalized_texts'].extend(texts)
@@ -236,10 +264,8 @@ class Writer(object):
         """
         if call_type == codes.SCRAPE:
             self.write_scrape(call_result)
-            self.ids['scrape'] += 1
         if call_type == codes.ANALYZE:
             self.write_analysis(call_result)
-            self.ids['analyze'] += 1
 
     def _add_new_data_from_dict(self, new_data):
         """Not implemented here!
@@ -253,7 +279,7 @@ class Writer(object):
         pass
 
     def write_scrape(self, scraped):
-        pass
+        self.ids['scrape'] += 1
 
     def write_analysis(self, analyzed):
         """Inspects analysis result for performed analysis and delegates
@@ -262,53 +288,78 @@ class Writer(object):
         :param analyzed: JSON object analysis response
         :type: dict
         """
-        if 'categories' in analyzed:
-            self.write_categories(analyzed['categories'])
-        if 'concepts' in analyzed:
-            self.write_concepts(analyzed['concepts'])
-        if 'sentiment' in analyzed:
-            self.write_sentiment(analyzed['sentiment'])
-        if 'absa' in analyzed:
-            self.write_absa(analyzed['absa'])
+        single_document = analyzed.get('single_document', False)
+        analyzed_length = 1
 
-    def write_categories(self, analyzed):
+        if 'categories' in analyzed:
+            categories = analyzed['categories']
+            self.write_categories(categories, single_document=single_document)
+            if not single_document:
+                analyzed_length = len(categories)
+        if 'concepts' in analyzed:
+            concepts = analyzed['concepts']
+            self.write_concepts(concepts, single_document=single_document)
+            if not single_document:
+                analyzed_length = len(concepts)
+        if 'sentiment' in analyzed:
+            sentiment = analyzed['sentiment']
+            self.write_sentiment(sentiment, single_document=single_document)
+            if not single_document:
+                analyzed_length = len(sentiment)
+        if 'absa' in analyzed:
+            absa = analyzed['absa']
+            self.write_absa(analyzed['absa'], single_document=single_document)
+            if not single_document:
+                analyzed_length = len(absa)
+
+        self.ids['analyze'] += analyzed_length
+
+    def write_categories(self, analyzed, single_document=False):
         """Converts categories analysis result to flat lists and stores them.
 
         :param analyzed: JSON categories analysis result
         :type analyzed: list
+        :param single_document: Is analysis describing just one document
+        :type single_document: bool
         """
         doc_id = self.ids['analyze']
-        new_data = categories_to_list(doc_id, analyzed)
+        new_data = categories_to_list(doc_id, analyzed, single_document)
         self._add_new_data_from_dict(new_data)
 
-    def write_concepts(self, analyzed):
+    def write_concepts(self, analyzed, single_document=False):
         """Converts concepts analysis result to flat lists and stores them.
 
         :param analyzed: JSON concepts analysis result
         :type analyzed: list
+        :param single_document: Is analysis describing just one document
+        :type single_document: bool
         """
         doc_id = self.ids['analyze']
-        new_data = concepts_to_list(doc_id, analyzed)
+        new_data = concepts_to_list(doc_id, analyzed, single_document)
         self._add_new_data_from_dict(new_data)
 
-    def write_sentiment(self, analyzed):
+    def write_sentiment(self, analyzed, single_document=False):
         """Converts sentiment analysis result to flat lists and stores them.
 
         :param analyzed: JSON sentiment analysis result
         :type analyzed: list
+        :param single_document: Is analysis describing just one document
+        :type single_document: bool
         """
         doc_id = self.ids['analyze']
-        new_data = sentiments_to_list(doc_id, analyzed)
+        new_data = sentiments_to_list(doc_id, analyzed, single_document)
         self._add_new_data_from_dict(new_data)
 
-    def write_absa(self, analyzed):
+    def write_absa(self, analyzed, single_document=False):
         """Converts absa analysis result to flat lists and stores them.
 
         :param analyzed: JSON absa analysis result
         :type analyzed: list
+        :param single_document: Is analysis describing just one document
+        :type single_document: bool
         """
         doc_id = self.ids['analyze']
-        new_data = absa_to_list(doc_id, analyzed)
+        new_data = absa_to_list(doc_id, analyzed, single_document)
         self._add_new_data_from_dict(new_data)
 
     def write_bulk(self, results):

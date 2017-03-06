@@ -75,7 +75,7 @@ class TestCsvWriterConcepts:
         row1 = file_lines[1].strip().split(',')
         row2 = file_lines[2].strip().split(',')
         assert row1 == ['0', '0', 'Lenovo', '1', '1.0', 'brand']
-        assert row2 == ['0', '1', 'Samsung', '1', '1.0', 'brand']
+        assert row2 == ['1', '0', 'Samsung', '1', '1.0', 'brand']
 
     def test_write_exprs(self, target, csv_concepts):
         file_lines = target.join('concepts_surface_strings.csv').readlines()
@@ -83,7 +83,7 @@ class TestCsvWriterConcepts:
         row1 = file_lines[1].strip().split(',')
         row2 = file_lines[2].strip().split(',')
         assert row1 == ['0', '0', 'Lenovo', 'lenovo', '0-6']
-        assert row2 == ['0', '1', 'Samsung', 'samsung', '0-7']
+        assert row2 == ['1', '0', 'Samsung', 'samsung', '0-7']
 
 
 class TestCsvWriterSentiment:
@@ -121,8 +121,8 @@ class TestCsvWriterSentiment:
         assert row1[1] == '0'
         assert row1[2].startswith('0.72')
         row2 = file_lines[2].strip().split(',')
-        assert row2[0] == '0'
-        assert row2[1] == '1'
+        assert row2[0] == '1'
+        assert row2[1] == '0'
         assert row2[2].startswith('0.66')
 
 
@@ -151,7 +151,7 @@ class TestCsvWriterCategories:
         assert len(file_lines) == 30 + 30 + 1
         assert any(line.startswith('0,0,camera,0.444') for line in file_lines)
         assert any(line.startswith('0,0,music,0.002') for line in file_lines)
-        assert any(line.startswith('0,1,law,0.043') for line in file_lines)
+        assert any(line.startswith('1,0,law,0.043') for line in file_lines)
 
 
 @pytest.fixture
@@ -224,16 +224,21 @@ class TestCsvWriterAbsa:
 
     def test_write_absa_entities(self, target, csv_absa):
         file_lines = target.join('absa_entities.csv').readlines()
-        assert len(file_lines) == 2
-        entity = file_lines[1].strip().split(',')
-        assert entity == ['0', '0', 'OperationQuality', 'feature_subjective',
-                          '性能', '2-4']
+        assert len(file_lines) == 3
+        entity0 = file_lines[1].strip().split(',')
+        entity1 = file_lines[2].strip().split(',')
+        assert entity0 == ['0', '0', 'OperationQuality', 'feature_subjective',
+                           '性能', '2-4']
+        assert entity1 == ['1', '0', 'OperationQuality', 'feature_subjective',
+                           '性能', '0-2']
 
     def test_write_absa_normalized_texts(self, target, csv_absa):
         file_lines = target.join('absa_normalized_texts.csv').readlines()
-        assert len(file_lines) == 2
-        entity = file_lines[1].strip().split(',')
-        assert entity == ['0', '0', '安全性能很好，很帅气。']
+        assert len(file_lines) == 3
+        entity0 = file_lines[1].strip().split(',')
+        entity1 = file_lines[2].strip().split(',')
+        assert entity0 == ['0', '0', '安全性能很好，很帅气。']
+        assert entity1 == ['1', '0', '性能']
 
     def test_write_absa_relations(self, target, csv_absa):
         file_lines = target.join('absa_relations.csv').readlines()

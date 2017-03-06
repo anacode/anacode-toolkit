@@ -155,6 +155,16 @@ def absa():
                 'surface': {'span': [0, 4], 'surface_string': '安全性能'}
             }
         ]
+    }, {
+        'entities': [
+            {
+                'semantics': [
+                    {'type': 'feature_subjective', 'value': 'OperationQuality'}
+                ],
+                'surface': {'span': [0, 2], 'surface_string': '性能'}
+            }
+        ],
+        'evaluations': [], 'relations': [], 'normalized_text': '性能',
     }]
 
 

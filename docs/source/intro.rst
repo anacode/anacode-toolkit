@@ -160,6 +160,25 @@ DataFrames to provided dictionary.
     dict_keys(['concepts', 'concepts_surface_strings', 'sentiments'])
 
 
+Single document mode
+====================
+
+Anacode API supports sending list of texts in two different modes. By default
+each text from list is considered to be one separate document. This means that
+categories and sentiment analysis are applied for each text from the list
+separately. You can make Anacode API consider texts as parts of one document
+by setting *single_document* switch of
+:func:`analyze <anacode.api.client.AnacodeClient.analyze>`. This will result in
+server performing just one categories and just one sentiment analysis on all
+the texts together. You can read about this behavior in
+`API documentation <http://api.anacode.de/api-docs/calls.html#single-document>`_.
+
+On Anacode Toolkit side of things setting *single_document* mode will result
+in *text_order* being used to mark different paragraphs of the bigger document
+in csv and DataFrame output of analysis.
+
+
+
 Aggregation framework (anacode.agg)
 ***********************************
 

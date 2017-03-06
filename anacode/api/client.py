@@ -62,7 +62,8 @@ class AnacodeClient(object):
         res = _analysis(url, self.auth, url=link)
         return res.json()
 
-    def analyze(self, texts, analyses, external_entity_data=None):
+    def analyze(self, texts, analyses, external_entity_data=None,
+                single_document=False):
         """Use Anacode API to perform specified linguistic analysis on texts.
         Please consult https://api.anacode.de/api-docs/calls.html for more
         details and better understanding of parameters.
@@ -72,12 +73,17 @@ class AnacodeClient(object):
          'concepts', 'sentiment' and 'absa'
         :param external_entity_data: Provide additional entities to relate to
          sentiment evaluation.
+        :param single_document: Makes API treat texts as paragraphs of one
+         document instead of treating them as separate documents
+        :type single_document: bool
         :return: dict --
         """
         url = urljoin(self.base_url, '/analyze/')
         data = {'texts': texts, 'analysis': analyses}
         if external_entity_data is not None:
             data['absa'] = {'external_entity_data': external_entity_data}
+        if single_document:
+            data['single_document'] = True
         res = _analysis(url, self.auth, **data)
         return res.json()
 
@@ -174,11 +180,12 @@ class Analyzer(object):
         if self.should_start_analysis():
             self.execute_tasks_and_store_output()
 
-    def analyze(self, texts, analysis, external_entity_data=None):
+    def analyze(self, texts, analysis, external_entity_data=None,
+                single_document=False):
         """Dummy clone for
         :meth:`anacode.api.client.AnacodeClient.analyze`"""
         self.task_queue.append((codes.ANALYZE, texts, analysis,
-                                external_entity_data))
+                                external_entity_data, single_document))
         if self.should_start_analysis():
             self.execute_tasks_and_store_output()
 
