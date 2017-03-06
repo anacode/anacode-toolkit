@@ -79,7 +79,7 @@ class AnacodeClient(object):
         :return: dict --
         """
         url = urljoin(self.base_url, '/analyze/')
-        data = {'texts': texts, 'analysis': analyses}
+        data = {'texts': texts, 'analyses': analyses}
         if external_entity_data is not None:
             data['absa'] = {'external_entity_data': external_entity_data}
         if single_document:
@@ -180,11 +180,11 @@ class Analyzer(object):
         if self.should_start_analysis():
             self.execute_tasks_and_store_output()
 
-    def analyze(self, texts, analysis, external_entity_data=None,
+    def analyze(self, texts, analyses, external_entity_data=None,
                 single_document=False):
         """Dummy clone for
         :meth:`anacode.api.client.AnacodeClient.analyze`"""
-        self.task_queue.append((codes.ANALYZE, texts, analysis,
+        self.task_queue.append((codes.ANALYZE, texts, analyses,
                                 external_entity_data, single_document))
         if self.should_start_analysis():
             self.execute_tasks_and_store_output()
