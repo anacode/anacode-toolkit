@@ -196,3 +196,15 @@ def test_absa_cloud_save_throws_no_error(absa_dataset, aggregation, args,
 def test_correct_title_change(plot_name, series, expected):
     result = plotting.chart_title(plot_name, series)
     assert result == expected
+
+
+@pytest.mark.parametrize('string,exploded', [
+    ('ProductType',  'Product Type'),
+    ('SmartCar', 'Smart Car'),
+    ('BMW', 'BMW'),
+    ('Space', 'Space'),
+    ('Nimbus2000', 'Nimbus 2000'),
+    ('24Bank', '24 Bank'),
+])
+def test_explode_concepts(string, exploded):
+    assert plotting.explode_capitalized(string) == exploded

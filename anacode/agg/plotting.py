@@ -1,15 +1,33 @@
 # -*- coding: utf-8 -*-
+import re
 import os
 import random
 
 import numpy as np
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.font_manager
 
+from io import StringIO
 from anacode import codes
 
 from wordcloud import WordCloud, STOPWORDS
+
+
+def explode_capitalized(string):
+    """Inserts spaces inside capitalized input string.
+
+    :param string: Capitalized string
+    :type string: str
+    :return: str -- Capitalized string with spaces in it
+    """
+    result = StringIO()
+    for segment in re.findall(r'([A-Z][a-z]*|[0-9]+)', string):
+        result.write(segment)
+        if len(segment) > 1:
+            result.write(' ')
+    return result.getvalue().strip()
 
 
 def generate_color_func(colormap_name):
@@ -50,7 +68,6 @@ def chart_title(plot_id, series_index):
 
     # For non concept and non absa aggregations
     return plot_id
-
 
 
 def concept_cloud(aggregation, path=None, size=(600, 400), background='white',
@@ -219,8 +236,12 @@ def barhchart(aggregation, path=None, color='dull green', title=None):
     color = sns.xkcd_rgb.get(color, sns.xkcd_rgb['dull green'])
     plot_id = aggregation._plot_id
 
-    plot = sns.barplot(x=val_name, y=cat_name, data=agg, color=color)
+    exploded = agg[cat_name].map(explode_capitalized).rename('exploded')
+    agg = pd.concat([agg, exploded], axis=1)
+
+    plot = sns.barplot(x=val_name, y='exploded', data=agg, color=color)
     plot.set_xlabel(val_name)
+    plot.set_ylabel(cat_name)
     if title != '':
         if title is not None:
             plot.set_title(title, fontsize=14)
@@ -237,6 +258,7 @@ def barhchart(aggregation, path=None, color='dull green', title=None):
     if val_name == 'Sentiment':
         plot.set_xticks(list(range(-5, 6, 1)))
 
+    plt.tight_layout()
     if path is None:
         return plot
     plt.savefig(path)
