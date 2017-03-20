@@ -56,7 +56,7 @@ def test_categories_call(api, auth_header, mocker):
     mocker.spy(requests, 'post')
     api.analyze(['安全性能很好，很帅气。'], ['categories'])
     assert requests.post.call_count == 1
-    json_data = {'texts': ['安全性能很好，很帅气。'], 'analysis': ['categories']}
+    json_data = {'texts': ['安全性能很好，很帅气。'], 'analyses': ['categories']}
     requests.post.assert_called_once_with(
         urljoin(client.ANACODE_API_URL, 'analyze/'),
         headers=auth_header, json=json_data)
@@ -70,7 +70,7 @@ def test_sentiment_call(api, auth_header, mocker):
     requests.post.assert_called_once_with(
         urljoin(client.ANACODE_API_URL, 'analyze/'),
         headers=auth_header, json={'texts': ['安全性能很好，很帅气。'],
-                                   'analysis': ['sentiment']})
+                                   'analyses': ['sentiment']})
 
 
 @mock.patch('requests.post', empty_response)
@@ -81,7 +81,7 @@ def test_concepts_call(api, auth_header, mocker):
     requests.post.assert_called_once_with(
         urljoin(client.ANACODE_API_URL, 'analyze/'),
         headers=auth_header, json={'texts': ['安全性能很好，很帅气。'],
-                                   'analysis': ['concepts']})
+                                   'analyses': ['concepts']})
 
 
 @mock.patch('requests.post', empty_response)
@@ -92,7 +92,7 @@ def test_absa_call(api, auth_header, mocker):
     requests.post.assert_called_once_with(
         urljoin(client.ANACODE_API_URL, 'analyze/'),
         headers=auth_header, json={'texts': ['安全性能很好，很帅气。'],
-                                   'analysis': ['absa']})
+                                   'analyses': ['absa']})
 
 
 @pytest.mark.parametrize('code,call,args', [
