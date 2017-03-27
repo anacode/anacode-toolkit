@@ -241,14 +241,15 @@ def barhchart(aggregation, path=None, color='dull green', title=None):
 
     plot = sns.barplot(x=val_name, y='exploded', data=agg, color=color)
     plot.set_xlabel(val_name)
-    plot.set_ylabel(cat_name)
+    plot.set_ylabel(explode_capitalized(cat_name))
     if title != '':
         if title is not None:
             plot.set_title(title, fontsize=14)
         elif name is not None:
             automatic_chart_title = chart_title(aggregation._plot_id,
                                                 aggregation.index.name)
-            plot.set_title('{} - {}'.format(automatic_chart_title, name),
+            plot.set_title('{} - {}'.format(automatic_chart_title,
+                                            explode_capitalized(name)),
                            fontsize=14)
         else:
             automatic_chart_title = chart_title(aggregation._plot_id,
