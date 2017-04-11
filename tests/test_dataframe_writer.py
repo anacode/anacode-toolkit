@@ -4,6 +4,19 @@ from anacode.api import writers
 
 
 @pytest.fixture
+def concept_frames_reduced(concepts):
+    for response in concepts:
+        for concept in response:
+            del concept['surface']
+            del concept['relevance_score']
+    writer = writers.DataFrameWriter()
+    writer.init()
+    writer.write_concepts(concepts)
+    writer.close()
+    return writer.frames
+
+
+@pytest.fixture
 def concept_frames(concepts):
     writer = writers.DataFrameWriter()
     writer.init()
@@ -19,11 +32,20 @@ class TestDataFrameWriterConcepts:
         assert header == ['doc_id', 'text_order', 'concept', 'freq',
                           'relevance_score', 'concept_type']
 
+    def test_reduced_concepts_file_have_headers(self, concept_frames_reduced):
+        assert 'concepts' in concept_frames_reduced
+        header = concept_frames_reduced['concepts'].columns.tolist()
+        assert header == ['doc_id', 'text_order', 'concept', 'freq',
+                          'relevance_score', 'concept_type']
+
     def test_concepts_exprs_file_have_headers(self, concept_frames):
         assert 'concepts_surface_strings' in concept_frames
         header = concept_frames['concepts_surface_strings'].columns.tolist()
         assert header == ['doc_id', 'text_order', 'concept', 'surface_string',
                           'text_span']
+
+    def test_concepts_exprs_file_have_headers(self, concept_frames_reduced):
+        assert 'concepts_surface_strings' not in concept_frames_reduced
 
     def test_write_concepts(self, concept_frames):
         concepts = concept_frames['concepts']
@@ -32,6 +54,13 @@ class TestDataFrameWriterConcepts:
         assert row1 == [0, 0, 'Lenovo', 1, 1.0, 'brand']
         assert row2 == [1, 0, 'Samsung', 1, 1.0, 'brand']
 
+    def test_write_concepts(self, concept_frames_reduced):
+        concepts = concept_frames_reduced['concepts']
+        assert concepts.shape == (2, 6)
+        row1, row2 = concepts.iloc[0].tolist(), concepts.iloc[1].tolist()
+        assert row1 == [0, 0, 'Lenovo', 1, None, 'brand']
+        assert row2 == [1, 0, 'Samsung', 1, None, 'brand']
+
     def test_write_exprs(self, concept_frames):
         surface_strings = concept_frames['concepts_surface_strings']
         assert surface_strings.shape == (2, 5)
@@ -39,6 +68,9 @@ class TestDataFrameWriterConcepts:
         row2 = surface_strings.iloc[1].tolist()
         assert row1 == [0, 0, 'Lenovo', 'lenovo', '0-6']
         assert row2 == [1, 0, 'Samsung', 'samsung', '0-7']
+
+    def test_write_exprs(self, concept_frames_reduced):
+        assert 'concepts_surface_strings' not in concept_frames_reduced
 
 
 @pytest.fixture

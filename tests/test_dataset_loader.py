@@ -247,3 +247,23 @@ def test_dataset_loader_remove_concepts(frame_writer):
     dataset = agg.DatasetLoader.from_writer(frame_writer)
     dataset.remove_concepts(['Lenovo'])
     assert (dataset.concepts.concept_frequency(['Lenovo']) == [0]).all()
+
+
+@pytest.fixture
+def concept_dataset_writer_reduced(concepts):
+    for response in concepts:
+        for concept in response:
+            del concept['surface']
+            del concept['relevance_score']
+    writer = writers.DataFrameWriter()
+    writer.init()
+    writer.write_concepts(concepts)
+    writer.close()
+    return writer
+
+
+def test_load_incomplete_concepts(concept_dataset_writer_reduced):
+    dataset = agg.DatasetLoader.from_writer(concept_dataset_writer_reduced)
+    concepts = dataset.concepts
+    assert isinstance(concepts, agg.ConceptsDataset)
+    assert concepts.concept_frequency(['Lenovo', 'Samsung']).tolist() == [1, 1]

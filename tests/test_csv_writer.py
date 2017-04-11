@@ -41,6 +41,19 @@ def target(tmpdir):
 
 
 @pytest.fixture
+def csv_concepts_reduced(target, concepts):
+    for response in concepts:
+        for concept in response:
+            del concept['surface']
+            del concept['relevance_score']
+    csv_writer = writers.CSVWriter(str(target))
+    csv_writer.init()
+    csv_writer.write_concepts(concepts)
+    csv_writer.close()
+    return csv_writer
+
+
+@pytest.fixture
 def csv_concepts(target, concepts):
     csv_writer = writers.CSVWriter(str(target))
     csv_writer.init()
@@ -56,8 +69,19 @@ class TestCsvWriterConcepts:
         assert 'concepts.csv' in contents
         assert 'concepts_surface_strings.csv' in contents
 
+    def test_no_other_csvs_reduced(self, target, csv_concepts_reduced):
+        contents = [f.basename for f in target.listdir()]
+        assert len(contents) == 1
+        assert 'concepts.csv' in contents
+        assert 'concepts_surface_strings.csv' not in contents
 
     def test_concepts_file_have_headers(self, target, csv_concepts):
+        file_lines = target.join('concepts.csv').readlines()
+        header = file_lines[0].strip().split(',')
+        assert header == ['doc_id', 'text_order', 'concept', 'freq',
+                          'relevance_score', 'concept_type']
+
+    def test_concepts_file_have_headers(self, target, csv_concepts_reduced):
         file_lines = target.join('concepts.csv').readlines()
         header = file_lines[0].strip().split(',')
         assert header == ['doc_id', 'text_order', 'concept', 'freq',
