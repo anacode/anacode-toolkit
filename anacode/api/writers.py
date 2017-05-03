@@ -173,7 +173,7 @@ def _absa_relations_to_list(doc_id, order, relations):
                    rel['surface']['surface_string'],
                    '-'.join(map(str, rel['surface']['span']))]
         rel_list.append(rel_row)
-        for ent in rel['semantics']['entity']:
+        for ent in rel['semantics'].get('entity', []):
             ent_row = [doc_id, order, rel_index, ent['type'], ent['value']]
             ent_list.append(ent_row)
     return rel_list, ent_list
@@ -187,7 +187,7 @@ def _absa_evaluations_to_list(doc_id, order, evaluations):
                     evaluation['surface']['surface_string'],
                     '-'.join(map(str, evaluation['surface']['span']))]
         eval_list.append(eval_row)
-        for ent in evaluation['semantics']['entity']:
+        for ent in evaluation['semantics'].get('entity', []):
             ent_row = [doc_id, order, eval_index, ent['type'], ent['value']]
             ent_list.append(ent_row)
     return eval_list, ent_list
