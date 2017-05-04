@@ -257,7 +257,7 @@ def barhchart(aggregation, path=None, color='dull green', title=None):
             plot.set_title(automatic_chart_title, fontsize=14)
 
     if val_name == 'Sentiment':
-        plot.set_xticks(list(range(-5, 6, 1)))
+        plot.set_xticks(np.arange(-1.0, 1.2, 0.2))
 
     plt.tight_layout()
     if path is None:
