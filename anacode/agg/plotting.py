@@ -233,7 +233,8 @@ def barhchart(aggregation, path=None, color='dull green', title=None):
     agg = aggregation.reset_index()
     name = getattr(aggregation, '_entity', None) or \
            getattr(aggregation, '_concept', None)
-    color = sns.xkcd_rgb.get(color, sns.xkcd_rgb['dull green'])
+    if not re.match(r'#\d{6}', color):
+        color = sns.xkcd_rgb.get(color, sns.xkcd_rgb['dull green'])
     plot_id = aggregation._plot_id
 
     exploded = agg[cat_name].map(explode_capitalized).rename('exploded')
