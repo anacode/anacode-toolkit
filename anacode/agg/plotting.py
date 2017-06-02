@@ -6,7 +6,9 @@ import random
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import matplotlib.font_manager
 
 from io import StringIO
@@ -264,6 +266,40 @@ def barhchart(aggregation, path=None, color='dull green', title=None):
     if path is None:
         return plot
     plt.savefig(path)
+
+
+def frequency_relevance_chart(aggregation, path=None,
+                              bar_color='#f4a582', line_color='#404040'):
+    if not hasattr(aggregation, '_plot_id'):
+        raise ValueError('Aggregation needs to be pd.Series result from '
+                         'aggregation library!')
+
+    aggregation = aggregation.reset_index()
+    fig, ax = plt.subplots(figsize=(10, 9))
+    ax2 = ax.twiny()
+    ax2.xaxis.grid(False)
+    sns.barplot(x='Frequency', y='Concept', data=aggregation, color=bar_color,
+                ax=ax)
+    sns.pointplot(x='Relevance', y='Concept', data=aggregation, color=line_color,
+                  scale=0.5, linestyles='-',
+                  ax=ax2, label='Relevance')
+    ax.set_xlim((0, aggregation['Frequency'].max() + 1))
+    ax2.set_xlim((0.0, 1.1))
+    ax.set_ylabel('Concept')
+    ax.set_xlabel('Frequency')
+    ax2.set_xlabel('Relevance')
+    plt.legend(handles=[
+        mpatches.Patch(color=bar_color, label='Frequency'),
+        mlines.Line2D([], [], color=line_color, marker='.', markersize=12,
+                      label='Relevance')
+    ], loc='lower right')
+
+    plt.tight_layout()
+
+    if path is None:
+        return plot
+    plt.savefig(path)
+
 
 
 def plot(aggregation, path=None, **kwargs):
