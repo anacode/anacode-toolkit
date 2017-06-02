@@ -391,6 +391,35 @@ class ConceptsDataset(ApiCallDataset):
         return frequencies
 
 
+    def frequency_relevance(self, concepts=None, n=15, concept_type=''):
+        if self._concepts is None:
+            raise NoRelevantData('Relevant concept data is not available!')
+
+        if concept_type not in self._concept_filter:
+            msg = '"{}" not valid filter string'.format(concept_type)
+            raise ValueError(msg)
+
+        con = self._concepts
+        if concept_type:
+            con = con[con.concept_type == concept_type]
+        if concepts:
+            con = con[con.concept.isin(set(concepts))]
+
+        agg = {'freq': 'sum', 'relevance_score': 'mean'}
+        result = con.groupby('concept').agg(agg)
+        if not concepts:
+            result.sort_values('relevance_score', ascending=False, inplace=True)
+            result = result.head(n)
+        elif isinstance(concepts, (list, tuple)):
+            result = result.reindex(concepts)
+        result.rename(inplace=True, columns={'relevance_score': 'Relevance',
+                                             'freq': 'Frequency'})
+        result.index.name = _capitalize(concept_type) or 'Concept'
+        result = result[result['Relevance'].isnull() == False]
+        result._plot_id = codes.FREQUENCY_RELEVANCE
+        return result
+
+
 class CategoriesDataset(ApiCallDataset):
     """Categories dataset container with easy aggregation
     capabilities.

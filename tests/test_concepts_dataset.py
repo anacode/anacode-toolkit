@@ -14,10 +14,10 @@ def frame_concepts():
                   'concept_type']
     exp_header = ['doc_id', 'text_order', 'concept', 'surface_string']
     cons = pd.DataFrame([
-        [0, 0, 'Lenovo', 1, 1.0, 'brand'],
-        [0, 1, 'Samsung', 1, 1.0, 'brand'],
+        [0, 0, 'Lenovo', 1, 0.4, 'brand'],
+        [0, 1, 'Samsung', 1, 0.5, 'brand'],
         [0, 1, 'Lenovo', 2, 1.0, 'brand'],
-        [0, 1, 'VisualAppearance', 2, 1.0, 'feature'],
+        [0, 1, 'VisualAppearance', 2, 0.1, 'feature'],
     ], columns=con_header)
     exps = pd.DataFrame([
         [0, 0, 'Lenovo', 'lenovo'],
@@ -156,13 +156,13 @@ def idf_dataset():
     con_header = ['doc_id', 'text_order', 'concept', 'freq', 'relevance_score',
                   'concept_type']
     concepts = pd.DataFrame([
-        [0, 0, 'Lenovo', 1, 1.0, 'brand'],
+        [0, 0, 'Lenovo', 1, 0.9, 'brand'],
         [0, 0, 'BMW', 1, 1.0, 'brand'],
-        [1, 0, 'Samsung', 1, 1.0, 'brand'],
-        [1, 0, 'Lenovo', 1, 1.0, 'brand'],
-        [2, 0, 'Lenovo', 2, 1.0, 'brand'],
-        [2, 1, 'VisualAppearance', 2, 1.0, 'feature'],
-        [3, 0, 'VisualAppearance', 2, 1.0, 'feature'],
+        [1, 0, 'Samsung', 1, 0.33, 'brand'],
+        [1, 0, 'Lenovo', 1, 0.89, 'brand'],
+        [2, 0, 'Lenovo', 2, 0.45, 'brand'],
+        [2, 1, 'VisualAppearance', 2, 0.99, 'feature'],
+        [3, 0, 'VisualAppearance', 2, 0.121, 'feature'],
     ], columns=con_header)
     return agg.ConceptsDataset(concepts, None)
 
@@ -289,3 +289,24 @@ def test_time_series(time_dataset, time_info, days, start, stop, counts):
     assert result['Start'].tolist()[:len(starts)] == starts
     assert len(result['Stop'].tolist()) == len(stops) * len(concepts)
     assert result['Stop'].tolist()[:len(stops)] == stops
+
+
+@pytest.mark.parametrize('n', [10, 3, 2])
+def test_frequency_relevance_ordering(dataset, n):
+    result = dataset.frequency_relevance(n=n)
+    assert result.index.tolist() == ['Lenovo', 'Samsung', 'VisualAppearance'][:n]
+    assert result.index.name == 'Concept'
+    assert set(result.columns) == {'Relevance','Frequency'}
+    assert result['Relevance'].tolist() == [0.7, 0.5, 0.1][:n]
+    assert result['Frequency'].tolist() == [3, 1, 2][:n]
+    assert result._plot_id == agg.codes.FREQUENCY_RELEVANCE
+
+
+def test_frequency_relevance_specific(dataset):
+    result = dataset.frequency_relevance(['VisualAppearance', 'Lenovo'])
+    assert result.index.tolist() == ['VisualAppearance', 'Lenovo']
+    assert result.index.name == 'Concept'
+    assert set(result.columns) == {'Relevance','Frequency'}
+    assert result['Relevance'].tolist() == [0.1, 0.7]
+    assert result['Frequency'].tolist() == [2, 3]
+    assert result._plot_id == agg.codes.FREQUENCY_RELEVANCE

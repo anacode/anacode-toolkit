@@ -10,6 +10,7 @@ LEAST_COMMON_CONCEPTS = 'Least Common Concepts'
 CO_OCCURING_CONCEPTS = 'Co-Occurring Concepts'
 CONCEPT_CLOUD = 'Concept Cloud'
 CONCEPT_FREQUENCY = 'Concept Frequencies'
+FREQUENCY_RELEVANCE = 'Concept Relevance'
 
 AGGREGATED_CATEGORIES = 'Categories'
 
