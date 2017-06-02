@@ -652,7 +652,7 @@ class ABSADataset(ApiCallDataset):
         idx = ['doc_id', 'text_order', 'relation_id']
         rels, ents = self._relations, self._relations_entities
         rels = rels[rels.sentiment_value.abs() < 100]
-        ent_evals = rels.set_index(idx).join(ents.set_index(idx)).reset_index()
+        ent_evals = pd.merge(rels, ents, 'inner', on=idx)
         ent_evals = ent_evals[ent_evals.entity_type.str.startswith(entity_type)]
         agg = {'sentiment_value': 'mean'}
         mean_evals = ent_evals.groupby('entity_name').agg(agg)
