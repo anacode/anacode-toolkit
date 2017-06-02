@@ -188,22 +188,22 @@ Data loading
 The Anacode Toolkit provides the :class:`anacode.agg.aggregation.DatasetLoader` for
 loading analysed data from different formats:
 
-#. Lists of JSON outputs
 
-    If you just stored the raw JSON output of the Web\&Text API into a list of python dictionaries, you
-    can use
-    :func:`DatasetLoader.from_lists <anacode.agg.aggregation.DatasetLoader.from_lists>`
-    to load them. This converts your lists into pandas dataframes.
+#. From analysis result of API
+
+    If you have either result dictionary from anacode API or list of these
+    results you can load them to memory using
+    :func:`DatasetLoader.from_api_result <anacode.agg.aggregation.DatasetLoader.from_api_result>`.
 
     .. code-block:: python
 
         >>> from anacode.agg import DatasetLoader
-        >>> absa_json_list = [ '...' ]
-        >>> categories_json_list = [ '...' ]
-        >>> dataset = DatasetLoader.from_lists(
-        >>>     categories=categories_json_list,
-        >>>     absa=absa_json_list,
-        >>> )
+        >>> from anacode.api import client
+        >>> api = client.AnacodeClient('<your token>')
+        >>> result1 = api.analyze(['...'], analyses=['concepts'])
+        >>> single_result_dataset = DatasetLoader.from_api_result(result1)
+        >>> result2 = api.analyze(['...'], analyses=['concepts'])
+        >>> whole_result_dataset = DatasetLoader.from_api_result([result1, result2])
 
 
 #. Path to folder with csv files
