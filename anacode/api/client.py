@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import time
+import json
 import requests
 from multiprocessing.dummy import Pool
 try:
@@ -12,6 +13,7 @@ from anacode import codes
 from anacode.api import writers
 
 
+MAX_REQUEST_BYTES_SIZE = 1000 ** 2
 ANACODE_API_URL = os.getenv('ANACODE_API_URL', 'https://api.anacode.de/')
 
 
@@ -29,6 +31,46 @@ def _analysis(call_endpoint, auth, max_retries=3, **kwargs):
                 time.sleep(0.1)
         else:
             return res
+
+
+def optimal_requests(data, analyses, max_size=MAX_REQUEST_BYTES_SIZE):
+    """Yields text lists from `data` that will fit into maximum request size.
+    Will not reorder texts - they will be send to server in order they appear
+    in `data`. You also need to provide list of `analyses` that you will be
+    calling on returned texts so that final json size may be computed properly.
+    
+    :param data: Iterable with chinese texts
+    :param analyses: List of analyses to perform. Can only have 'concepts',
+     'categories', 'sentiment' and 'absa' values.
+    :param max_size: Request body maximum size. Json with encoded text and 
+     analysis list has to fit into this size.
+    :return: Generator yielding lists of chinese texts
+    """
+    analyses = set(analyses)
+    extra = analyses - {'concepts', 'categories', 'sentiment', 'absa'}
+    if len(extra) > 0:
+        raise ValueError('No support for {} analyses'.format(', '.join(extra)))
+    analyses = list(analyses)
+
+    json_temp = json.dumps({'text': ['%%mark%%'], 'analyses': analyses})
+    start, stop = json_temp.split('"%%mark%%"')
+    empty_length = len(start) + len(stop)
+
+    result = []
+    length = empty_length
+    for text in data:
+        new_string = json.dumps(text)
+        current_diff = max_size - length
+        if current_diff < len(new_string) + 1:
+            yield result
+            result = []
+            length = empty_length
+
+        length += len(new_string) + 1
+        result.append(text)
+
+    if result:
+        yield result
 
 
 class AnacodeClient(object):
