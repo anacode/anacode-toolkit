@@ -428,7 +428,7 @@ class CategoriesDataset(ApiCallDataset):
         """Initialize instance by providing categories data set.
 
         :param categories: List of document category probabilities
-        :type categories: pandas.DateFrame
+        :type categories: pandas.DataFrame
         """
         self._categories = categories
 
@@ -470,7 +470,7 @@ class SentimentDataset(ApiCallDataset):
         """Initialize instance by providing sentiments data set.
 
         :param sentiments: List of document sentiment inclinations
-        :type sentiments: pandas.DateFrame
+        :type sentiments: pandas.DataFrame
         """
         self._sentiments = sentiments
 
@@ -824,9 +824,9 @@ class DatasetLoader(object):
         :param concepts_surface_strings: List of strings realizing concepts
         :type concepts_surface_strings: pandas.DataFrame
         :param categories: List of document category probabilities
-        :type categories: pandas.DateFrame
+        :type categories: pandas.DataFrame
         :param sentiments: List of document sentiment polarities
-        :type sentiments: pandas.DateFrame
+        :type sentiments: pandas.DataFrame
         :param absa_entities: List of absa entities used in texts
         :type absa_entities: pandas.DataFrame
         :param absa_normalized_texts: List of Chinese normalized strings identified and analyzed by absa
