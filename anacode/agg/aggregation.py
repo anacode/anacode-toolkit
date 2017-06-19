@@ -89,11 +89,11 @@ class ConceptsDataset(ApiCallDataset):
         counts = con[con.concept.isin(concept)].groupby('concept')['freq'].sum()
 
         if isinstance(concept, (tuple, list)):
-            counts = counts[concept]
+            counts = counts.reindex(concept)
         elif isinstance(concept, set):
-            counts = counts[list(concept)]
+            counts = counts.reindex(list(concept))
         else:
-            counts = counts[concept]
+            counts = counts.reindex(concept)
 
         result = counts.rename('Count').replace(np.nan, 0)
         result.index.name = _capitalize(concept_type) or 'Concept'
@@ -206,16 +206,19 @@ class ConceptsDataset(ApiCallDataset):
         relevant_texts = con[identity_filter][['doc_id', 'text_order']]
         relevant_texts = relevant_texts.set_index(['doc_id', 'text_order'])
 
-        if concept_type:
-            type_filter = con.concept_type == concept_type
-        else:
-            type_filter = True
-        con = con[type_filter & (identity_filter == False)]
-        con = relevant_texts.join(con.set_index(['doc_id', 'text_order']))
+        if relevant_texts.shape[0] != 0:
+            if concept_type:
+                type_filter = con.concept_type == concept_type
+            else:
+                type_filter = True
+            con = con[type_filter & (identity_filter == False)]
+            con = relevant_texts.join(con.set_index(['doc_id', 'text_order']))
 
-        con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
-        con_counts = con_counts.rename('Count').sort_values(ascending=False)
-        result = con_counts[:n].astype(int)
+            con_counts = con.groupby('concept').agg({'freq': 'sum'}).freq
+            con_counts = con_counts.rename('Count').sort_values(ascending=False)
+            result = con_counts[:n].astype(int)
+        else:
+            result = pd.Series([]).rename('Count')
         result.index.name = _capitalize(concept_type) or 'Concept'
         result._concept = concept
         result._plot_id = codes.CO_OCCURING_CONCEPTS
@@ -550,11 +553,11 @@ class ABSADataset(ApiCallDataset):
         counts = ents['entity_name'].value_counts(normalize=normalize)
 
         if isinstance(entity, (tuple, list)):
-            counts = counts[entity]
+            counts = counts.reindex(entity)
         elif isinstance(entity, set):
-            counts = counts[list(entity)]
+            counts = counts.reindex(list(entity))
         else:
-            counts = counts[entity]
+            counts = counts.reindex(entity)
 
         result = counts.rename('Count').replace(np.nan, 0)
         result.index.name = _capitalize(entity_type) or 'Entity'
@@ -800,7 +803,7 @@ class ABSADataset(ApiCallDataset):
 
         means = entity_evals.groupby('entity_name')['sentiment_value'].mean()
         means.index.name = 'Entity'
-        result = means[list(entity)].rename('Sentiment')
+        result = means.reindex(list(entity)).rename('Sentiment')
         result._plot_id = codes.ENTITY_SENTIMENT
         return result
 

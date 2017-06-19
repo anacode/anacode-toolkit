@@ -160,7 +160,7 @@ def absa_dataset(frame_absa):
     ('co_occurring_entities', ['Lenovo'], 'barhchart'),
     ('best_rated_entities', [], 'barhchart'),
     ('worst_rated_entities', [], 'barhchart'),
-    ('entity_sentiment', [['Lenovo', 'Samsung']], 'barhchart'),
+    ('entity_sentiment', [['Safety', 'VisualAppearance']], 'barhchart'),
 ])
 def test_absa_aggregation_image_plot(absa_dataset, aggregation, args,
                                      plotmethod):
@@ -176,7 +176,7 @@ def test_absa_aggregation_image_plot(absa_dataset, aggregation, args,
     ('co_occurring_entities', ['Lenovo'], 'barhchart'),
     ('best_rated_entities', [], 'barhchart'),
     ('worst_rated_entities', [], 'barhchart'),
-    ('entity_sentiment', [['Lenovo', 'Samsung']], 'barhchart'),
+    ('entity_sentiment', [['Safety', 'VisualAppearance']], 'barhchart'),
 ])
 def test_absa_cloud_save_throws_no_error(absa_dataset, aggregation, args,
                                          plotmethod, tmpdir):

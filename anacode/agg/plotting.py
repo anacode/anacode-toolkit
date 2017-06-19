@@ -113,8 +113,8 @@ def concept_cloud(aggregation, path=None, size=(600, 400), background='white',
     stopwords = set(w.lower() for w in stopwords)
 
     frequencies = [tuple(row.tolist()) for _, row in aggregation.iterrows()]
-    frequencies = [(word, freq) for word, freq in frequencies
-                   if word.lower() not in stopwords]
+    frequencies = {word: freq for word, freq in frequencies
+                   if word.lower() not in stopwords}
 
     if font is not None and not os.path.isfile(font):
         font = matplotlib.font_manager.findfont(font)

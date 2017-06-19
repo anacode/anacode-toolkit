@@ -44,6 +44,15 @@ def test_empty_dataset_failure(aggreg_func, args):
         func(*args)
 
 
+@pytest.mark.parametrize('aggreg_func,targs', [
+    ('concept_frequency', ['Nothing']),
+    ('concept_frequency', [['Nothing', 'Everything']]),
+    ('co_occurring_concepts', ['Nothing']),
+])
+def test_non_existing_concepts(dataset, aggreg_func, targs):
+    assert len(getattr(dataset, aggreg_func)(*targs).shape) == 1
+
+
 @pytest.mark.parametrize('concept,frequency', [
     ('Lenovo', [3]),
     ('Samsung', [1]),

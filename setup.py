@@ -14,6 +14,7 @@ setup(
     packages=find_packages(),
     install_requires=['requests', 'pandas', 'seaborn', 'matplotlib',
                       'wordcloud', 'pillow', 'nltk'],
-    tests_require=['pytest', 'mock', 'pytest-mock', 'freezegun'],
+    tests_require=['pytest', 'mock', 'pytest-mock', 'freezegun', 'notebook',
+                   'ipywidgets'],
     classifiers=[],
 )
