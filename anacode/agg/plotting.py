@@ -25,9 +25,10 @@ def explode_capitalized(string):
     :return: str -- Capitalized string with spaces in it
     """
     result = StringIO()
-    for segment in re.findall(r'([A-Z][a-z]*|[0-9]+)', string):
-        result.write(segment)
-        if len(segment) > 1:
+    for segment in re.findall(r'([A-Z][a-z]*|[0-9]+)(\-?)', string):
+        result.write(segment[0])
+        result.write(segment[1])
+        if len(segment[0]) > 1 and segment[1] != '-':
             result.write(' ')
     return result.getvalue().strip()
 

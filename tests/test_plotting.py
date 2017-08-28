@@ -206,6 +206,7 @@ def test_correct_title_change(plot_name, series, expected):
     ('Nimbus2000', 'Nimbus 2000'),
     ('24Bank', '24 Bank'),
     ('TeslaX', 'Tesla X'),
+    ('Two-WaySolenoidValve', 'Two-Way Solenoid Valve'),
 ])
 def test_explode_concepts(string, exploded):
     assert plotting.explode_capitalized(string) == exploded
