@@ -21,6 +21,7 @@ def frame_concepts():
     ], columns=con_header)
     exps = pd.DataFrame([
         [0, 0, 'Lenovo', 'lenovo'],
+        [0, 1, 'Lenovo', 'lenlen'],
         [0, 1, 'Samsung', 'samsung'],
     ], columns=exp_header)
     return {'concepts': cons, 'surface_strings': exps}
@@ -319,3 +320,16 @@ def test_frequency_relevance_specific(dataset):
     assert result['Relevance'].tolist() == [0.1, 0.7]
     assert result['Frequency'].tolist() == [2, 3]
     assert result._plot_id == agg.codes.FREQUENCY_RELEVANCE
+
+
+def test_unique_surface_forms_all(dataset):
+    result = dataset.surface_forms('Lenovo')
+    assert isinstance(result, set)
+    assert result == {'lenovo', 'lenlen'}
+
+
+def test_unique_surface_forms_number_constraint(dataset):
+    result = dataset.surface_forms('lenovo', 1)
+    assert isinstance(result, set)
+    assert len(result) == 1
+    assert next(iter(result)) in {'lenovo', 'lenlen'}

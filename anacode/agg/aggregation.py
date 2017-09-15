@@ -422,6 +422,22 @@ class ConceptsDataset(ApiCallDataset):
         result._plot_id = codes.FREQUENCY_RELEVANCE
         return result
 
+    def surface_forms(self, concept, n=15):
+        """Find `n` random surface strings from analyzed text that were
+        identified as `concept`.
+
+        :param concept: Inspect this concept surface forms.
+        :param n: Maximum number of unique surface forms returned
+        :return: set -- Set with maximum of `n` surface forms of `concept`
+        """
+        if self._surface_strings is None:
+            raise NoRelevantData('Relevant surface data is not available!')
+
+        data = self._surface_strings
+        data = data[data.concept.str.lower() == concept.lower()]
+        surface_forms = list(data.surface_string.unique())
+        return set(surface_forms[:n])
+
 
 class CategoriesDataset(ApiCallDataset):
     """Categories dataset container with easy aggregation
