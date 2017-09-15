@@ -107,7 +107,7 @@ def concepts_to_list(doc_id, analyzed, single_document=False):
     """
     con_list, exp_list = [], []
     for order, text_analyzed in enumerate(analyzed):
-        for concept in text_analyzed:
+        for concept in text_analyzed or []:
             row = [doc_id, 0, concept.get('concept'),
                    concept.get('freq'), concept.get('relevance_score'),
                    concept.get('type')]
